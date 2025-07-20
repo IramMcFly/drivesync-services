@@ -33,7 +33,7 @@ export default function LoginForm() {
     if (result?.error) {
       setError(result.error === "CredentialsSignin" ? "Credenciales inválidas" : result.error);
     } else if (result?.ok) {
-      router.push("/view");
+          router.push("view/main/servicios-express");
     }
   }
 
@@ -263,7 +263,7 @@ export default function LoginForm() {
             {/* Register link */}
             <p className="text-center text-sm text-zinc-500 mt-2">
               ¿No tiene una cuenta?{" "}
-              <Link href="/register" className="text-orange-500 hover:text-orange-400 hover:underline">
+              <Link href="/view/forms/auth/register" className="text-orange-500 hover:text-orange-400 hover:underline">
                 Registrarse
               </Link>
             </p>
