@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +13,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,12 +35,22 @@ const Register = () => {
       });
       const data = await res.json();
       if (res.ok && data.message) {
-        setMessage(data.message);
-        setEmail('');
-        setPassword('');
-        setNombre('');
-        setTelefono('');
-        setFoto(null);
+        // Login automático tras registro exitoso
+        const loginResult = await signIn("credentials", {
+          redirect: false,
+          email,
+          password
+        });
+        if (loginResult?.ok) {
+          router.push("/view");
+        } else {
+          setMessage(data.message);
+          setEmail('');
+          setPassword('');
+          setNombre('');
+          setTelefono('');
+          setFoto(null);
+        }
       } else {
         setError(data.error || 'Error al registrar usuario');
       }
