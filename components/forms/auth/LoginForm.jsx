@@ -52,7 +52,7 @@ export default function LoginForm() {
     if (result.error) {
       setError('Credenciales incorrectas');
     } else {
-      router.push('/main/userProfile');
+      router.push('/main/servicios-express');
     }
     setLoading(false);
   };
