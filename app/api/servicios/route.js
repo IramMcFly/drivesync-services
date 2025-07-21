@@ -30,6 +30,10 @@ export async function PUT(request) {
     }
   } else {
     updateData = await request.json();
+    // Si la imagen viene como objeto { data, type, name }
+    if (updateData.imagen && updateData.imagen.data) {
+      updateData.imagen = Buffer.from(updateData.imagen.data);
+    }
   }
   try {
     const { _id, ...rest } = updateData;
@@ -98,6 +102,10 @@ export async function POST(request) {
     }
   } else {
     data = await request.json();
+    // Si la imagen viene como objeto { data, type, name }
+    if (data.imagen && data.imagen.data) {
+      data.imagen = Buffer.from(data.imagen.data);
+    }
   }
   try {
     const nuevoServicio = await Servicio.create(data);

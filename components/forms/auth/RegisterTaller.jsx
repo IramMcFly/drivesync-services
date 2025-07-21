@@ -18,6 +18,25 @@ const RegisterTaller = ({ onSuccess }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // Servicios
+  const [servicios, setServicios] = useState([]);
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
+  // Obtener servicios al montar
+  React.useEffect(() => {
+    fetch('/api/servicios')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setServicios(data);
+      });
+  }, []);
+  // Toggle de servicios
+  const toggleServicio = (id) => {
+    setServiciosSeleccionados(prev =>
+      prev.includes(id)
+        ? prev.filter(sid => sid !== id)
+        : [...prev, id]
+    );
+  };
 
   // Obtener ubicación actual al montar
   React.useEffect(() => {
@@ -66,6 +85,7 @@ const RegisterTaller = ({ onSuccess }) => {
           lng: ubicacion.lng,
           direccion,
         },
+        servicios: serviciosSeleccionados,
       };
       const res = await fetch('/api/talleres', {
         method: 'POST',
@@ -147,6 +167,33 @@ const RegisterTaller = ({ onSuccess }) => {
         }}>
           Registro de Taller
         </h2>
+        {/* Selección de servicios */}
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ color: '#FF4500', fontWeight: 700, marginBottom: 6, display: 'block' }}>Servicios que ofrece</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {servicios.length === 0 && <span style={{ color: '#bbb', fontSize: 14 }}>Cargando servicios...</span>}
+            {servicios.map(servicio => (
+              <button
+                type="button"
+                key={servicio._id}
+                onClick={() => toggleServicio(servicio._id)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: 20,
+                  border: '2px solid #FF4500',
+                  background: serviciosSeleccionados.includes(servicio._id) ? '#FF4500' : 'transparent',
+                  color: serviciosSeleccionados.includes(servicio._id) ? '#fff' : '#FF4500',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  marginBottom: 4,
+                }}
+              >
+                {servicio.nombre}
+              </button>
+            ))}
+          </div>
+        </div>
         <div style={{ position: 'relative' }}>
           <FaUserAlt style={{
             position: 'absolute',
