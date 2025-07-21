@@ -18,7 +18,11 @@ export async function PUT(request) {
     const subtipos = formData.get('subtipos');
     if (subtipos) {
       try {
-        updateData.subtipos = JSON.parse(subtipos);
+        // Asegurarse que cada subtipo tenga nombre y precio (no descripcion)
+        const parsed = JSON.parse(subtipos);
+        updateData.subtipos = Array.isArray(parsed)
+          ? parsed.map(s => ({ nombre: s.nombre, precio: Number(s.precio) }))
+          : [];
       } catch {
         updateData.subtipos = [];
       }
@@ -33,6 +37,10 @@ export async function PUT(request) {
     // Si la imagen viene como objeto { data, type, name }
     if (updateData.imagen && updateData.imagen.data) {
       updateData.imagen = Buffer.from(updateData.imagen.data);
+    }
+    // Asegurarse que los subtipos tengan nombre y precio
+    if (Array.isArray(updateData.subtipos)) {
+      updateData.subtipos = updateData.subtipos.map(s => ({ nombre: s.nombre, precio: Number(s.precio) }));
     }
   }
   try {
@@ -90,7 +98,11 @@ export async function POST(request) {
     const subtipos = formData.get('subtipos');
     if (subtipos) {
       try {
-        data.subtipos = JSON.parse(subtipos);
+        // Asegurarse que cada subtipo tenga nombre y precio (no descripcion)
+        const parsed = JSON.parse(subtipos);
+        data.subtipos = Array.isArray(parsed)
+          ? parsed.map(s => ({ nombre: s.nombre, precio: Number(s.precio) }))
+          : [];
       } catch {
         data.subtipos = [];
       }
@@ -105,6 +117,10 @@ export async function POST(request) {
     // Si la imagen viene como objeto { data, type, name }
     if (data.imagen && data.imagen.data) {
       data.imagen = Buffer.from(data.imagen.data);
+    }
+    // Asegurarse que los subtipos tengan nombre y precio
+    if (Array.isArray(data.subtipos)) {
+      data.subtipos = data.subtipos.map(s => ({ nombre: s.nombre, precio: Number(s.precio) }));
     }
   }
   try {

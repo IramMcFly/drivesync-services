@@ -224,8 +224,28 @@ export default function AdminPanel() {
       <ul className="divide-y divide-zinc-700 mt-4">
         {items.map(item => (
           <li key={item._id} className="flex flex-col md:flex-row md:items-center md:justify-between py-2 gap-2">
-            <div className="flex-1 text-xs md:text-sm">
+            <div className="flex-1 text-xs md:text-sm flex flex-wrap items-center gap-2 max-w-full overflow-x-auto">
               {Object.entries(item).map(([key, value]) => {
+                if (key === "imagen" || key === "foto") {
+                  // Mostrar miniatura si es buffer
+                  if (value && value.data && Array.isArray(value.data)) {
+                    const base64 = typeof window !== 'undefined' && window.Buffer
+                      ? window.Buffer.from(value.data).toString('base64')
+                      : btoa(String.fromCharCode.apply(null, value.data));
+                    const mimeType = value.type || 'image/jpeg';
+                    return (
+                      <span key={key} className="inline-block mr-2 align-middle">
+                        <span className="font-bold text-zinc-400">{key}:</span>
+                        <img
+                          src={`data:${mimeType};base64,${base64}`}
+                          alt={key}
+                          style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, display: 'inline-block', marginLeft: 4, verticalAlign: 'middle' }}
+                        />
+                      </span>
+                    );
+                  }
+                  return null;
+                }
                 if (key === "servicios" && Array.isArray(value)) {
                   return (
                     <span key={key} className="block mb-1">
@@ -246,15 +266,20 @@ export default function AdminPanel() {
                       {value.length === 0 && <span className="ml-2">Ninguno</span>}
                       {value.map((sub, idx) => (
                         <span key={idx} className="ml-2 inline-block bg-zinc-800 px-2 py-1 rounded">
-                          {sub.nombre} {sub.descripcion && <span className="text-xs text-zinc-400">({sub.descripcion})</span>}
+                          {sub.nombre} {typeof sub.precio !== 'undefined' && <span className="text-xs text-zinc-400">(${sub.precio})</span>}
                         </span>
                       ))}
                     </span>
                   );
                 }
+                // Limitar longitud de strings largos
+                let displayValue = typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value);
+                if (displayValue.length > 40) {
+                  displayValue = displayValue.slice(0, 37) + '...';
+                }
                 return (
-                  <span key={key} className="inline-block mr-2">
-                    <span className="font-bold text-zinc-400">{key}:</span> {typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value)}
+                  <span key={key} className="inline-block mr-2 align-middle max-w-xs truncate">
+                    <span className="font-bold text-zinc-400">{key}:</span> {displayValue}
                   </span>
                 );
               })}
@@ -322,12 +347,12 @@ function SubtiposInput({ value, onChange, disabled }) {
   }, [value]);
 
   const handleSubtipoChange = (idx, key, val) => {
-    const nuevos = subtipos.map((s, i) => i === idx ? { ...s, [key]: val } : s);
+    const nuevos = subtipos.map((s, i) => i === idx ? { ...s, [key]: key === 'precio' ? Number(val) : val } : s);
     setSubtipos(nuevos);
     onChange(nuevos);
   };
   const handleAdd = () => {
-    const nuevos = [...subtipos, { nombre: "", descripcion: "" }];
+    const nuevos = [...subtipos, { nombre: "", precio: 0 }];
     setSubtipos(nuevos);
     onChange(nuevos);
   };
@@ -349,9 +374,11 @@ function SubtiposInput({ value, onChange, disabled }) {
           />
           <input
             className="bg-zinc-700 text-white px-2 py-1 rounded"
-            placeholder="Descripción"
-            value={sub.descripcion || ""}
-            onChange={e => handleSubtipoChange(idx, "descripcion", e.target.value)}
+            placeholder="Precio"
+            type="number"
+            min="0"
+            value={typeof sub.precio === 'number' ? sub.precio : ''}
+            onChange={e => handleSubtipoChange(idx, "precio", e.target.value)}
             disabled={disabled}
           />
           <button type="button" className="text-red-400 px-2" onClick={() => handleRemove(idx)} disabled={disabled}>Eliminar</button>

@@ -7,7 +7,7 @@ const servicioSchema = new mongoose.Schema({
   descripcion: { type: String, trim: true },
   subtipos: [{
     nombre: { type: String, required: true, trim: true },
-    descripcion: { type: String, trim: true },
+    precio: { type: Number, required: true, min: 0 },
   }],
   precioMin: { type: Number, required: true, min: 0 },
   precioMax: { type: Number, required: true, min: 0 },
