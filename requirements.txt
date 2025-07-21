@@ -27,3 +27,4 @@ npm i bcrypt
 npm install react-leaflet leaflet
 npm install axios
 npm install next-auth
+npm install yup

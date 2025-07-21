@@ -1,11 +1,11 @@
 // models/ServiceRequest.js
 import mongoose from 'mongoose';
 
-
 const serviceRequestSchema = new mongoose.Schema({
   cliente: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   taller: { type: mongoose.Schema.Types.ObjectId, ref: 'Taller', required: true },
   servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio', required: true },
+  subtipo: { type: String },
   asistente: { type: mongoose.Schema.Types.ObjectId, ref: 'Asistente' }, // se asigna automáticamente
   estado: { type: String, enum: ['pendiente', 'asignado', 'en_camino', 'finalizado', 'cancelado'], default: 'pendiente' },
   detallesVehiculo: {
@@ -17,8 +17,8 @@ const serviceRequestSchema = new mongoose.Schema({
   ubicacion: {
     lat: Number,
     lng: Number,
-    direccion: String,
   },
+  precio: { type: Number, required: true },
   historial: [{
     estado: String,
     fecha: { type: Date, default: Date.now },

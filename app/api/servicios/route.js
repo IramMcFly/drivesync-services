@@ -1,11 +1,39 @@
-import mongoose from 'mongoose';
+
+import { connectDB } from '@/lib/mongoose';
+import Servicio from '@/models/Servicio';
+import { NextResponse } from 'next/server';
+
 // PUT: Editar un servicio existente
 export async function PUT(request) {
   await connectDB();
-  const body = await request.json();
+  const contentType = request.headers.get('content-type') || '';
+  let updateData = {};
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await request.formData();
+    updateData._id = formData.get('_id');
+    updateData.nombre = formData.get('nombre');
+    updateData.descripcion = formData.get('descripcion');
+    updateData.precioMin = Number(formData.get('precioMin'));
+    updateData.precioMax = Number(formData.get('precioMax'));
+    const subtipos = formData.get('subtipos');
+    if (subtipos) {
+      try {
+        updateData.subtipos = JSON.parse(subtipos);
+      } catch {
+        updateData.subtipos = [];
+      }
+    }
+    const imagen = formData.get('imagen');
+    if (imagen && typeof imagen.arrayBuffer === 'function') {
+      const arrayBuffer = await imagen.arrayBuffer();
+      updateData.imagen = Buffer.from(arrayBuffer);
+    }
+  } else {
+    updateData = await request.json();
+  }
   try {
-    const { _id, ...updateData } = body;
-    const servicio = await Servicio.findByIdAndUpdate(_id, updateData, { new: true });
+    const { _id, ...rest } = updateData;
+    const servicio = await Servicio.findByIdAndUpdate(_id, rest, { new: true });
     if (!servicio) return NextResponse.json({ error: 'Servicio no encontrado' }, { status: 404 });
     return NextResponse.json(servicio);
   } catch (error) {
@@ -27,25 +55,54 @@ export async function DELETE(request) {
     return NextResponse.json({ error: 'Error al eliminar servicio', details: error.message }, { status: 400 });
   }
 }
-import { connectDB } from '@/lib/mongoose'
-import Servicio from '@/models/Servicio'
-import { NextResponse } from 'next/server'
 
-// GET: Listar todos los servicios
-export async function GET() {
-  await connectDB()
-  const servicios = await Servicio.find({ activo: true })
-  return NextResponse.json(servicios)
+// GET: Listar todos los servicios o uno por ID
+export async function GET(request) {
+  await connectDB();
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (id) {
+    const servicio = await Servicio.findById(id);
+    if (!servicio) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    return NextResponse.json(servicio);
+  } else {
+    const servicios = await Servicio.find({});
+    return NextResponse.json(servicios);
+  }
 }
 
 // POST: Crear un nuevo servicio
 export async function POST(request) {
-  await connectDB()
-  const body = await request.json()
+  await connectDB();
+  const contentType = request.headers.get('content-type') || '';
+  let data = {};
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await request.formData();
+    data.nombre = formData.get('nombre');
+    data.descripcion = formData.get('descripcion');
+    data.precioMin = Number(formData.get('precioMin'));
+    data.precioMax = Number(formData.get('precioMax'));
+    // Subtipos como JSON string
+    const subtipos = formData.get('subtipos');
+    if (subtipos) {
+      try {
+        data.subtipos = JSON.parse(subtipos);
+      } catch {
+        data.subtipos = [];
+      }
+    }
+    const imagen = formData.get('imagen');
+    if (imagen && typeof imagen.arrayBuffer === 'function') {
+      const arrayBuffer = await imagen.arrayBuffer();
+      data.imagen = Buffer.from(arrayBuffer);
+    }
+  } else {
+    data = await request.json();
+  }
   try {
-    const nuevoServicio = await Servicio.create(body)
-    return NextResponse.json(nuevoServicio, { status: 201 })
+    const nuevoServicio = await Servicio.create(data);
+    return NextResponse.json(nuevoServicio, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Error al crear servicio', details: error.message }, { status: 400 })
+    return NextResponse.json({ error: 'Error al crear servicio', details: error.message }, { status: 400 });
   }
 }
