@@ -219,7 +219,7 @@ export default function LoginForm() {
       }}>
         ¿No tienes cuenta?{' '}
         <a
-          href="/register"
+          href="/register/UserRegister"
           style={{
             color: COLORS.primary,
             fontWeight: 700,

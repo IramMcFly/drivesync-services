@@ -7,7 +7,15 @@ import * as yup from 'yup'
 const tallerSchema = yup.object({
   nombre: yup.string().required('Nombre requerido'),
   direccion: yup.string().required('Dirección requerida'),
-  // Agrega aquí otros campos requeridos según tu modelo
+  telefono: yup.string().required('Teléfono requerido'),
+  email: yup.string().required('Email requerido'),
+  password: yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres').required('Contraseña requerida'),
+  ubicacion: yup.object({
+    lat: yup.number().required('Latitud requerida'),
+    lng: yup.number().required('Longitud requerida'),
+    direccion: yup.string().required('Dirección requerida'),
+  }).required('Ubicación requerida'),
+  // Eliminado campo horario
 });
 
 

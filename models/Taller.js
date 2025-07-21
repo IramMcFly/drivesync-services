@@ -9,7 +9,8 @@ const tallerSchema = new mongoose.Schema({
   email: { type: String, required: true, trim: true, lowercase: true },
   servicios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Servicio' }], // Servicios que ofrece el taller
   asistentes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Asistente' }],
-  horario: { type: String },
+  // Eliminado campo horario
+  password: { type: String, required: true },
   ubicacion: {
     lat: Number,
     lng: Number,

@@ -408,6 +408,22 @@ export default function RegisterForm() {
         >
           Inicia sesión
         </a>
+        <br />
+        <span style={{ color: COLORS.secondary, marginTop: 10, display: 'inline-block' }}>
+          ¿Eres un taller?{' '}
+          <a
+            href="/register/TallerRegister"
+            style={{
+              color: COLORS.primary,
+              fontWeight: 700,
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
+            }}
+          >
+            Regístrate aquí
+          </a>
+        </span>
       </div>
     </div>
   );
