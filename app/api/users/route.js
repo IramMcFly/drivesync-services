@@ -1,3 +1,12 @@
+export async function DELETE(request) {
+  await connectDB();
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (!id) return new NextResponse('ID requerido', { status: 400 });
+  await User.findByIdAndDelete(id);
+  return new NextResponse('Eliminado', { status: 200 });
+}
+
 import { connectDB } from '@/lib/mongoose'
 import User from '@/models/User'
 import { NextResponse } from 'next/server'

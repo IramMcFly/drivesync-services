@@ -26,7 +26,7 @@ export async function GET(request) {
   }
 }
 
-// POST: Crear un nuevo taller
+// POST: Crear un nuevo taller (acepta FormData o JSON)
 export async function POST(req) {
   await connectDB();
   const data = await req.json();
@@ -37,7 +37,7 @@ export async function POST(req) {
   }
   const nuevoTaller = new Taller(data);
   await nuevoTaller.save();
-  return NextResponse.json(nuevoTaller);
+  return NextResponse.json({ message: 'Taller registrado exitosamente', taller: nuevoTaller });
 }
 
 // PUT: Actualizar un taller existente
