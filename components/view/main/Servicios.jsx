@@ -72,7 +72,7 @@ export default function Servicios() {
                   <h3 className="text-lg font-semibold text-white">{servicio.nombre}</h3>
                   <p className="text-sm text-gray-300 mt-1">Desde: ${typeof servicio.precioMin === 'number' ? servicio.precioMin.toFixed(2) : "-"} MXN</p>
                 </div>
-                <Link href={`/formServicios?tipo=${encodeURIComponent(servicio.nombre)}`}>
+                <Link href={`/main/extra/serviceForm?tipo=${encodeURIComponent(servicio.nombre)}`}>
                   <button className="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-md text-sm">
                     Solicitar
                   </button>
