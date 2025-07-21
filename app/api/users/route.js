@@ -18,7 +18,12 @@ export async function GET(request) {
     const id = searchParams.get('id');
     try {
         if (id) {
-            const user = await User.findById(id);
+            let user;
+            if (id.includes('@')) {
+                user = await User.findOne({ email: id });
+            } else {
+                user = await User.findById(id);
+            }
             if (!user) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
             return NextResponse.json(user);
         } else {
