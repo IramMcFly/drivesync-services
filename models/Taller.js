@@ -16,6 +16,7 @@ const tallerSchema = new mongoose.Schema({
     lng: Number,
     direccion: String,
   },
+  calificacion: { type: Number, default: 0, min: 0, max: 5 }, // Promedio de calificación del taller
 }, {
   timestamps: true
 });

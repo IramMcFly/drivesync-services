@@ -1,6 +1,6 @@
 
 "use client";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { FaUserAlt, FaEnvelope, FaPhone, FaImage, FaLock, FaSave, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 
@@ -157,33 +157,38 @@ export default function UserProfile() {
     setShowPasswordModal(false);
     handleSaveField("password");
   };
-  return (
+return (
+  <div style={{
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: COLORS.background,
+    padding: '2vw',
+    position: 'relative',
+  }}>
     <div style={{
-      minHeight: '100vh',
+      marginBottom: 18,
+      textAlign: 'center',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
-      background: COLORS.background,
-      padding: '2vw',
+      gap: 8,
     }}>
-      <div style={{
-        marginBottom: 18,
-        textAlign: 'center',
+      <span style={{
+        fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
+        fontWeight: 900,
+        fontSize: 36,
+        color: COLORS.primary,
+        letterSpacing: 2,
+        textShadow: '0 2px 8px rgba(255,69,0,0.10)',
+        textTransform: 'uppercase',
+        display: 'block',
       }}>
-        <span style={{
-          fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
-          fontWeight: 900,
-          fontSize: 36,
-          color: COLORS.primary,
-          letterSpacing: 2,
-          textShadow: '0 2px 8px rgba(255,69,0,0.10)',
-          textTransform: 'uppercase',
-          display: 'block',
-        }}>
-          Mi Perfil
-        </span>
-      </div>
+        Mi Perfil
+      </span>
+    </div>
       <form
         style={{
           background: COLORS.inputBg,
@@ -542,6 +547,28 @@ export default function UserProfile() {
         {/* Rol oculto */}
         {error && <div style={{ color: COLORS.error, marginBottom: 4, textAlign: 'center', fontWeight: 500 }}>{error}</div>}
         {success && <div style={{ color: COLORS.primary, marginBottom: 4, textAlign: 'center', fontWeight: 600 }}>{success}</div>}
+        {/* Botón cerrar sesión al final del formulario */}
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: '/' })}
+          style={{
+            marginTop: 32,
+            alignSelf: 'center',
+            background: COLORS.error,
+            color: COLORS.text,
+            border: 'none',
+            borderRadius: 8,
+            padding: '0.7rem 2.2rem',
+            fontWeight: 700,
+            fontSize: 17,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px 0 rgba(255,99,71,0.10)',
+            letterSpacing: 1.1,
+            transition: 'background 0.2s',
+          }}
+        >
+          Cerrar sesión
+        </button>
       </form>
     </div>
   );

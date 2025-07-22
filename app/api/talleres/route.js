@@ -15,6 +15,8 @@ const tallerSchema = yup.object({
     lng: yup.number().required('Longitud requerida'),
     direccion: yup.string().required('Dirección requerida'),
   }).required('Ubicación requerida'),
+  calificacion: yup.number().min(0).max(5).default(1), // Agregado campo calificacion
+  servicios: yup.array().of(yup.string()), // Agregado campo servicios
   // Eliminado campo horario
 });
 
@@ -43,9 +45,11 @@ export async function POST(req) {
   } catch (validationError) {
     return NextResponse.json({ error: 'Datos inválidos', details: validationError.errors }, { status: 400 });
   }
+  // Forzar que la calificación siempre sea 1 al registrar un taller
+  data.calificacion = 0;
   const nuevoTaller = new Taller(data);
   await nuevoTaller.save();
-  return NextResponse.json({ message: 'Taller registrado exitosamente', taller: nuevoTaller });
+  return NextResponse.json({ message: 'Solicitud registrada exitosamente, DriveSync te contactará', taller: nuevoTaller });
 }
 
 // PUT: Actualizar un taller existente

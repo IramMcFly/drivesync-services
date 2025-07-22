@@ -205,26 +205,45 @@ const ServiceForm = () => {
               </select>
             </div>
           )}
-          {/* Campos dinámicos según el servicio */}
-          {servicioDB?.nombre?.toLowerCase() === "limpieza" && (
-            <>
-              <div className="mb-4">
-                <label className="text-white text-sm mb-1 block">Tipo de Vehículo</label>
-                <select
-                  name="tipoVehiculo"
-                  value={formData.tipoVehiculo}
-                  onChange={handleChange}
-                  className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
-                  required
-                >
-                  <option value="">Elige tipo</option>
-                  {tiposVehiculo.map((t, i) => (
-                    <option key={i} value={t}>{t}</option>
+          {/* Selector de Taller (solo los que ofrecen el servicio seleccionado) */}
+          {talleres.length > 0 && servicioDB?._id && (
+            <div className="mb-4">
+              <label className="text-white text-sm mb-1 block">Taller</label>
+              <select
+                name="tallerServicio"
+                value={formData.tallerServicio}
+                onChange={handleChange}
+                className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
+                required
+              >
+                <option value="">Elige un taller</option>
+                {talleres
+                  .filter(t => Array.isArray(t.servicios) && t.servicios.some(sid => sid == servicioDB._id))
+                  .sort((a, b) => (b.calificacion || 0) - (a.calificacion || 0))
+                  .map((t, i) => (
+                    <option key={i} value={t.nombre}>
+                      {t.nombre} {typeof t.calificacion === 'number' ? `(${t.calificacion.toFixed(1)}★)` : ''}
+                    </option>
                   ))}
-                </select>
-              </div>
-            </>
+              </select>
+            </div>
           )}
+          {/* Selector de Tipo de Vehículo para todos los servicios */}
+          <div className="mb-4">
+            <label className="text-white text-sm mb-1 block">Tipo de Vehículo</label>
+            <select
+              name="tipoVehiculo"
+              value={formData.tipoVehiculo}
+              onChange={handleChange}
+              className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
+              required
+            >
+              <option value="">Elige tipo</option>
+              {tiposVehiculo.map((t, i) => (
+                <option key={i} value={t}>{t}</option>
+              ))}
+            </select>
+          </div>
           {/* Campos generales */}
           <div className="mb-4">
             <label className="text-white text-sm mb-1 block">Método de Pago</label>

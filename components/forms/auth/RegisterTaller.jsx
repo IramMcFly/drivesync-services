@@ -86,6 +86,7 @@ const RegisterTaller = ({ onSuccess }) => {
           direccion,
         },
         servicios: serviciosSeleccionados,
+        calificacion: 0,
       };
       const res = await fetch('/api/talleres', {
         method: 'POST',
@@ -94,7 +95,7 @@ const RegisterTaller = ({ onSuccess }) => {
       });
       const result = await res.json();
       if (res.ok && result.message) {
-        setMessage('Taller registrado exitosamente');
+        setMessage('Solicitud registrada exitosamente, DriveSync te contactará');
         setNombre('');
         setDireccion('');
         setTelefono('');
