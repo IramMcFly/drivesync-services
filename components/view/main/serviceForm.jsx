@@ -26,9 +26,9 @@ const ServiceForm = () => {
   const multiplicadoresTipoVehiculo = {
     "Sedán": 1,
     "Hatchback": 1,
-    "SUV": 1.2,
-    "Pickup": 1.3,
-    "Minivan": 1.25,
+    "SUV": 1.1,
+    "Pickup": 1.2,
+    "Minivan": 1.2,
   };
   const router = useRouter();
   const searchParams = useSearchParams();
