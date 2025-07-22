@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { FaUserAlt, FaLock } from 'react-icons/fa';
+import { FaUserAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const COLORS = {
   primary: '#FF4500',
@@ -15,11 +15,13 @@ const COLORS = {
   inputBorder: '#333',
 };
 
+
 export default function LoginForm() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -151,13 +153,13 @@ export default function LoginForm() {
             fontSize: 18,
           }} />
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="Contraseña"
             style={{
               width: '100%',
-              padding: '0.85rem 0.85rem 0.85rem 2.5rem',
+              padding: '0.85rem 2.5rem 0.85rem 2.5rem',
               marginBottom: 4,
               border: `1.5px solid ${COLORS.inputBorder}`,
               borderRadius: 8,
@@ -170,6 +172,29 @@ export default function LoginForm() {
             required
             autoComplete="current-password"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            style={{
+              position: 'absolute',
+              right: 10,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'none',
+              border: 'none',
+              color: COLORS.secondary,
+              cursor: 'pointer',
+              fontSize: 18,
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            tabIndex={-1}
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
         </div>
         {error && <div style={{ color: COLORS.error, marginBottom: 4, textAlign: 'center', fontWeight: 500 }}>{error}</div>}
         <button

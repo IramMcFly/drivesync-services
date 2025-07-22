@@ -13,9 +13,6 @@ const ServiceForm = () => {
     tallerServicio: "",
     tipoVehiculo: "",
     subtipoServicio: "",
-    nombreCliente: "",
-    telefono: "",
-    email: "",
   });
 
   const [price, setPrice] = useState(0);
@@ -57,8 +54,8 @@ const ServiceForm = () => {
         if (res.ok) {
           const data = await res.json();
           setServicios(data);
-          // Buscar el servicio actual
-          const sDB = data.find(s => s.nombre?.toLowerCase() === (serviceType || '').toLowerCase());
+          // Buscar el servicio actual con manejo de espacios y mayúsculas/minúsculas
+          const sDB = data.find(s => s.nombre?.trim().toLowerCase() === serviceType.trim().toLowerCase());
           setServicioDB(sDB);
           setSubtipos(sDB?.subtipos || []);
         }
@@ -78,24 +75,20 @@ const ServiceForm = () => {
   };
   const aniosVehiculos = generarAnios();
 
-  // Validación de campos requeridos
+  // Validación: tipo de vehículo, subtipo de servicio y método de pago
   const isFormValid = () => {
-    if (!servicioDB) return false;
-    // Si el servicio tiene subtipos, debe elegir uno
-    if (subtipos.length > 0 && !formData.subtipoServicio) return false;
-    // Validar campos básicos
-    if (!formData.nombreCliente || !formData.telefono || !formData.metodoPago) return false;
-    return true;
+    return formData.tipoVehiculo && formData.subtipoServicio && formData.metodoPago;
   };
 
   // Calcular precio según subtipo y tipo de vehículo
   useEffect(() => {
+    // Ajustar el cálculo del precio para que se actualice correctamente al seleccionar un tipo de servicio
     if (!servicioDB) {
       setPrice(0);
       return;
     }
     let base = 0;
-    if (subtipos.length > 0) {
+    if (formData.subtipoServicio) {
       const sub = subtipos.find(s => s.nombre === formData.subtipoServicio);
       base = sub?.precio || 0;
     } else {
@@ -108,7 +101,7 @@ const ServiceForm = () => {
       if (multiplicadoresTipoVehiculo[formData.tipoVehiculo] > 1) setShowMultiplicadorNote(true);
     }
     setPrice(total);
-  }, [formData, servicioDB, subtipos]);
+  }, [formData.subtipoServicio, formData.tipoVehiculo, servicioDB?._id, subtipos.map(s => s.nombre)]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -154,9 +147,8 @@ const ServiceForm = () => {
       ubicacion: null, // Se puede agregar geolocalización si se requiere
       precio: price,
       contacto: {
-        nombre: formData.nombreCliente,
-        telefono: formData.telefono,
-        email: formData.email,
+        nombre: session?.user?.name || "Usuario Anónimo",
+        email: userEmail,
       },
       metodoPago: formData.metodoPago,
     };
@@ -177,6 +169,15 @@ const ServiceForm = () => {
     }
   };
 
+  // Mostrar en consola los datos seleccionados para depuración
+  useEffect(() => {
+    console.log("formData:", formData);
+    console.log("servicioDB:", servicioDB);
+    console.log("subtipos:", subtipos);
+    console.log("Precio calculado:", price);
+  }, [formData, servicioDB, subtipos, price]);
+
+  // Mostrar precio destacado en grande y en blanco antes del botón de solicitar servicio
   return (
     <div className="bg-[#1a1a1a] min-h-screen text-white py-8 pb-20">
       <div className="bg-[#1E1E1E] rounded-lg p-6 max-w-md mx-auto shadow-md border border-[#333]">
@@ -197,9 +198,9 @@ const ServiceForm = () => {
                 className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
                 required
               >
-                <option value="">Elige un subtipo</option>
+                <option value="">Elige un tipo</option>
                 {subtipos.map((s, i) => (
-                  <option key={i} value={s.nombre}>{s.nombre} (${s.precio})</option>
+                  <option key={i} value={s.nombre}>{s.nombre}</option>
                 ))}
               </select>
             </div>
@@ -226,36 +227,6 @@ const ServiceForm = () => {
           )}
           {/* Campos generales */}
           <div className="mb-4">
-            <label className="text-white text-sm mb-1 block">Nombre</label>
-            <input
-              name="nombreCliente"
-              value={formData.nombreCliente}
-              onChange={handleChange}
-              className="w-full bg-[#333333] text-white py-3 px-4 rounded-md"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="text-white text-sm mb-1 block">Teléfono</label>
-            <input
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              className="w-full bg-[#333333] text-white py-3 px-4 rounded-md"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="text-white text-sm mb-1 block">Correo electrónico</label>
-            <input
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full bg-[#333333] text-white py-3 px-4 rounded-md"
-              type="email"
-            />
-          </div>
-          <div className="mb-4">
             <label className="text-white text-sm mb-1 block">Método de Pago</label>
             <select
               name="metodoPago"
@@ -270,10 +241,11 @@ const ServiceForm = () => {
               ))}
             </select>
           </div>
-          {isFormValid() && price > 0 && (
-            <div className="mb-4 mt-4">
-              <p className="text-white text-sm mb-1">Total estimado:</p>
-              <p className="text-white text-2xl font-bold">${price.toFixed(2)} <span className="text-sm text-gray-400">MXN</span></p>
+          {/* Mostrar precio destacado justo antes del botón */}
+          {formData.tipoVehiculo && formData.subtipoServicio && price > 0 && (
+            <div className="mb-4 text-center">
+              <p className="text-white text-base mb-1">Precio estimado:</p>
+              <p className="text-white text-2xl font-bold">${price.toFixed(2)} MXN</p>
               {showMultiplicadorNote && (
                 <p className="text-xs text-yellow-400 mt-2">Incluye ajuste por tipo de vehículo (SUV, Pickup o Minivan).</p>
               )}
@@ -282,12 +254,12 @@ const ServiceForm = () => {
           <button
             type="submit"
             disabled={!isFormValid()}
-            className={`py-2 px-4 rounded-md transition-colors w-full font-semibold ${isFormValid()
+            className={`mt-2 py-2 px-4 rounded-md transition-colors w-full font-semibold ${isFormValid()
               ? "bg-[#E85D04] hover:bg-[#F48C06] text-white"
               : "bg-gray-600 text-gray-300 cursor-not-allowed"
               }`}
           >
-            Enviar
+            Solicitar Servicio
           </button>
         </form>
       </div>

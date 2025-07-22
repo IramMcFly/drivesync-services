@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -314,15 +313,26 @@ export default function AdminPanel() {
             <form onSubmit={e => { e.preventDefault(); handleEditSave(); }}>
               {Object.entries(editData).map(([key, value]) => (
                 key === "_id" || key === "__v" ? null : (
-                  <div key={key} className="mb-2">
-                    <label className="block text-sm font-medium mb-1">{key}</label>
-                    <input
-                      className="w-full bg-zinc-800 text-white px-3 py-2 rounded"
-                      value={typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value)}
-                      onChange={e => handleEditChange(key, e.target.value)}
-                      disabled={editLoading}
-                    />
-                  </div>
+                  key === "subtipos" ? (
+                    <div key={key} className="mb-2">
+                      <label className="block text-sm font-medium mb-1">Subtipos de servicio</label>
+                      <SubtiposInput
+                        value={Array.isArray(value) ? value : []}
+                        onChange={subs => handleEditChange("subtipos", subs)}
+                        disabled={editLoading}
+                      />
+                    </div>
+                  ) : (
+                    <div key={key} className="mb-2">
+                      <label className="block text-sm font-medium mb-1">{key}</label>
+                      <input
+                        className="w-full bg-zinc-800 text-white px-3 py-2 rounded"
+                        value={typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value)}
+                        onChange={e => handleEditChange(key, e.target.value)}
+                        disabled={editLoading}
+                      />
+                    </div>
+                  )
                 )
               ))}
               <div className="flex gap-2 mt-4">

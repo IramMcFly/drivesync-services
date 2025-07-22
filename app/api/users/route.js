@@ -23,8 +23,12 @@ export async function GET(request) {
             let user;
             if (id.includes('@')) {
                 user = await User.findOne({ email: id });
-            } else {
+            } else if (/^[0-9a-fA-F]{24}$/.test(id)) {
+                // Si es un ObjectId válido
                 user = await User.findById(id);
+            } else {
+                // Buscar por teléfono
+                user = await User.findOne({ telefono: id });
             }
             if (!user) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
             return NextResponse.json(user);
