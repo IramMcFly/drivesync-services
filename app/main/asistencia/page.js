@@ -1,5 +1,5 @@
 
-import UserProfile from "@/components/view/main/UserProfile";
+import Asistencia from "@/components/view/main/Asistencia";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import Header from "@/components/view/main/Header";
 
@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <SessionProviderWrapper>
       <Header />
-      <UserProfile />
+      <Asistencia />
     </SessionProviderWrapper>
   );
 }

@@ -23,7 +23,7 @@ const navigationLinks = [
   },
   {
     name: "Asistencia Especial",
-    href: "/asistenciaOnline",
+    href: "/main/asistencia",
     icon: <FaLifeRing size={16} />,
     component: "Asistencia"
   }
