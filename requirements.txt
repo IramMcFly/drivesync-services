@@ -17,6 +17,12 @@ npm i bcrypt
 npm install react-leaflet leaflet
 npm install axios
 
+#manejo de sesiones
+npm install next-auth
+
+#mejorar el sistema de verificacion
+npm install yup
+
 ;lista general
 npm install
 npm i framer-motion
