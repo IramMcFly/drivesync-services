@@ -228,20 +228,41 @@ export default function AdminPanel() {
                 if (key === "imagen" || key === "foto") {
                   // Mostrar miniatura si es buffer
                   if (value && value.data && Array.isArray(value.data)) {
-                    const base64 = typeof window !== 'undefined' && window.Buffer
-                      ? window.Buffer.from(value.data).toString('base64')
-                      : btoa(String.fromCharCode.apply(null, value.data));
-                    const mimeType = value.type || 'image/jpeg';
-                    return (
-                      <span key={key} className="inline-block mr-2 align-middle">
-                        <span className="font-bold text-zinc-400">{key}:</span>
-                        <img
-                          src={`data:${mimeType};base64,${base64}`}
-                          alt={key}
-                          style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, display: 'inline-block', marginLeft: 4, verticalAlign: 'middle' }}
-                        />
-                      </span>
-                    );
+                    try {
+                      let base64;
+                      if (typeof window !== 'undefined' && window.Buffer) {
+                        base64 = window.Buffer.from(value.data).toString('base64');
+                      } else {
+                        // Convertir array de bytes a base64 de forma segura
+                        const uint8Array = new Uint8Array(value.data);
+                        let binaryString = '';
+                        const chunkSize = 8192; // Procesar en chunks para evitar stack overflow
+                        for (let i = 0; i < uint8Array.length; i += chunkSize) {
+                          const chunk = uint8Array.slice(i, i + chunkSize);
+                          binaryString += String.fromCharCode.apply(null, chunk);
+                        }
+                        base64 = btoa(binaryString);
+                      }
+                      const mimeType = value.type || 'image/jpeg';
+                      return (
+                        <span key={key} className="inline-block mr-2 align-middle">
+                          <span className="font-bold text-zinc-400">{key}:</span>
+                          <img
+                            src={`data:${mimeType};base64,${base64}`}
+                            alt={key}
+                            style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 6, display: 'inline-block', marginLeft: 4, verticalAlign: 'middle' }}
+                          />
+                        </span>
+                      );
+                    } catch (error) {
+                      console.error('Error al procesar imagen:', error);
+                      return (
+                        <span key={key} className="inline-block mr-2 align-middle">
+                          <span className="font-bold text-zinc-400">{key}:</span>
+                          <span className="text-red-400 text-xs">Error al cargar imagen</span>
+                        </span>
+                      );
+                    }
                   }
                   return null;
                 }
