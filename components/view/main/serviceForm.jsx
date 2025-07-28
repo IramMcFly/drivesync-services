@@ -179,23 +179,23 @@ const ServiceForm = () => {
 
   // Mostrar precio destacado en grande y en blanco antes del botón de solicitar servicio
   return (
-    <div className="bg-[#1a1a1a] min-h-screen text-white py-8 pb-20">
-      <div className="bg-[#1E1E1E] rounded-lg p-6 max-w-md mx-auto shadow-md border border-[#333]">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-8 pb-20 transition-colors">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors">
         <form onSubmit={handleSubmit}>
-          <h2 className="text-white text-xl font-bold mb-6">
+          <h2 className="text-gray-900 dark:text-gray-100 text-xl font-bold mb-6 transition-colors">
             {servicioDB?.nombre || "Servicio"}
           </h2>
           {servicioDB?.descripcion && (
-            <div className="mb-4 text-gray-300 text-sm">{servicioDB.descripcion}</div>
+            <div className="mb-4 text-gray-600 dark:text-gray-400 text-sm transition-colors">{servicioDB.descripcion}</div>
           )}
           {subtipos.length > 0 && (
             <div className="mb-4">
-              <label className="text-white text-sm mb-1 block">Tipo de servicio</label>
+              <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Tipo de servicio</label>
               <select
                 name="subtipoServicio"
                 value={formData.subtipoServicio}
                 onChange={handleChange}
-                className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
+                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
                 required
               >
                 <option value="">Elige un tipo</option>
@@ -208,12 +208,12 @@ const ServiceForm = () => {
           {/* Selector de Taller (solo los que ofrecen el servicio seleccionado) */}
           {talleres.length > 0 && servicioDB?._id && (
             <div className="mb-4">
-              <label className="text-white text-sm mb-1 block">Taller</label>
+              <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Taller</label>
               <select
                 name="tallerServicio"
                 value={formData.tallerServicio}
                 onChange={handleChange}
-                className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
+                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
                 required
               >
                 <option value="">Elige un taller</option>
@@ -230,12 +230,12 @@ const ServiceForm = () => {
           )}
           {/* Selector de Tipo de Vehículo para todos los servicios */}
           <div className="mb-4">
-            <label className="text-white text-sm mb-1 block">Tipo de Vehículo</label>
+            <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Tipo de Vehículo</label>
             <select
               name="tipoVehiculo"
               value={formData.tipoVehiculo}
               onChange={handleChange}
-              className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
+              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
               required
             >
               <option value="">Elige tipo</option>
@@ -246,12 +246,12 @@ const ServiceForm = () => {
           </div>
           {/* Campos generales */}
           <div className="mb-4">
-            <label className="text-white text-sm mb-1 block">Método de Pago</label>
+            <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Método de Pago</label>
             <select
               name="metodoPago"
               value={formData.metodoPago}
               onChange={handleChange}
-              className="w-full bg-[#333333] text-white py-3 px-4 rounded-md appearance-none"
+              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
               required
             >
               <option value="">Elige método</option>
@@ -263,10 +263,10 @@ const ServiceForm = () => {
           {/* Mostrar precio destacado justo antes del botón */}
           {formData.tipoVehiculo && formData.subtipoServicio && price > 0 && (
             <div className="mb-4 text-center">
-              <p className="text-white text-base mb-1">Precio estimado:</p>
-              <p className="text-white text-2xl font-bold">${price.toFixed(2)} MXN</p>
+              <p className="text-gray-900 dark:text-gray-100 text-base mb-1 transition-colors">Precio estimado:</p>
+              <p className="text-gray-900 dark:text-gray-100 text-2xl font-bold transition-colors">${price.toFixed(2)} MXN</p>
               {showMultiplicadorNote && (
-                <p className="text-xs text-yellow-400 mt-2">Incluye ajuste por tipo de vehículo (SUV, Pickup o Minivan).</p>
+                <p className="text-xs text-yellow-500 dark:text-yellow-400 mt-2 transition-colors">Incluye ajuste por tipo de vehículo (SUV, Pickup o Minivan).</p>
               )}
             </div>
           )}
@@ -274,8 +274,8 @@ const ServiceForm = () => {
             type="submit"
             disabled={!isFormValid()}
             className={`mt-2 py-2 px-4 rounded-md transition-colors w-full font-semibold ${isFormValid()
-              ? "bg-[#E85D04] hover:bg-[#F48C06] text-white"
-              : "bg-gray-600 text-gray-300 cursor-not-allowed"
+              ? "bg-primary hover:bg-primary-hover text-white"
+              : "bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed"
               }`}
           >
             Solicitar Servicio

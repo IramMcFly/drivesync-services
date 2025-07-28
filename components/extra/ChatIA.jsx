@@ -126,9 +126,9 @@ export default function AsistenteEspecializado() {
 
   if (serviciosCargando) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1a1a1a] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Cargando servicios...</p>
         </div>
       </div>
@@ -136,9 +136,9 @@ export default function AsistenteEspecializado() {
   }
 
   return (
-    <div className="bg-[#1a1a1a] min-h-screen text-white flex flex-col">
-      <div className="flex flex-col flex-1 max-w-2xl w-full mx-auto bg-[#1E1E1E] rounded-lg shadow-md border border-[#333] overflow-hidden">
-        <div className="p-4 border-b border-[#333] text-center">
+    <div className="bg-background min-h-screen text-foreground flex flex-col">
+      <div className="flex flex-col flex-1 max-w-2xl w-full mx-auto bg-card-bg rounded-lg shadow-md border border-input-border overflow-hidden">
+        <div className="p-4 border-b border-input-border text-center">
           <h1 className="text-2xl font-bold">Asistente Especializado</h1>
           <p className="text-gray-400 text-sm mt-1">Consulta rápida para emergencias automotrices</p>
         </div>
@@ -149,8 +149,8 @@ export default function AsistenteEspecializado() {
               <div
                 className={`p-3 rounded-lg ${
                   message.role === "user"
-                    ? "bg-orange-600/30 self-end text-right"
-                    : "bg-[#333] self-start text-left"
+                    ? "bg-primary/30 self-end text-right"
+                    : "bg-input-bg self-start text-left"
                 }`}
               >
                 <p className="text-sm whitespace-pre-line">{message.content}</p>
@@ -161,7 +161,7 @@ export default function AsistenteEspecializado() {
                   if (!servicio) return null;
                   return (
                     <Link key={tipo} href={`/main/extra/serviceForm?tipo=${encodeURIComponent(tipo)}`}>
-                      <button className="mt-2 mr-2 bg-orange-600 hover:bg-orange-700 text-white py-2 px-4 rounded-lg text-xs">
+                      <button className="mt-2 mr-2 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg text-xs transition-colors">
                         {servicio.label}
                       </button>
                     </Link>
@@ -171,7 +171,7 @@ export default function AsistenteEspecializado() {
           ))}
 
           {loading && (
-            <div className="p-3 rounded-lg bg-[#333] text-left animate-pulse">
+            <div className="p-3 rounded-lg bg-input-bg text-left animate-pulse">
               <p className="text-sm text-gray-400">El asistente está escribiendo...</p>
             </div>
           )}
@@ -179,14 +179,14 @@ export default function AsistenteEspecializado() {
         </div>
 
         <div
-          className={`p-4 flex items-center gap-2 bg-[#1a1a1a] ${
-            isMobile ? "fixed bottom-16 left-0 right-0 max-w-2xl mx-auto" : "border-t border-[#333]"
+          className={`p-4 flex items-center gap-2 bg-background ${
+            isMobile ? "fixed bottom-16 left-0 right-0 max-w-2xl mx-auto" : "border-t border-input-border"
           }`}
         >
           <input
             type="text"
             placeholder="Describe tu problema..."
-            className="flex-1 bg-[#333] text-white py-2 px-4 rounded-md focus:outline-none"
+            className="flex-1 bg-input-bg text-foreground py-2 px-4 rounded-md border border-input-border focus:outline-none focus:border-primary transition-colors"
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
@@ -194,7 +194,7 @@ export default function AsistenteEspecializado() {
           <button
             onClick={handleSend}
             disabled={!userMessage.trim()}
-            className="bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-full disabled:bg-gray-600"
+            className="bg-primary hover:bg-primary-hover text-white p-2 rounded-full disabled:bg-gray-600 transition-colors"
           >
             <FiSend size={20} />
           </button>

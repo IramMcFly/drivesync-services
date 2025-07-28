@@ -19,9 +19,9 @@ const Asistencia = () => {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center transition-colors">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Cargando...</p>
         </div>
       </div>
@@ -30,13 +30,13 @@ const Asistencia = () => {
 
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center transition-colors">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Acceso no autorizado</h2>
-          <p className="text-gray-400 mb-6">Necesitas iniciar sesión para acceder a la asistencia.</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Necesitas iniciar sesión para acceder a la asistencia.</p>
           <button
             onClick={() => router.push("/")}
-            className="bg-[#E85D04] hover:bg-[#F48C06] text-white py-2 px-4 rounded-md transition-colors"
+            className="bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-md transition-colors"
           >
             Iniciar Sesión
           </button>
@@ -46,17 +46,17 @@ const Asistencia = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white pb-16 md:pb-0">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pb-16 md:pb-0 transition-colors">
       <div className="container mx-auto px-4 py-6 pt-8">
         <h1 className="text-3xl font-bold mb-6">Asistencia Especial</h1>
 
         {/* Sección de Asistencia telefónica */}
         <section className="mb-8">
           <h2 className="text-2xl font-bold mb-2">Asistencia telefónica</h2>
-          <p className="text-gray-400 mb-4">No te pongas en riesgo, obtén una llamada para asistencia.</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">No te pongas en riesgo, obtén una llamada para asistencia.</p>
           <button
             onClick={handleLlamada}
-            className="w-full bg-[#E85D04] hover:bg-[#F48C06] text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors"
+            className="w-full bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors"
           >
             <FiPhone className="mr-2" size={20} />
             Llamar para asistencia
@@ -64,17 +64,17 @@ const Asistencia = () => {
         </section>
 
         {/* Separador */}
-        <div className="border-t border-gray-700 my-6"></div>
+        <div className="border-t border-gray-300 dark:border-gray-600 my-6 transition-colors"></div>
 
         {/* Sección de Atención 24/7 */}
         <section>
           <h2 className="text-2xl font-bold mb-2">Atención 24/7</h2>
-          <p className="text-gray-400 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             Chatea con una IA que te ayude a resolver los diferentes problemas que puedas tener.
           </p>
           <button
             onClick={handleChat}
-            className="w-full bg-[#E85D04] hover:bg-[#F48C06] text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors"
+            className="w-full bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-md flex items-center justify-center transition-colors"
           >
             <FiMessageCircle className="mr-2" size={20} />
             Chatear

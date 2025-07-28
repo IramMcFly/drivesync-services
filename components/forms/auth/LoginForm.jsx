@@ -5,17 +5,6 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { FaUserAlt, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const COLORS = {
-  primary: '#FF4500',
-  secondary: '#4B2E19',
-  background: '#181818',
-  text: '#fff',
-  error: '#FF6347',
-  inputBg: '#232323',
-  inputBorder: '#333',
-};
-
-
 export default function LoginForm() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -60,201 +49,127 @@ export default function LoginForm() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: COLORS.background,
-      padding: '2vw',
-    }}>
-      <div style={{
-        marginBottom: 18,
-        textAlign: 'center',
-      }}>
-        <span style={{
-          fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
-          fontWeight: 900,
-          fontSize: 36,
-          color: COLORS.primary,
-          letterSpacing: 2,
-          textShadow: '0 2px 8px rgba(255,69,0,0.10)',
-          textTransform: 'uppercase',
-          display: 'block',
-        }}>
-          DriveSync
-        </span>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors duration-300">
+      {/* Header */}
+      <div className="safe-area-top header-mobile px-6 py-4">
+        <div className="text-center">
+          <h1 className="font-montserrat font-black text-2xl text-primary">DriveSync</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">Bienvenido de vuelta</p>
+        </div>
       </div>
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          background: COLORS.inputBg,
-          color: COLORS.text,
-          padding: '2rem',
-          borderRadius: '18px',
-          maxWidth: 380,
-          width: '100%',
-          boxShadow: '0 4px 24px 0 rgba(0,0,0,0.25)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 18,
-        }}
-      >
-        <h2 style={{
-          color: COLORS.primary,
-          marginBottom: 8,
-          textAlign: 'center',
-          fontWeight: 800,
-          letterSpacing: 1.2,
-          fontSize: 28,
-          fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
-          textTransform: 'uppercase',
-        }}>
-          Iniciar sesión
-        </h2>
-        <div style={{ position: 'relative' }}>
-          <FaUserAlt style={{
-            position: 'absolute',
-            left: 14,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: COLORS.secondary,
-            fontSize: 18,
-          }} />
-          <input
-            type="text"
-            value={identifier}
-            onChange={e => setIdentifier(e.target.value)}
-            placeholder="Correo electrónico o teléfono"
-            style={{
-              width: '100%',
-              padding: '0.85rem 0.85rem 0.85rem 2.5rem',
-              marginBottom: 4,
-              border: `1.5px solid ${COLORS.inputBorder}`,
-              borderRadius: 8,
-              background: COLORS.inputBg,
-              color: COLORS.text,
-              fontSize: 16,
-              outline: 'none',
-              transition: 'border 0.2s',
-            }}
-            required
-            autoComplete="username"
-          />
+      
+      {/* Content */}
+      <div className="flex-1 px-6 py-8">
+        <div className="max-w-sm mx-auto">
+          <div className="card-mobile">
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Iniciar Sesión</h2>
+              <p className="text-gray-600 dark:text-gray-400">Ingresa tus credenciales para continuar</p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email/Phone Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email o Teléfono
+                </label>
+                <div className="input-container">
+                  <div className="input-icon-left">
+                    <FaUserAlt className="text-gray-400 dark:text-gray-500" size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={identifier}
+                    onChange={e => setIdentifier(e.target.value)}
+                    placeholder="tu@email.com o 5512345678"
+                    className="input-mobile"
+                    required
+                    autoComplete="username"
+                  />
+                </div>
+              </div>
+              
+              {/* Password Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Contraseña
+                </label>
+                <div className="input-container">
+                  <div className="input-icon-left">
+                    <FaLock className="text-gray-400 dark:text-gray-500" size={16} />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="Tu contraseña"
+                    className="input-mobile"
+                    required
+                    autoComplete="current-password"
+                  />
+                  <div className="input-icon-right">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      tabIndex={-1}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                    >
+                      {showPassword ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                  <div className="text-red-600 dark:text-red-400 text-sm font-medium">
+                    {error}
+                  </div>
+                </div>
+              )}
+              
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-mobile bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Ingresando...
+                  </div>
+                ) : (
+                  'Iniciar Sesión'
+                )}
+              </button>
+            </form>
+          </div>
+          
+          {/* Footer Links */}
+          <div className="mt-8 text-center space-y-4">
+            <div className="text-gray-600 dark:text-gray-400">
+              ¿No tienes cuenta?{' '}
+              <a
+                href="/register/UserRegister"
+                className="text-primary font-semibold hover:text-primary-hover transition-colors"
+              >
+                Regístrate aquí
+              </a>
+            </div>
+            <div className="text-gray-600 dark:text-gray-400 text-sm">
+              ¿Eres un taller?{' '}
+              <a
+                href="/register/TallerRegister"
+                className="text-primary font-semibold hover:text-primary-hover transition-colors"
+              >
+                Registra tu taller
+              </a>
+            </div>
+          </div>
         </div>
-        <div style={{ position: 'relative' }}>
-          <FaLock style={{
-            position: 'absolute',
-            left: 14,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: COLORS.secondary,
-            fontSize: 18,
-          }} />
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Contraseña"
-            style={{
-              width: '100%',
-              padding: '0.85rem 2.5rem 0.85rem 2.5rem',
-              marginBottom: 4,
-              border: `1.5px solid ${COLORS.inputBorder}`,
-              borderRadius: 8,
-              background: COLORS.inputBg,
-              color: COLORS.text,
-              fontSize: 16,
-              outline: 'none',
-              transition: 'border 0.2s',
-            }}
-            required
-            autoComplete="current-password"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            style={{
-              position: 'absolute',
-              right: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'none',
-              border: 'none',
-              color: COLORS.secondary,
-              cursor: 'pointer',
-              fontSize: 18,
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            tabIndex={-1}
-            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
-        </div>
-        {error && <div style={{ color: COLORS.error, marginBottom: 4, textAlign: 'center', fontWeight: 500 }}>{error}</div>}
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '0.85rem',
-            background: COLORS.primary,
-            color: COLORS.text,
-            border: 'none',
-            borderRadius: 8,
-            fontWeight: 700,
-            fontSize: 18,
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1,
-            boxShadow: '0 2px 8px 0 rgba(255,69,0,0.10)',
-            marginTop: 8,
-            letterSpacing: 1.1,
-            transition: 'background 0.2s',
-          }}
-        >
-          {loading ? 'Ingresando...' : 'Ingresar'}
-        </button>
-        <style jsx>{`
-          @media (max-width: 600px) {
-            form {
-              padding: 1.2rem !important;
-              max-width: 98vw !important;
-              border-radius: 10px !important;
-            }
-            h2 {
-              font-size: 22px !important;
-            }
-            button {
-              font-size: 16px !important;
-            }
-          }
-        `}</style>
-      </form>
-      <div style={{
-        marginTop: 18,
-        textAlign: 'center',
-        color: COLORS.text,
-        fontSize: 15,
-        fontFamily: 'Segoe UI, Arial, sans-serif',
-      }}>
-        ¿No tienes cuenta?{' '}
-        <a
-          href="/register/UserRegister"
-          style={{
-            color: COLORS.primary,
-            fontWeight: 700,
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
-          }}
-        >
-          Regístrate
-        </a>
       </div>
     </div>
   );

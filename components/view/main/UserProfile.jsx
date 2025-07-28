@@ -1,23 +1,12 @@
-
 "use client";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { FaUserAlt, FaEnvelope, FaPhone, FaImage, FaLock, FaSave, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 
-const COLORS = {
-  primary: '#FF4500',
-  secondary: '#4B2E19',
-  background: '#181818',
-  text: '#fff',
-  error: '#FF6347',
-  inputBg: '#232323',
-  inputBorder: '#333',
-};
-
 export default function UserProfile() {
   const { data: session, status } = useSession();
   const [user, setUser] = useState(null);
-  const [editField, setEditField] = useState(null); // 'nombre', 'telefono', 'foto', 'password'
+  const [editField, setEditField] = useState(null);
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [foto, setFoto] = useState(null);
@@ -37,30 +26,30 @@ export default function UserProfile() {
     if (session?.user?.email) {
       fetch(`/api/users?id=${encodeURIComponent(session.user.email)}`)
         .then(async res => {
-          // Si la respuesta es JSON, parsea normalmente
           const data = await res.json();
           setUser(data);
           setNombre(data.nombre || "");
           setTelefono(data.telefono || "");
-          // Si hay foto binaria, conviértela a Blob URL
+          
           if (data.foto && data.foto.data) {
             try {
-              // data.foto.data es un array de bytes
               const byteArray = new Uint8Array(data.foto.data);
               const blob = new Blob([byteArray], { type: 'image/png' });
               const url = URL.createObjectURL(blob);
               setFotoPreview(url);
-              // Limpia el objeto URL cuando cambie el usuario
-              return () => URL.revokeObjectURL(url);
-            } catch {}
-          } else {
-            setFotoPreview(null);
+            } catch (error) {
+              console.error('Error al procesar la foto:', error);
+            }
           }
+        })
+        .catch(error => {
+          console.error('Error al cargar el usuario:', error);
+          setError('Error al cargar los datos del usuario');
         });
     }
   }, [session]);
 
-  // Preview de la foto
+  // Manejar cambio de foto
   useEffect(() => {
     if (foto) {
       const url = URL.createObjectURL(foto);
@@ -69,83 +58,74 @@ export default function UserProfile() {
     }
   }, [foto]);
 
-  if (status === "loading") {
-    return <div style={{ color: COLORS.text, textAlign: 'center', marginTop: 40 }}>Cargando perfil...</div>;
-  }
-  if (!session) {
-    return <div style={{ color: COLORS.text, textAlign: 'center', marginTop: 40 }}>Debes iniciar sesión para ver tu perfil.</div>;
-  }
-  if (!user) {
-    return <div style={{ color: COLORS.text, textAlign: 'center', marginTop: 40 }}>Cargando datos de usuario...</div>;
-  }
-
-  const handleCancel = () => {
-    setEditField(null);
-    setNombre(user.nombre || "");
-    setTelefono(user.telefono || "");
-    setFoto(null);
-    if (user.foto && user.foto.data) {
-      const byteArray = new Uint8Array(user.foto.data);
-      const blob = new Blob([byteArray], { type: 'image/png' });
-      const url = URL.createObjectURL(blob);
-      setFotoPreview(url);
-    } else {
-      setFotoPreview(null);
-    }
-    setPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setPasswordError("");
-    setError("");
-    setSuccess("");
-    setShowPasswordModal(false);
-  };
-
-  // Guardar campo individual
   const handleSaveField = async (field) => {
+    if (!user) return;
     setLoading(true);
     setError("");
     setSuccess("");
+
     try {
       const formData = new FormData();
-      formData.append("_id", user._id);
-      formData.append("email", user.email);
-      // Siempre enviar los campos requeridos
-      formData.append("nombre", nombre);
-      formData.append("telefono", telefono);
-      if (field === "foto" && foto) formData.append("foto", foto);
-      if (field === "password" && password) formData.append("password", password);
+      formData.append('id', user._id);
 
-      const res = await fetch("/api/users", {
-        method: "PUT",
+      if (field === 'nombre') {
+        formData.append('nombre', nombre);
+      } else if (field === 'telefono') {
+        if (!/^\d{10}$/.test(telefono)) {
+          setError('El teléfono debe tener 10 dígitos');
+          setLoading(false);
+          return;
+        }
+        formData.append('telefono', telefono);
+      } else if (field === 'foto' && foto) {
+        formData.append('foto', foto);
+      } else if (field === 'password') {
+        if (password.length < 6) {
+          setError('La contraseña debe tener al menos 6 caracteres');
+          setLoading(false);
+          return;
+        }
+        formData.append('password', password);
+      }
+
+      const res = await fetch('/api/users', {
+        method: 'PUT',
         body: formData,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Error al actualizar perfil");
-        setLoading(false);
-        return;
+
+      if (res.ok) {
+        setSuccess('Datos actualizados correctamente');
+        setEditField(null);
+        setPassword("");
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Error al actualizar');
       }
-      setSuccess("Perfil actualizado correctamente");
-      setUser({ ...user, nombre, telefono, foto: foto ? true : user.foto });
-      setEditField(null);
-      setPassword("");
-      setFoto(null);
-      if (foto) setFotoPreview(URL.createObjectURL(foto));
     } catch (err) {
-      setError("Error de conexión");
+      setError('Error de conexión');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Modal para cambio de contraseña
+  const handleCancel = () => {
+    setEditField(null);
+    setNombre(user?.nombre || "");
+    setTelefono(user?.telefono || "");
+    setFoto(null);
+    setPassword("");
+    setError("");
+    setSuccess("");
+    setShowPasswordModal(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
+  };
+
   const handlePasswordModalSave = () => {
     setPasswordError("");
-    if (!newPassword || !confirmPassword) {
-      setPasswordError("Debes ingresar y confirmar la nueva contraseña.");
-      return;
-    }
-    if (newPassword.length < 6) {
+    if (!newPassword || newPassword.length < 6) {
       setPasswordError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
@@ -157,419 +137,337 @@ export default function UserProfile() {
     setShowPasswordModal(false);
     handleSaveField("password");
   };
-return (
-  <div style={{
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: COLORS.background,
-    padding: '2vw',
-    position: 'relative',
-  }}>
-    <div style={{
-      marginBottom: 18,
-      textAlign: 'center',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 8,
-    }}>
-      <span style={{
-        fontFamily: 'Montserrat, Segoe UI, Arial, sans-serif',
-        fontWeight: 900,
-        fontSize: 36,
-        color: COLORS.primary,
-        letterSpacing: 2,
-        textShadow: '0 2px 8px rgba(255,69,0,0.10)',
-        textTransform: 'uppercase',
-        display: 'block',
-      }}>
-        Mi Perfil
-      </span>
-    </div>
-      <form
-        style={{
-          background: COLORS.inputBg,
-          color: COLORS.text,
-          padding: '2rem',
-          borderRadius: '18px',
-          maxWidth: 420,
-          width: '100%',
-          boxShadow: '0 4px 24px 0 rgba(0,0,0,0.25)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 18,
-        }}
-        encType="multipart/form-data"
-        onSubmit={e => e.preventDefault()}
-      >
-        {/* Foto de perfil */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <div style={{ position: 'relative', width: 110, height: 110 }}>
-            <img
-              src={fotoPreview || "/window.svg"}
-              alt="Foto de perfil"
-              style={{
-                width: 110,
-                height: 110,
-                objectFit: 'cover',
-                borderRadius: '50%',
-                border: `3px solid ${COLORS.primary}`,
-                background: COLORS.inputBg,
-                cursor: 'pointer',
-              }}
-              onClick={() => setEditField('foto') || fileInputRef.current?.click()}
-            />
-            <button
-              type="button"
-              onClick={() => setEditField('foto') || fileInputRef.current?.click()}
-              style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                background: COLORS.primary,
-                border: 'none',
-                borderRadius: '50%',
-                width: 36,
-                height: 36,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: COLORS.text,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px 0 rgba(255,69,0,0.10)',
-              }}
-              title="Cambiar foto"
-            >
-              <FaEdit />
-            </button>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={e => {
-                if (e.target.files[0]) {
-                  setFoto(e.target.files[0]);
-                  handleSaveField('foto');
-                }
-              }}
-              disabled={loading}
-            />
-          </div>
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="text-center text-gray-900 dark:text-gray-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Cargando perfil...</p>
         </div>
-        {/* Nombre */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <FaUserAlt style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.secondary, fontSize: 18 }} />
-          <input
-            type="text"
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-            placeholder="Nombre completo"
-            style={{
-              width: '100%',
-              padding: '0.85rem 0.85rem 0.85rem 2.5rem',
-              marginBottom: 4,
-              border: `1.5px solid ${COLORS.inputBorder}`,
-              borderRadius: 8,
-              background: COLORS.inputBg,
-              color: COLORS.text,
-              fontSize: 16,
-              outline: 'none',
-              transition: 'border 0.2s',
-              opacity: editField === 'nombre' ? 1 : 0.7,
-            }}
-            required
-            autoComplete="name"
-            disabled={editField !== 'nombre' || loading}
-          />
-          {editField === 'nombre' ? (
-            <>
-              <button
-                type="button"
-                onClick={() => handleSaveField('nombre')}
-                disabled={loading}
-                style={{ marginLeft: 8, background: 'none', border: 'none', color: COLORS.primary, fontSize: 22, cursor: 'pointer' }}
-                title="Guardar"
-              >
-                <FaCheck />
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={loading}
-                style={{ marginLeft: 2, background: 'none', border: 'none', color: COLORS.error, fontSize: 22, cursor: 'pointer' }}
-                title="Cancelar"
-              >
-                <FaTimes />
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setEditField('nombre')}
-              style={{ marginLeft: 8, background: 'none', border: 'none', color: COLORS.primary, fontSize: 22, cursor: 'pointer' }}
-              title="Editar nombre"
-            >
-              <FaEdit />
-            </button>
-          )}
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="text-center text-gray-900 dark:text-gray-100">
+          <p className="text-red-500 dark:text-red-400">No estás autenticado</p>
         </div>
-        {/* Email (solo lectura) */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <FaEnvelope style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.secondary, fontSize: 18 }} />
-          <input
-            type="email"
-            value={user.email}
-            readOnly
-            placeholder="Correo electrónico"
-            style={{
-              width: '100%',
-              padding: '0.85rem 0.85rem 0.85rem 2.5rem',
-              marginBottom: 4,
-              border: `1.5px solid ${COLORS.inputBorder}`,
-              borderRadius: 8,
-              background: COLORS.inputBg,
-              color: COLORS.text,
-              fontSize: 16,
-              outline: 'none',
-              transition: 'border 0.2s',
-              opacity: 0.7,
-            }}
-            autoComplete="email"
-            disabled
-          />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="text-center text-gray-900 dark:text-gray-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Cargando datos del usuario...</p>
         </div>
-        {/* Teléfono */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <FaPhone style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.secondary, fontSize: 18 }} />
-          <input
-            type="tel"
-            value={telefono}
-            onChange={e => setTelefono(e.target.value.replace(/[^\d]/g, ''))}
-            placeholder="Teléfono (10 dígitos)"
-            style={{
-              width: '100%',
-              padding: '0.85rem 0.85rem 0.85rem 2.5rem',
-              marginBottom: 4,
-              border: `1.5px solid ${COLORS.inputBorder}`,
-              borderRadius: 8,
-              background: COLORS.inputBg,
-              color: COLORS.text,
-              fontSize: 16,
-              outline: 'none',
-              transition: 'border 0.2s',
-              opacity: editField === 'telefono' ? 1 : 0.7,
-            }}
-            required
-            autoComplete="tel"
-            maxLength={10}
-            pattern="\d{10}"
-            disabled={editField !== 'telefono' || loading}
-          />
-          {editField === 'telefono' ? (
-            <>
-              <button
-                type="button"
-                onClick={() => handleSaveField('telefono')}
-                disabled={loading}
-                style={{ marginLeft: 8, background: 'none', border: 'none', color: COLORS.primary, fontSize: 22, cursor: 'pointer' }}
-                title="Guardar"
-              >
-                <FaCheck />
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={loading}
-                style={{ marginLeft: 2, background: 'none', border: 'none', color: COLORS.error, fontSize: 22, cursor: 'pointer' }}
-                title="Cancelar"
-              >
-                <FaTimes />
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setEditField('telefono')}
-              style={{ marginLeft: 8, background: 'none', border: 'none', color: COLORS.primary, fontSize: 22, cursor: 'pointer' }}
-              title="Editar teléfono"
-            >
-              <FaEdit />
-            </button>
-          )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+      {/* Header */}
+      <div className="safe-area-top bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors">
+        <div className="text-center">
+          <h1 className="font-montserrat font-black text-2xl text-primary">Mi Perfil</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 transition-colors">Gestiona tu información personal</p>
         </div>
-        {/* Contraseña */}
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <FaLock style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.secondary, fontSize: 18 }} />
-          <input
-            type="password"
-            value={password ? '********' : ''}
-            placeholder="Nueva contraseña (opcional)"
-            style={{
-              width: '100%',
-              padding: '0.85rem 0.85rem 0.85rem 2.5rem',
-              marginBottom: 4,
-              border: `1.5px solid ${COLORS.inputBorder}`,
-              borderRadius: 8,
-              background: COLORS.inputBg,
-              color: COLORS.text,
-              fontSize: 16,
-              outline: 'none',
-              transition: 'border 0.2s',
-              opacity: 0.7,
-            }}
-            minLength={6}
-            autoComplete="new-password"
-            disabled
-          />
-          <button
-            type="button"
-            onClick={() => { setShowPasswordModal(true); setEditField('password'); }}
-            style={{ marginLeft: 8, background: 'none', border: 'none', color: COLORS.primary, fontSize: 22, cursor: 'pointer' }}
-            title="Editar contraseña"
-          >
-            <FaEdit />
-          </button>
-        </div>
-        {/* Modal para cambio de contraseña */}
-        {showPasswordModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            background: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-          }}>
-            <div style={{
-              background: COLORS.inputBg,
-              padding: 32,
-              borderRadius: 16,
-              minWidth: 320,
-              boxShadow: '0 4px 24px 0 rgba(0,0,0,0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-              alignItems: 'center',
-            }}>
-              <h3 style={{ color: COLORS.primary, marginBottom: 8 }}>Cambiar contraseña</h3>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                placeholder="Nueva contraseña"
-                style={{
-                  width: '100%',
-                  padding: '0.85rem',
-                  border: `1.5px solid ${COLORS.inputBorder}`,
-                  borderRadius: 8,
-                  background: COLORS.background,
-                  color: COLORS.text,
-                  fontSize: 16,
-                  outline: 'none',
-                  marginBottom: 8,
-                }}
-                minLength={6}
-                autoComplete="new-password"
-              />
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Confirmar contraseña"
-                style={{
-                  width: '100%',
-                  padding: '0.85rem',
-                  border: `1.5px solid ${COLORS.inputBorder}`,
-                  borderRadius: 8,
-                  background: COLORS.background,
-                  color: COLORS.text,
-                  fontSize: 16,
-                  outline: 'none',
-                  marginBottom: 8,
-                }}
-                minLength={6}
-                autoComplete="new-password"
-              />
-              {passwordError && <div style={{ color: COLORS.error, marginBottom: 4, textAlign: 'center', fontWeight: 500 }}>{passwordError}</div>}
-              <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+      </div>
+      
+      {/* Content */}
+      <div className="flex-1 px-6 py-8">
+        <div className="max-w-sm mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 transition-colors">
+            {/* Foto de perfil */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="relative">
+                <img
+                  src={fotoPreview || "/window.svg"}
+                  alt="Foto de perfil"
+                  className="w-24 h-24 object-cover rounded-full border-4 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 shadow-lg transition-colors"
+                />
                 <button
                   type="button"
-                  onClick={handlePasswordModalSave}
-                  style={{
-                    flex: 1,
-                    padding: '0.85rem',
-                    background: COLORS.primary,
-                    color: COLORS.text,
-                    border: 'none',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    fontSize: 18,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px 0 rgba(255,69,0,0.10)',
-                    letterSpacing: 1.1,
-                    transition: 'background 0.2s',
-                  }}
+                  onClick={() => setEditField('foto') || fileInputRef.current?.click()}
+                  className="absolute -bottom-2 -right-2 bg-primary text-white w-10 h-10 rounded-full shadow-lg hover:bg-primary-hover transition-colors flex items-center justify-center"
+                  title="Cambiar foto"
                 >
-                  Guardar
+                  <FaEdit size={14} />
                 </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={e => {
+                    if (e.target.files[0]) {
+                      setFoto(e.target.files[0]);
+                      handleSaveField('foto');
+                    }
+                  }}
+                  disabled={loading}
+                />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-4 transition-colors">{user.nombre}</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm transition-colors">{user.email}</p>
+            </div>
+
+            <div className="space-y-6">
+              {/* Nombre */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  Nombre completo
+                </label>
+                <div className="relative">
+                  <FaUserAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <input
+                    type="text"
+                    value={nombre}
+                    onChange={e => setNombre(e.target.value)}
+                    placeholder="Tu nombre completo"
+                    className={`w-full h-14 pl-12 pr-12 rounded-xl border-2 transition-all outline-none ${
+                      editField === 'nombre' 
+                        ? 'border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100' 
+                        : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    } ${editField !== 'nombre' ? 'cursor-default' : ''}`}
+                    required
+                    autoComplete="name"
+                    disabled={editField !== 'nombre' || loading}
+                  />
+                  {editField === 'nombre' ? (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveField('nombre')}
+                        disabled={loading}
+                        className="text-green-600 hover:text-green-700 transition-colors"
+                        title="Guardar"
+                      >
+                        <FaCheck size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        disabled={loading}
+                        className="text-red-600 hover:text-red-700 transition-colors"
+                        title="Cancelar"
+                      >
+                        <FaTimes size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditField('nombre')}
+                      disabled={loading}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      title="Editar nombre"
+                    >
+                      <FaEdit size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  Correo electrónico
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <input
+                    type="email"
+                    value={user.email}
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors cursor-not-allowed"
+                    disabled
+                    autoComplete="email"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">El email no se puede modificar</p>
+              </div>
+
+              {/* Teléfono */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  Teléfono
+                </label>
+                <div className="relative">
+                  <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <input
+                    type="tel"
+                    value={telefono}
+                    onChange={e => setTelefono(e.target.value.replace(/[^\d]/g, '').slice(0, 10))}
+                    placeholder="Tu número de teléfono"
+                    className={`w-full h-14 pl-12 pr-12 rounded-xl border-2 transition-all outline-none ${
+                      editField === 'telefono' 
+                        ? 'border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100' 
+                        : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                    } ${editField !== 'telefono' ? 'cursor-default' : ''}`}
+                    required
+                    autoComplete="tel"
+                    maxLength={10}
+                    pattern="\d{10}"
+                    disabled={editField !== 'telefono' || loading}
+                  />
+                  {editField === 'telefono' ? (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSaveField('telefono')}
+                        disabled={loading}
+                        className="text-green-600 hover:text-green-700 transition-colors"
+                        title="Guardar"
+                      >
+                        <FaCheck size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        disabled={loading}
+                        className="text-red-600 hover:text-red-700 transition-colors"
+                        title="Cancelar"
+                      >
+                        <FaTimes size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditField('telefono')}
+                      disabled={loading}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      title="Editar teléfono"
+                    >
+                      <FaEdit size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Cambiar contraseña */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  Contraseña
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(true)}
+                  className="w-full text-left"
+                >
+                  <div className="relative">
+                    <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                    <div className="w-full h-14 pl-12 pr-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-pointer flex items-center transition-colors">
+                      ••••••••
+                    </div>
+                    <FaEdit className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-colors" size={16} />
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Messages */}
+            {error && (
+              <div className="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 transition-colors">
+                <div className="text-red-600 dark:text-red-400 text-sm font-medium transition-colors">
+                  {error}
+                </div>
+              </div>
+            )}
+            
+            {success && (
+              <div className="mt-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 transition-colors">
+                <div className="text-green-600 dark:text-green-400 text-sm font-medium transition-colors">
+                  {success}
+                </div>
+              </div>
+            )}
+
+            {/* Cerrar sesión */}
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: '/' })}
+              className="w-full mt-8 bg-red-600 text-white py-4 rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-lg"
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal cambiar contraseña */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm shadow-2xl transition-colors">
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center transition-colors">Cambiar contraseña</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                    Nueva contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={e => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="w-full h-14 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors outline-none focus:border-primary"
+                    minLength={6}
+                    autoComplete="new-password"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                    Confirmar contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Repite la contraseña"
+                    className="w-full h-14 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors outline-none focus:border-primary"
+                    minLength={6}
+                    autoComplete="new-password"
+                  />
+                </div>
+                
+                {passwordError && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 transition-colors">
+                    <div className="text-red-600 dark:text-red-400 text-sm font-medium transition-colors">
+                      {passwordError}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex space-x-3 mt-6">
                 <button
                   type="button"
                   onClick={handleCancel}
-                  style={{
-                    flex: 1,
-                    padding: '0.85rem',
-                    background: COLORS.inputBorder,
-                    color: COLORS.text,
-                    border: 'none',
-                    borderRadius: 8,
-                    fontWeight: 700,
-                    fontSize: 18,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
-                    letterSpacing: 1.1,
-                    transition: 'background 0.2s',
-                  }}
+                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
                 >
                   Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handlePasswordModalSave}
+                  className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-colors"
+                >
+                  Guardar
                 </button>
               </div>
             </div>
           </div>
-        )}
-        {/* Rol oculto */}
-        {error && <div style={{ color: COLORS.error, marginBottom: 4, textAlign: 'center', fontWeight: 500 }}>{error}</div>}
-        {success && <div style={{ color: COLORS.primary, marginBottom: 4, textAlign: 'center', fontWeight: 600 }}>{success}</div>}
-        {/* Botón cerrar sesión al final del formulario */}
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: '/' })}
-          style={{
-            marginTop: 32,
-            alignSelf: 'center',
-            background: COLORS.error,
-            color: COLORS.text,
-            border: 'none',
-            borderRadius: 8,
-            padding: '0.7rem 2.2rem',
-            fontWeight: 700,
-            fontSize: 17,
-            cursor: 'pointer',
-            boxShadow: '0 2px 8px 0 rgba(255,99,71,0.10)',
-            letterSpacing: 1.1,
-            transition: 'background 0.2s',
-          }}
-        >
-          Cerrar sesión
-        </button>
-      </form>
+        </div>
+      )}
     </div>
   );
 }

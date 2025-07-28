@@ -1,5 +1,10 @@
 import RegisterTaller from '@/components/forms/auth/RegisterTaller';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 export default function RegisterPage() {
-  return <RegisterTaller />;
+  return (
+    <ThemeProvider>
+      <RegisterTaller />
+    </ThemeProvider>
+  );
 }

@@ -1,6 +1,8 @@
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
+import ThemeScript from "../components/ThemeScript";
+import ProvidersWrapper from "../components/ProvidersWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,6 +14,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800", "900"],
+});
+
 export const metadata = {
   title: "DriveSync Services",
   description: "Todo en la palma de tu mano",
@@ -19,9 +27,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`} suppressHydrationWarning>
+        <ProvidersWrapper>
+          {children}
+        </ProvidersWrapper>
       </body>
     </html>
   );

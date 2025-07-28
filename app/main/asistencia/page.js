@@ -1,13 +1,13 @@
 
 import Asistencia from "@/components/view/main/Asistencia";
-import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import ProvidersWrapper from "@/components/ProvidersWrapper";
 import Header from "@/components/view/main/Header";
 
 export default function Home() {
   return (
-    <SessionProviderWrapper>
+    <ProvidersWrapper>
       <Header />
       <Asistencia />
-    </SessionProviderWrapper>
+    </ProvidersWrapper>
   );
 }

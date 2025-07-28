@@ -1,12 +1,12 @@
 import AsistenteEspecializado from "@/components/extra/ChatIA";
-import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import ProvidersWrapper from "@/components/ProvidersWrapper";
 import Header from "@/components/view/main/Header";
 
 export default function Home() {
   return (
-    <SessionProviderWrapper>
+    <ProvidersWrapper>
       <Header />
       <AsistenteEspecializado />
-    </SessionProviderWrapper>
+    </ProvidersWrapper>
   );
 }
