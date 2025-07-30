@@ -74,8 +74,28 @@ export default function LoginForm() {
       if (result?.error) {
         setError('Credenciales incorrectas');
       } else if (result?.ok) {
-        router.push('/main/servicios-express');
-        router.refresh();
+        // Usar un timeout pequeño para permitir que la sesión se actualice
+        setTimeout(async () => {
+          try {
+            const sessionRes = await fetch('/api/auth/session');
+            const sessionData = await sessionRes.json();
+            
+            // Redirigir según el rol del usuario
+            if (sessionData?.user?.role === 'asistente') {
+              router.push('/asistente');
+            } else if (sessionData?.user?.role === 'admin') {
+              router.push('/admin');
+            } else {
+              router.push('/main/servicios-express');
+            }
+            router.refresh();
+          } catch (error) {
+            console.error('Error obteniendo sesión:', error);
+            // Fallback a la página principal
+            router.push('/main/servicios-express');
+            router.refresh();
+          }
+        }, 100);
       } else {
         setError('Error en el inicio de sesión');
       }

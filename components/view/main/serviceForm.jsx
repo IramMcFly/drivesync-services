@@ -21,6 +21,8 @@ const ServiceForm = () => {
   const [servicioDB, setServicioDB] = useState(null);
   const [servicios, setServicios] = useState([]);
   const [talleres, setTalleres] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
   const tiposVehiculo = ["Sedán", "SUV", "Pickup", "Hatchback", "Minivan"];
   const metodosPago = ["Tarjeta", "Efectivo"];
   const multiplicadoresTipoVehiculo = {
@@ -38,6 +40,36 @@ const ServiceForm = () => {
   const serviceType = searchParams.get("tipo") || "";
 
   useEffect(() => {
+    // Obtener ubicación del usuario
+    const getUserLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            setUserLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+          },
+          (error) => {
+            console.error("Error obteniendo ubicación:", error);
+            // Ubicación por defecto (Ciudad de México)
+            setUserLocation({
+              lat: 19.4326,
+              lng: -99.1332
+            });
+          }
+        );
+      } else {
+        // Ubicación por defecto si no hay geolocalización
+        setUserLocation({
+          lat: 19.4326,
+          lng: -99.1332
+        });
+      }
+    };
+
+    getUserLocation();
+
     // Cargar talleres y servicios desde la API
     const fetchTalleres = async () => {
       try {
@@ -114,6 +146,9 @@ const ServiceForm = () => {
       alert("Por favor, completa todos los campos obligatorios correctamente.");
       return;
     }
+    
+    setIsLoading(true);
+    
     // Obtener usuario autenticado
     let userId = null;
     let userEmail = null;
@@ -144,10 +179,10 @@ const ServiceForm = () => {
         año: formData.año,
         tipoVehiculo: formData.tipoVehiculo,
       },
-      ubicacion: null, // Se puede agregar geolocalización si se requiere
+      ubicacion: userLocation, // Ahora incluimos la ubicación real
       precio: price,
       contacto: {
-        nombre: session?.user?.name || "Usuario Anónimo",
+        nombre: session?.user?.nombre || session?.user?.name || "Usuario Anónimo",
         email: userEmail,
       },
       metodoPago: formData.metodoPago,
@@ -159,13 +194,16 @@ const ServiceForm = () => {
         body: JSON.stringify(requestBody),
       });
       if (res.ok) {
-        alert("Solicitud enviada correctamente");
-        router.push("/");
+        const data = await res.json();
+        // Redirigir a la página de estado del servicio
+        router.push(`/main/service-status/${data.serviceRequest._id}`);
       } else {
         alert("No se pudo enviar la solicitud");
+        setIsLoading(false);
       }
     } catch {
       alert("Error de red al enviar la solicitud");
+      setIsLoading(false);
     }
   };
 
@@ -272,13 +310,20 @@ const ServiceForm = () => {
           )}
           <button
             type="submit"
-            disabled={!isFormValid()}
-            className={`mt-2 py-2 px-4 rounded-md transition-colors w-full font-semibold ${isFormValid()
+            disabled={!isFormValid() || isLoading}
+            className={`mt-2 py-2 px-4 rounded-md transition-colors w-full font-semibold ${isFormValid() && !isLoading
               ? "bg-primary hover:bg-primary-hover text-white"
               : "bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed"
               }`}
           >
-            Solicitar Servicio
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                Procesando...
+              </div>
+            ) : (
+              'Solicitar Servicio'
+            )}
           </button>
         </form>
       </div>

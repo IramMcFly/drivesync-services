@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MapContainer, TileLayer, Marker, useMapEvent } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, useMapEvent } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect } from "react";
@@ -22,14 +22,45 @@ function ClickHandler({ onSelect }) {
   return null;
 }
 
-const LeafletMap = ({ onSelect, markerLocation, markerLabel, userLocation }) => {
-  if (!userLocation) {
-    return <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 16}}>Obteniendo ubicación...</div>;
+const LeafletMap = ({ 
+  onSelect, 
+  markerLocation, 
+  markerLabel, 
+  userLocation, 
+  center, 
+  zoom = 13, 
+  markers = [],
+  route = null
+}) => {
+  // Usar center si está disponible, sino userLocation
+  const mapCenter = center || userLocation;
+  
+  if (!mapCenter) {
+    return (
+      <div style={{
+        width: '100%', 
+        height: '100%', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        color: '#aaa', 
+        fontSize: 16
+      }}>
+        Obteniendo ubicación...
+      </div>
+    );
   }
+
+  // Convertir coordenadas de la ruta si existe
+  let routeCoordinates = [];
+  if (route && route.geometry && route.geometry.coordinates) {
+    routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+  }
+
   return (
     <MapContainer
-      center={userLocation}
-      zoom={13}
+      center={mapCenter}
+      zoom={zoom}
       scrollWheelZoom={true}
       style={{ width: '100%', height: '100%', borderRadius: '8px', zIndex: 0 }}
       attributionControl={false}
@@ -39,8 +70,29 @@ const LeafletMap = ({ onSelect, markerLocation, markerLabel, userLocation }) => 
         url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
       />
       <ClickHandler onSelect={onSelect} />
+      
+      {/* Marcador único (backward compatibility) */}
       {markerLocation && (
         <Marker position={markerLocation} title={markerLabel || 'Taller'} />
+      )}
+      
+      {/* Múltiples marcadores */}
+      {markers.map((marker, index) => (
+        <Marker 
+          key={index} 
+          position={marker.position} 
+          title={marker.popup || marker.title || `Marcador ${index + 1}`} 
+        />
+      ))}
+      
+      {/* Ruta */}
+      {routeCoordinates.length > 0 && (
+        <Polyline
+          positions={routeCoordinates}
+          color="#FF4500"
+          weight={4}
+          opacity={0.8}
+        />
       )}
     </MapContainer>
   );

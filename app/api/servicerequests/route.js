@@ -31,7 +31,10 @@ export async function POST(request) {
   const data = await request.json();
   try {
     const nuevaSolicitud = await ServiceRequest.create(data);
-    return NextResponse.json(nuevaSolicitud, { status: 201 });
+    return NextResponse.json({ 
+      success: true, 
+      serviceRequest: nuevaSolicitud 
+    }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Error al crear solicitud', details: error.message }, { status: 400 });
   }
