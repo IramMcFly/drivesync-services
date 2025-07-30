@@ -24,6 +24,7 @@ import {
 } from "react-icons/fa";
 import dynamic from "next/dynamic";
 import ServiceNotification from "./ServiceNotification";
+import AsistenteServiceManager from "./AsistenteServiceManager";
 
 // Importar el mapa dinámicamente
 const LeafletMap = dynamic(() => import("@/components/maps/LeafletMap"), {
@@ -48,6 +49,8 @@ const AsistenteDashboard = () => {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [newServiceNotification, setNewServiceNotification] = useState(null);
   const [previousServicesCount, setPreviousServicesCount] = useState(0);
+  const [selectedService, setSelectedService] = useState(null);
+  const [showServiceManager, setShowServiceManager] = useState(false);
 
   // Obtener ubicación del usuario
   useEffect(() => {
@@ -230,6 +233,19 @@ const AsistenteDashboard = () => {
     }
   };
 
+  // Función para manejar un servicio asignado
+  const manejarServicio = (servicio) => {
+    setSelectedService(servicio);
+    setShowServiceManager(true);
+  };
+
+  // Función para volver del service manager
+  const volverDelServiceManager = () => {
+    setShowServiceManager(false);
+    setSelectedService(null);
+    fetchData(); // Actualizar datos
+  };
+
   // Función para ir al tracking de un servicio específico
   const irATracking = (serviceId) => {
     router.push(`/main/service-tracking/${serviceId}`);
@@ -281,6 +297,18 @@ const AsistenteDashboard = () => {
           </button>
         </div>
       </div>
+    );
+  }
+
+  // Si estamos mostrando el service manager
+  if (showServiceManager && selectedService) {
+    return (
+      <AsistenteServiceManager
+        servicio={selectedService}
+        session={session}
+        onServiceUpdate={fetchData}
+        onBack={volverDelServiceManager}
+      />
     );
   }
 
@@ -407,39 +435,27 @@ const AsistenteDashboard = () => {
                   <div className="flex flex-wrap gap-2">
                     <a
                       href={`tel:${servicio.cliente.telefono}`}
-                      className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                      className="flex items-center gap-2 bg-green-500 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-600 transition-colors"
                     >
                       <FaPhoneAlt />
-                      Llamar Cliente
+                      <span className="hidden sm:inline">Llamar</span>
                     </a>
                     
                     <button
-                      onClick={() => irATracking(servicio._id)}
-                      className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-hover transition-colors"
+                      onClick={() => manejarServicio(servicio)}
+                      className="flex items-center gap-2 bg-primary text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-primary-hover transition-colors"
                     >
-                      <FaRoute />
-                      Ver Ruta
+                      <FaCar />
+                      <span className="hidden sm:inline">Gestionar</span>
                     </button>
 
-                    {servicio.estado === 'asignado' && (
-                      <button
-                        onClick={() => actualizarEstadoServicio(servicio._id, 'en_camino')}
-                        className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-                      >
-                        <FaCar />
-                        Ir en Camino
-                      </button>
-                    )}
-
-                    {servicio.estado === 'en_camino' && (
-                      <button
-                        onClick={() => actualizarEstadoServicio(servicio._id, 'finalizado')}
-                        className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
-                      >
-                        <FaCheck />
-                        Finalizar
-                      </button>
-                    )}
+                    <button
+                      onClick={() => router.push(`/asistente/service-active/${servicio._id}`)}
+                      className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-600 transition-colors"
+                    >
+                      <FaRoute />
+                      <span className="hidden sm:inline">Navegar</span>
+                    </button>
                   </div>
                 </div>
               ))}

@@ -237,6 +237,45 @@ export async function PUT(request) {
         success: true,
         message: 'Ubicación actualizada'
       });
+
+    } else if (action === 'release_service') {
+      // Liberar servicio y devolverlo a pendiente
+      if (!serviceId) {
+        return NextResponse.json({ 
+          error: 'ServiceId requerido' 
+        }, { status: 400 });
+      }
+
+      const servicioActualizado = await ServiceRequest.findOneAndUpdate(
+        { 
+          _id: serviceId, 
+          asistente: asistente._id 
+        },
+        {
+          estado: 'pendiente',
+          $unset: { asistente: 1 }, // Remover asistente asignado
+          $push: {
+            historial: {
+              estado: 'pendiente',
+              comentario: `Servicio liberado por asistente ${asistente.placa}`,
+              fecha: new Date()
+            }
+          }
+        },
+        { new: true }
+      );
+
+      if (!servicioActualizado) {
+        return NextResponse.json({ 
+          error: 'Servicio no encontrado o no asignado a este asistente' 
+        }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Servicio devuelto a la lista de pendientes',
+        servicio: servicioActualizado
+      });
     }
 
     return NextResponse.json({ error: 'Acción no válida' }, { status: 400 });
