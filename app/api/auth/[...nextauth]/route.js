@@ -16,43 +16,62 @@ const handler = NextAuth({
         userType: { label: "Tipo de usuario", type: "text" },
       },
       async authorize(credentials) {
-        await connectDB();
-        
-        const { email, password, userType } = credentials;
-        
-        if (userType === 'taller') {
-          // Buscar en la colección de talleres
-          const taller = await Taller.findOne({ email });
-          if (!taller) return null;
+        try {
+          await connectDB();
           
-          const isValid = await bcrypt.compare(password, taller.password);
-          if (!isValid) return null;
+          const { email, password, userType } = credentials;
           
-          return { 
-            id: taller._id, 
-            email: taller.email, 
-            nombre: taller.nombre, 
-            role: 'taller',
-            userType: 'taller',
-            telefono: taller.telefono,
-            direccion: taller.direccion,
-            servicios: taller.servicios
-          };
-        } else {
-          // Lógica original para usuarios
-          const user = await User.findOne({ email });
-          if (!user) return null;
-          
-          const isValid = await bcrypt.compare(password, user.password);
-          if (!isValid) return null;
-          
-          return { 
-            id: user._id, 
-            email: user.email, 
-            nombre: user.nombre, 
-            role: user.role, 
-            userType: 'usuario'
-          };
+          if (userType === 'taller') {
+            // Buscar en la colección de talleres
+            const taller = await Taller.findOne({ email });
+            if (!taller) {
+              console.log('Taller no encontrado:', email);
+              return null;
+            }
+            
+            const isValid = await bcrypt.compare(password, taller.password);
+            if (!isValid) {
+              console.log('Contraseña incorrecta para taller:', email);
+              return null;
+            }
+            
+            console.log('Taller autenticado exitosamente:', email);
+            return { 
+              id: taller._id.toString(), 
+              email: taller.email, 
+              nombre: taller.nombre, 
+              role: 'taller',
+              userType: 'taller',
+              telefono: taller.telefono,
+              direccion: taller.direccion,
+              servicios: taller.servicios
+            };
+          } else {
+            // Lógica original para usuarios
+            const user = await User.findOne({ email });
+            if (!user) {
+              console.log('Usuario no encontrado:', email);
+              return null;
+            }
+            
+            const isValid = await bcrypt.compare(password, user.password);
+            if (!isValid) {
+              console.log('Contraseña incorrecta para usuario:', email);
+              return null;
+            }
+            
+            console.log('Usuario autenticado exitosamente:', email);
+            return { 
+              id: user._id.toString(),
+              email: user.email, 
+              nombre: user.nombre, 
+              role: user.role, 
+              userType: 'usuario'
+            };
+          }
+        } catch (error) {
+          console.error('Error en autorización:', error);
+          return null;
         }
       },
     }),
@@ -98,6 +117,18 @@ const handler = NextAuth({
   },
   pages: {
     signIn: "/login",
+  },
+  debug: process.env.NODE_ENV === 'development',
+  logger: {
+    error(code, metadata) {
+      console.error('NextAuth Error:', code, metadata);
+    },
+    warn(code) {
+      console.warn('NextAuth Warning:', code);
+    },
+    debug(code, metadata) {
+      console.log('NextAuth Debug:', code, metadata);
+    }
   },
 });
 

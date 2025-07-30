@@ -36,10 +36,13 @@ export default function LoginForm() {
         userType: 'taller'
       });
       
-      if (result.error) {
+      if (result?.error) {
         setError('Credenciales incorrectas');
-      } else {
+      } else if (result?.ok) {
         router.push('/taller/dashboard');
+        router.refresh();
+      } else {
+        setError('Error en el inicio de sesión');
       }
     } else {
       // Lógica original para usuarios
@@ -68,10 +71,13 @@ export default function LoginForm() {
         userType: 'usuario'
       });
       
-      if (result.error) {
+      if (result?.error) {
         setError('Credenciales incorrectas');
-      } else {
+      } else if (result?.ok) {
         router.push('/main/servicios-express');
+        router.refresh();
+      } else {
+        setError('Error en el inicio de sesión');
       }
     }
     
