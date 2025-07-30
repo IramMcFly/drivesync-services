@@ -12,6 +12,7 @@ const userSchema = yup.object({
   password: yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   nombre: yup.string().required('Nombre requerido'),
   telefono: yup.string().required('Teléfono requerido'),
+  role: yup.string().oneOf(['cliente', 'asistente', 'admin']).default('cliente'),
 });
 // GET: Listar todos los usuarios o uno por ID
 export async function GET(request) {
@@ -46,7 +47,7 @@ export async function POST(request) {
     try {
         await connectDB();
         const contentType = request.headers.get('content-type') || '';
-        let email, password, nombre, telefono, fotoBuffer;
+        let email, password, nombre, telefono, role, fotoBuffer;
         let isRegister = false;
 
         if (contentType.includes('multipart/form-data')) {
@@ -56,6 +57,7 @@ export async function POST(request) {
             password = formData.get('password');
             nombre = formData.get('nombre');
             telefono = formData.get('telefono');
+            role = formData.get('role') || 'cliente';
             isRegister = true;
             const foto = formData.get('foto');
             if (foto && typeof foto.arrayBuffer === 'function') {
@@ -63,16 +65,24 @@ export async function POST(request) {
                 fotoBuffer = Buffer.from(arrayBuffer);
             }
         } else {
-            // Login
+            // JSON request - puede ser login o registro directo
             const body = await request.json();
             email = body.email;
             password = body.password;
+            nombre = body.nombre;
+            telefono = body.telefono;
+            role = body.role || 'cliente';
+            
+            // Si incluye nombre y teléfono, es un registro
+            if (nombre && telefono) {
+                isRegister = true;
+            }
         }
 
         // Validación solo en registro
         if (isRegister) {
             try {
-                await userSchema.validate({ email, password, nombre, telefono }, { abortEarly: false });
+                await userSchema.validate({ email, password, nombre, telefono, role }, { abortEarly: false });
             } catch (validationError) {
                 return NextResponse.json({
                     error: 'Datos inválidos',
@@ -85,23 +95,43 @@ export async function POST(request) {
         let user = await User.findOne({ email });
 
         if (!user) {
-            // Si el usuario no existe, lo creamos
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const userData = {
-                email,
-                password: hashedPassword,
-                nombre: nombre || '',
-                telefono: telefono || ''
-            };
-            if (fotoBuffer) {
-                userData.foto = fotoBuffer;
-            }
-            user = await User.create(userData);
+            // Si el usuario no existe y es un registro, lo creamos
+            if (isRegister) {
+                const hashedPassword = await bcrypt.hash(password, 12);
+                const userData = {
+                    email,
+                    password: hashedPassword,
+                    nombre,
+                    telefono,
+                    role: role || 'cliente'
+                };
+                if (fotoBuffer) {
+                    userData.foto = fotoBuffer;
+                }
+                user = await User.create(userData);
 
-            return NextResponse.json({
-                message: 'Usuario creado exitosamente',
-                user: { email: user.email, nombre: user.nombre, telefono: user.telefono }
-            });
+                return NextResponse.json({
+                    message: 'Usuario creado exitosamente',
+                    _id: user._id,
+                    email: user.email,
+                    nombre: user.nombre,
+                    telefono: user.telefono,
+                    role: user.role
+                });
+            } else {
+                return NextResponse.json(
+                    { error: 'Usuario no encontrado' },
+                    { status: 404 }
+                );
+            }
+        } else {
+            // Si el usuario existe y es un registro, devolver error
+            if (isRegister) {
+                return NextResponse.json(
+                    { error: 'Ya existe un usuario con este email' },
+                    { status: 409 }
+                );
+            }
         }
 
         // Si el usuario existe, verificamos la contraseña
@@ -152,9 +182,20 @@ export async function PUT(request) {
         }
     }
     if (!data._id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
-    // Validar datos básicos (excepto password, que es opcional en update)
+    
+    // Validar datos según el tipo de actualización
     try {
-        await userSchema.omit(['password']).validate(data, { abortEarly: false });
+        // Si solo se está actualizando el role, no validar todo el esquema
+        if (Object.keys(data).length === 2 && data._id && data.role) {
+            // Solo validar el role
+            const roleSchema = yup.object({
+                role: yup.string().oneOf(['cliente', 'asistente', 'admin']).required()
+            });
+            await roleSchema.validate({ role: data.role });
+        } else {
+            // Validar datos básicos (excepto password, que es opcional en update)
+            await userSchema.omit(['password']).validate(data, { abortEarly: false });
+        }
     } catch (validationError) {
         return NextResponse.json({
             error: 'Datos inválidos',

@@ -10,7 +10,14 @@ const asistenteSchema = new mongoose.Schema({
     lat: Number,
     lng: Number,
   },
-  placa: { type: String },
+  placa: { type: String, required: true, trim: true },
+  vehiculo: {
+    marca: { type: String, trim: true },
+    modelo: { type: String, trim: true },
+    año: { type: Number },
+    color: { type: String, trim: true }
+  },
+  licencia: { type: String, trim: true }, // Número de licencia de conducir
 }, {
   timestamps: true
 });
