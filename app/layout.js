@@ -1,7 +1,6 @@
 
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
-import ThemeScript from "../components/ThemeScript";
 import ProvidersWrapper from "../components/ProvidersWrapper";
 
 const geistSans = Geist({
@@ -27,11 +26,8 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <ThemeScript />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" className="dark">
+      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`}>
         <ProvidersWrapper>
           {children}
         </ProvidersWrapper>

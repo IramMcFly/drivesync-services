@@ -62,12 +62,12 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
-      <div className="safe-area-top bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors">
+      <div className="safe-area-top bg-gray-800 border-b border-gray-700 px-6 py-4">
         <div className="text-center">
           <h1 className="font-montserrat font-black text-2xl text-primary">DriveSync</h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 transition-colors">Crear cuenta nueva</p>
+          <p className="text-gray-400 text-sm mt-1">Crear cuenta nueva</p>
         </div>
       </div>
       
@@ -76,18 +76,18 @@ export default function RegisterForm() {
         <div className="max-w-sm mx-auto">
           <div className="card-mobile">
             <div className="mb-6 text-center">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 transition-colors">Registro</h2>
-              <p className="text-gray-600 dark:text-gray-400 transition-colors">Completa tus datos para comenzar</p>
+              <h2 className="text-2xl font-bold text-gray-100 mb-2">Registro</h2>
+              <p className="text-gray-400">Completa tus datos para comenzar</p>
             </div>
             
             <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-5">
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Nombre completo
                 </label>
                 <div className="relative">
-                  <FaUserAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaUserAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type="text"
                     value={nombre}
@@ -102,11 +102,11 @@ export default function RegisterForm() {
               
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Correo electrónico
                 </label>
                 <div className="relative">
-                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type="email"
                     value={email}
@@ -121,11 +121,11 @@ export default function RegisterForm() {
               
               {/* Teléfono */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Teléfono
                 </label>
                 <div className="relative">
-                  <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type="tel"
                     value={telefono}
@@ -142,7 +142,7 @@ export default function RegisterForm() {
               
               {/* Foto */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Foto de perfil (opcional)
                 </label>
                 <div className="relative">
@@ -150,18 +150,18 @@ export default function RegisterForm() {
                     type="file"
                     accept="image/*"
                     onChange={e => setFoto(e.target.files[0])}
-                    className="w-full h-14 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full h-14 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-100 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                   />
                 </div>
               </div>
               
               {/* Contraseña */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Contraseña
                 </label>
                 <div className="relative">
-                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
@@ -175,7 +175,7 @@ export default function RegisterForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     tabIndex={-1}
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
@@ -186,11 +186,11 @@ export default function RegisterForm() {
               
               {/* Confirmar contraseña */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Confirmar contraseña
                 </label>
                 <div className="relative">
-                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
@@ -204,7 +204,7 @@ export default function RegisterForm() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(v => !v)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     tabIndex={-1}
                     aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
@@ -215,16 +215,16 @@ export default function RegisterForm() {
               
               {/* Messages */}
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 transition-colors">
-                  <div className="text-red-600 dark:text-red-400 text-sm font-medium transition-colors">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                  <div className="text-red-600 dark:text-red-400 text-sm font-medium">
                     {error}
                   </div>
                 </div>
               )}
               
               {success && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 transition-colors">
-                  <div className="text-green-600 dark:text-green-400 text-sm font-medium transition-colors">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                  <div className="text-green-600 dark:text-green-400 text-sm font-medium">
                     {success}
                   </div>
                 </div>
@@ -250,20 +250,20 @@ export default function RegisterForm() {
           
           {/* Footer Links */}
           <div className="mt-8 text-center space-y-4">
-            <div className="text-gray-600 dark:text-gray-400 transition-colors">
+            <div className="text-gray-400">
               ¿Ya tienes cuenta?{' '}
               <a
                 href="/"
-                className="text-primary font-semibold hover:text-primary-hover transition-colors"
+                className="text-primary font-semibold hover:text-primary-hover"
               >
                 Inicia sesión
               </a>
             </div>
-            <div className="text-gray-600 dark:text-gray-400 text-sm transition-colors">
+            <div className="text-gray-400 text-sm">
               ¿Eres un taller?{' '}
               <a
                 href="/register/TallerRegister"
-                className="text-primary font-semibold hover:text-primary-hover transition-colors"
+                className="text-primary font-semibold hover:text-primary-hover"
               >
                 Registra tu taller
               </a>

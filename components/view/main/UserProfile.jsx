@@ -140,8 +140,8 @@ export default function UserProfile() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
-        <div className="text-center text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-gray-100">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Cargando perfil...</p>
         </div>
@@ -151,9 +151,9 @@ export default function UserProfile() {
 
   if (status === "unauthenticated") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
-        <div className="text-center text-gray-900 dark:text-gray-100">
-          <p className="text-red-500 dark:text-red-400">No estás autenticado</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-gray-100">
+          <p className="text-red-400">No estás autenticado</p>
         </div>
       </div>
     );
@@ -161,8 +161,8 @@ export default function UserProfile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors">
-        <div className="text-center text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-gray-100">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p>Cargando datos del usuario...</p>
         </div>
@@ -171,31 +171,31 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col transition-colors">
+    <div className="min-h-screen bg-gray-900 flex flex-col">
       {/* Header */}
-      <div className="safe-area-top bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 transition-colors">
+      <div className="safe-area-top bg-gray-800 border-b border-gray-700 px-6 py-4">
         <div className="text-center">
           <h1 className="font-montserrat font-black text-2xl text-primary">Mi Perfil</h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 transition-colors">Gestiona tu información personal</p>
+          <p className="text-gray-400 text-sm mt-1">Gestiona tu información personal</p>
         </div>
       </div>
       
       {/* Content */}
       <div className="flex-1 px-6 py-8">
         <div className="max-w-sm mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 transition-colors">
+          <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 p-6">
             {/* Foto de perfil */}
             <div className="flex flex-col items-center mb-8">
               <div className="relative">
                 <img
                   src={fotoPreview || "/window.svg"}
                   alt="Foto de perfil"
-                  className="w-24 h-24 object-cover rounded-full border-4 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 shadow-lg transition-colors"
+                  className="w-24 h-24 object-cover rounded-full border-4 border-gray-600 bg-gray-700 shadow-lg"
                 />
                 <button
                   type="button"
                   onClick={() => setEditField('foto') || fileInputRef.current?.click()}
-                  className="absolute -bottom-2 -right-2 bg-primary text-white w-10 h-10 rounded-full shadow-lg hover:bg-primary-hover transition-colors flex items-center justify-center"
+                  className="absolute -bottom-2 -right-2 bg-primary text-white w-10 h-10 rounded-full shadow-lg hover:bg-primary-hover flex items-center justify-center"
                   title="Cambiar foto"
                 >
                   <FaEdit size={14} />
@@ -214,18 +214,18 @@ export default function UserProfile() {
                   disabled={loading}
                 />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-4 transition-colors">{user.nombre}</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm transition-colors">{user.email}</p>
+              <h2 className="text-xl font-bold text-gray-100 mt-4">{user.nombre}</h2>
+              <p className="text-gray-400 text-sm">{user.email}</p>
             </div>
 
             <div className="space-y-6">
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Nombre completo
                 </label>
                 <div className="relative">
-                  <FaUserAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaUserAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type="text"
                     value={nombre}
@@ -233,8 +233,8 @@ export default function UserProfile() {
                     placeholder="Tu nombre completo"
                     className={`w-full h-14 pl-12 pr-12 rounded-xl border-2 transition-all outline-none ${
                       editField === 'nombre' 
-                        ? 'border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100' 
-                        : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                        ? 'border-primary bg-gray-700 text-gray-100' 
+                        : 'border-gray-600 bg-gray-700 text-gray-100'
                     } ${editField !== 'nombre' ? 'cursor-default' : ''}`}
                     required
                     autoComplete="name"
@@ -246,7 +246,7 @@ export default function UserProfile() {
                         type="button"
                         onClick={() => handleSaveField('nombre')}
                         disabled={loading}
-                        className="text-green-600 hover:text-green-700 transition-colors"
+                        className="text-green-600 hover:text-green-700"
                         title="Guardar"
                       >
                         <FaCheck size={16} />
@@ -255,7 +255,7 @@ export default function UserProfile() {
                         type="button"
                         onClick={handleCancel}
                         disabled={loading}
-                        className="text-red-600 hover:text-red-700 transition-colors"
+                        className="text-red-600 hover:text-red-700"
                         title="Cancelar"
                       >
                         <FaTimes size={16} />
@@ -266,7 +266,7 @@ export default function UserProfile() {
                       type="button"
                       onClick={() => setEditField('nombre')}
                       disabled={loading}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
                       title="Editar nombre"
                     >
                       <FaEdit size={16} />
@@ -277,29 +277,29 @@ export default function UserProfile() {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Correo electrónico
                 </label>
                 <div className="relative">
-                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaEnvelope className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type="email"
                     value={user.email}
-                    className="w-full h-14 pl-12 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors cursor-not-allowed"
+                    className="w-full h-14 pl-12 pr-4 rounded-xl border-2 border-gray-600 bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                     disabled
                     autoComplete="email"
                   />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 transition-colors">El email no se puede modificar</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">El email no se puede modificar</p>
               </div>
 
               {/* Teléfono */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Teléfono
                 </label>
                 <div className="relative">
-                  <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
+                  <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
                   <input
                     type="tel"
                     value={telefono}
@@ -307,8 +307,8 @@ export default function UserProfile() {
                     placeholder="Tu número de teléfono"
                     className={`w-full h-14 pl-12 pr-12 rounded-xl border-2 transition-all outline-none ${
                       editField === 'telefono' 
-                        ? 'border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100' 
-                        : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+                        ? 'border-primary bg-gray-700 text-gray-100' 
+                        : 'border-gray-600 bg-gray-700 text-gray-100'
                     } ${editField !== 'telefono' ? 'cursor-default' : ''}`}
                     required
                     autoComplete="tel"
@@ -322,7 +322,7 @@ export default function UserProfile() {
                         type="button"
                         onClick={() => handleSaveField('telefono')}
                         disabled={loading}
-                        className="text-green-600 hover:text-green-700 transition-colors"
+                        className="text-green-600 hover:text-green-700"
                         title="Guardar"
                       >
                         <FaCheck size={16} />
@@ -331,7 +331,7 @@ export default function UserProfile() {
                         type="button"
                         onClick={handleCancel}
                         disabled={loading}
-                        className="text-red-600 hover:text-red-700 transition-colors"
+                        className="text-red-600 hover:text-red-700"
                         title="Cancelar"
                       >
                         <FaTimes size={16} />
@@ -342,7 +342,7 @@ export default function UserProfile() {
                       type="button"
                       onClick={() => setEditField('telefono')}
                       disabled={loading}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
                       title="Editar teléfono"
                     >
                       <FaEdit size={16} />
@@ -353,7 +353,7 @@ export default function UserProfile() {
 
               {/* Cambiar contraseña */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Contraseña
                 </label>
                 <button
@@ -362,11 +362,11 @@ export default function UserProfile() {
                   className="w-full text-left"
                 >
                   <div className="relative">
-                    <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm transition-colors" />
-                    <div className="w-full h-14 pl-12 pr-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-pointer flex items-center transition-colors">
+                    <FaLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
+                    <div className="w-full h-14 pl-12 pr-12 rounded-xl border-2 border-gray-600 bg-gray-700 text-gray-500 dark:text-gray-400 cursor-pointer flex items-center">
                       ••••••••
                     </div>
-                    <FaEdit className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 transition-colors" size={16} />
+                    <FaEdit className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
                   </div>
                 </button>
               </div>
@@ -374,16 +374,16 @@ export default function UserProfile() {
 
             {/* Messages */}
             {error && (
-              <div className="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 transition-colors">
-                <div className="text-red-600 dark:text-red-400 text-sm font-medium transition-colors">
+              <div className="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <div className="text-red-600 dark:text-red-400 text-sm font-medium">
                   {error}
                 </div>
               </div>
             )}
             
             {success && (
-              <div className="mt-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 transition-colors">
-                <div className="text-green-600 dark:text-green-400 text-sm font-medium transition-colors">
+              <div className="mt-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                <div className="text-green-600 dark:text-green-400 text-sm font-medium">
                   {success}
                 </div>
               </div>
@@ -393,7 +393,7 @@ export default function UserProfile() {
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: '/' })}
-              className="w-full mt-8 bg-red-600 text-white py-4 rounded-xl font-semibold hover:bg-red-700 transition-colors shadow-lg"
+              className="w-full mt-8 bg-red-600 text-white py-4 rounded-xl font-semibold hover:bg-red-700 shadow-lg"
             >
               Cerrar sesión
             </button>
@@ -404,13 +404,13 @@ export default function UserProfile() {
       {/* Modal cambiar contraseña */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm shadow-2xl transition-colors">
+          <div className="bg-gray-800 rounded-2xl w-full max-w-sm shadow-2xl">
             <div className="p-6">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center transition-colors">Cambiar contraseña</h3>
+              <h3 className="text-xl font-bold text-gray-100 mb-6 text-center">Cambiar contraseña</h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Nueva contraseña
                   </label>
                   <input
@@ -418,14 +418,14 @@ export default function UserProfile() {
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    className="w-full h-14 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors outline-none focus:border-primary"
+                    className="w-full h-14 px-4 rounded-xl border-2 border-gray-600 bg-gray-700 text-gray-100 outline-none focus:border-primary"
                     minLength={6}
                     autoComplete="new-password"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Confirmar contraseña
                   </label>
                   <input
@@ -433,15 +433,15 @@ export default function UserProfile() {
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="Repite la contraseña"
-                    className="w-full h-14 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors outline-none focus:border-primary"
+                    className="w-full h-14 px-4 rounded-xl border-2 border-gray-600 bg-gray-700 text-gray-100 outline-none focus:border-primary"
                     minLength={6}
                     autoComplete="new-password"
                   />
                 </div>
                 
                 {passwordError && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 transition-colors">
-                    <div className="text-red-600 dark:text-red-400 text-sm font-medium transition-colors">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3">
+                    <div className="text-red-600 dark:text-red-400 text-sm font-medium">
                       {passwordError}
                     </div>
                   </div>
@@ -452,14 +452,14 @@ export default function UserProfile() {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                  className="flex-1 py-3 px-4 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-500"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={handlePasswordModalSave}
-                  className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-colors"
+                  className="flex-1 py-3 px-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover"
                 >
                   Guardar
                 </button>

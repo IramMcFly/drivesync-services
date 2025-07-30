@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  /* Modo claro */
-  --background: #f8fafc;
-  --foreground: #1e293b;
+  /* Variables de color para modo oscuro */
+  --background: #0f172a;
+  --foreground: #f1f5f9;
   --primary: #FF4500;
   --primary-hover: #F48C06;
   --secondary: #4B2E19;
@@ -11,28 +11,6 @@
   --error: #ef4444;
   --success: #22c55e;
   --warning: #f59e0b;
-  --input-bg: #ffffff;
-  --input-border: #e2e8f0;
-  --card-bg: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --gray-50: #f8fafc;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1e293b;
-  --gray-900: #0f172a;
-}
-
-.dark {
-  /* Modo oscuro */
-  --background: #0f172a;
-  --foreground: #f1f5f9;
   --input-bg: #1e293b;
   --input-border: #334155;
   --card-bg: #1e293b;
@@ -55,13 +33,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: var(--font-montserrat), 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-}
-
-/* Asegurar que el HTML también tenga la transición */
-html {
-  transition: background-color 0.3s ease;
 }
 
 /* Estilos base para textos */
@@ -321,15 +293,6 @@ label {
   background-color: var(--primary-hover);
 }
 
-.dark .input-mobile[type="file"]::file-selector-button {
-  background-color: var(--primary);
-  color: white;
-}
-
-.dark .input-mobile[type="file"]::file-selector-button:hover {
-  background-color: var(--primary-hover);
-}
-
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -389,25 +352,20 @@ select option {
   padding: 0.5rem;
 }
 
-/* Mejorar contraste en modo oscuro */
-.dark select option {
-  background-color: var(--gray-700);
-  color: var(--gray-100);
-}
-
-.dark input[type="text"],
-.dark input[type="email"],
-.dark input[type="tel"],
-.dark input[type="password"] {
+/* Estilos para inputs */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"] {
   background-color: var(--input-bg);
   color: var(--foreground);
   border-color: var(--input-border);
 }
 
-.dark input[type="text"]::placeholder,
-.dark input[type="email"]::placeholder,
-.dark input[type="tel"]::placeholder,
-.dark input[type="password"]::placeholder {
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="password"]::placeholder {
   color: var(--text-muted);
   opacity: 0.8;
 }

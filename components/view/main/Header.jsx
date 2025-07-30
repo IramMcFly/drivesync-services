@@ -7,7 +7,6 @@ import Image from "next/image"
 import { FaBolt, FaMapMarkerAlt, FaLifeRing, FaUser, FaBars, FaTimes } from "react-icons/fa"
 import React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import ThemeToggle from '../../ThemeToggle'
 
 const navigationLinks = [
   {
@@ -47,7 +46,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
+      <header className="sticky top-0 z-40 w-full bg-gray-800 border-b border-gray-700 transition-colors">
         <div className="mx-auto px-4 lg:px-6">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -55,7 +54,7 @@ export default function Header() {
                 <div className="rounded-xl overflow-hidden w-10 h-10 bg-primary p-1">
                   <Image src="/images/logoDS.png" alt="DriveSync logo" width={32} height={32} className="w-full h-full object-contain" />
                 </div>
-                <span className="font-bold text-gray-900 dark:text-gray-100 text-xl transition-colors">DriveSync</span>
+                <span className="font-bold text-gray-100 text-xl transition-colors">DriveSync</span>
               </Link>
             </div>
 
@@ -75,11 +74,8 @@ export default function Header() {
 
             {/* User Profile Button */}
             <div className="flex items-center gap-2">
-              {/* Theme toggle */}
-              <ThemeToggle />
-              
               <button
-                className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 p-2.5 rounded-full transition-colors"
+                className="text-gray-300 hover:bg-gray-700 p-2.5 rounded-full transition-colors"
                 onClick={() => router.push("/main/userProfile")}
                 aria-label="Perfil de usuario"
               >
@@ -88,7 +84,7 @@ export default function Header() {
               
               {/* Mobile menu button */}
               <button
-                className="md:hidden text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 p-2.5 rounded-full ml-2 transition-colors"
+                className="md:hidden text-gray-300 hover:bg-gray-700 p-2.5 rounded-full ml-2 transition-colors"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
                 {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -98,7 +94,7 @@ export default function Header() {
 
           {/* Mobile Navigation Menu */}
           {isMenuOpen && (
-            <nav className="md:hidden py-4 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 transition-colors">
+            <nav className="md:hidden py-4 border-t border-gray-600 bg-gray-800 transition-colors">
               <div className="flex flex-col space-y-2">
                 {navigationLinks.map((link) => (
                   <Link
@@ -107,7 +103,7 @@ export default function Header() {
                     className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2 transition-colors ${
                       pathname === link.href
                         ? "bg-primary text-white"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : "text-gray-300 hover:bg-gray-700"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -123,7 +119,7 @@ export default function Header() {
 
       {/* Bottom Navigation for Mobile */}
       {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 h-16 flex items-center justify-around z-50 shadow-lg transition-colors">
+        <nav className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 h-16 flex items-center justify-around z-50 shadow-lg transition-colors">
           {navigationLinks.map((link) => (
             <MobileNavItem
               key={link.href}
@@ -147,7 +143,7 @@ function NavItem({ href, children, active, icon }) {
       className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center ${
         active 
           ? "bg-primary text-white shadow-md" 
-          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          : "text-gray-300 hover:bg-gray-700"
       }`}
     >
       {icon && <span className="mr-2 text-base">{icon}</span>}
@@ -160,12 +156,12 @@ function MobileNavItem({ href, children, icon, active }) {
   return (
     <Link href={href} className="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1">
       <span className={`mb-1 text-lg transition-colors ${
-        active ? "text-primary" : "text-gray-500 dark:text-gray-400"
+        active ? "text-primary" : "text-gray-400"
       }`}>
         {icon}
       </span>
       <span className={`text-xs font-medium truncate transition-colors ${
-        active ? "text-primary" : "text-gray-500 dark:text-gray-400"
+        active ? "text-primary" : "text-gray-400"
       }`}>
         {children}
       </span>

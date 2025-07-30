@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongoose'
 import Taller from '@/models/Taller'
 import { NextResponse } from 'next/server'
 import * as yup from 'yup'
+import bcrypt from 'bcrypt'
 
 // Esquema de validación para Taller
 const tallerSchema = yup.object({
@@ -13,9 +14,8 @@ const tallerSchema = yup.object({
   ubicacion: yup.object({
     lat: yup.number().required('Latitud requerida'),
     lng: yup.number().required('Longitud requerida'),
-    direccion: yup.string().required('Dirección requerida'),
   }).required('Ubicación requerida'),
-  calificacion: yup.number().min(0).max(5).default(1), // Agregado campo calificacion
+  calificacion: yup.number().min(0).max(5).default(0), // Agregado campo calificacion
   servicios: yup.array().of(yup.string()), // Agregado campo servicios
   // Eliminado campo horario
 });
@@ -40,13 +40,26 @@ export async function GET(request) {
 export async function POST(req) {
   await connectDB();
   const data = await req.json();
+  
+  // Agregar la dirección a la ubicación si no está presente
+  if (data.ubicacion && !data.ubicacion.direccion) {
+    data.ubicacion.direccion = data.direccion;
+  }
+  
   try {
     await tallerSchema.validate(data, { abortEarly: false });
   } catch (validationError) {
     return NextResponse.json({ error: 'Datos inválidos', details: validationError.errors }, { status: 400 });
   }
-  // Forzar que la calificación siempre sea 1 al registrar un taller
+  
+  // Hashear la contraseña antes de guardar
+  if (data.password) {
+    data.password = await bcrypt.hash(data.password, 12);
+  }
+  
+  // Forzar que la calificación siempre sea 0 al registrar un taller
   data.calificacion = 0;
+  
   const nuevoTaller = new Taller(data);
   await nuevoTaller.save();
   return NextResponse.json({ message: 'Solicitud registrada exitosamente, DriveSync te contactará', taller: nuevoTaller });
