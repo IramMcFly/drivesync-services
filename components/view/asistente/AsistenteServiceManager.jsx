@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import { 
   FaCar, 
   FaMapMarkerAlt, 
@@ -31,6 +33,7 @@ const LeafletMap = dynamic(() => import("@/components/maps/LeafletMap"), {
 });
 
 const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack }) => {
+  const { modalState, showSuccess, showError, hideModal } = useModal();
   const router = useRouter();
   const [userLocation, setUserLocation] = useState(null);
   const [distanceToClient, setDistanceToClient] = useState(null);
@@ -87,29 +90,61 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
   const actualizarEstado = async (nuevoEstado) => {
     setLoading(true);
     try {
-      const response = await fetch('/api/asistente', {
+      const response = await fetch('/api/servicerequests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: session.user.id,
-          action: 'update_service_state',
-          serviceId: servicio._id,
-          nuevoEstado
+          _id: servicio._id,
+          estado: nuevoEstado,
+          comentario: `Estado actualizado por asistente a: ${nuevoEstado}`
         })
       });
 
       if (response.ok) {
-        onServiceUpdate();
+        const updatedService = await response.json();
+        onServiceUpdate(updatedService);
+        
+        // Mensajes específicos según el estado
+        switch (nuevoEstado) {
+          case 'cancelado':
+            showSuccess('Servicio cancelado correctamente');
+            break;
+          case 'en_camino':
+            showSuccess('Has iniciado el viaje hacia el cliente');
+            break;
+          case 'finalizado':
+            showSuccess('Servicio completado exitosamente');
+            break;
+          default:
+            showSuccess(`Servicio actualizado a ${nuevoEstado}`);
+        }
+        
         if (nuevoEstado === 'finalizado' || nuevoEstado === 'cancelado') {
-          onBack();
+          setTimeout(() => onBack(), 1500); // Dar tiempo para leer el mensaje
         }
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Error al actualizar el servicio');
+        console.error('❌ Error del servidor:', errorData);
+        
+        // Mensajes específicos de error
+        if (errorData.error && errorData.error.includes('cancelado')) {
+          showError(
+            'Este servicio ya fue cancelado por el cliente',
+            'Servicio cancelado',
+            () => {
+              hideModal();
+              onBack();
+            }
+          );
+        } else if (errorData.error && errorData.error.includes('Transición inválida')) {
+          showError(`No se puede cambiar el estado a ${nuevoEstado}. ${errorData.error}`);
+        } else {
+          showError(errorData.error || 'Error al actualizar el servicio');
+        }
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión');
+      showError('Error de conexión. Verifica tu internet e intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -117,28 +152,48 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
 
   // Función para cancelar y devolver a pendiente
   const cancelarYDevolver = async () => {
-    if (confirm('¿Deseas cancelar este servicio y devolverlo a la lista de pendientes?')) {
+    if (confirm('¿Deseas devolver este servicio a la lista de pendientes?')) {
       setLoading(true);
       try {
-        const response = await fetch('/api/asistente', {
+        const response = await fetch('/api/servicerequests', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: session.user.id,
-            action: 'release_service',
-            serviceId: servicio._id
+            _id: servicio._id,
+            estado: 'pendiente',
+            asistente: null, // Remover asistente asignado
+            comentario: 'Servicio devuelto a pendientes por el asistente'
           })
         });
 
         if (response.ok) {
-          onServiceUpdate();
-          onBack();
+          showSuccess(
+            'Servicio devuelto a la lista de pendientes',
+            'Operación exitosa',
+            () => {
+              hideModal();
+              onServiceUpdate();
+              onBack();
+            }
+          );
         } else {
-          alert('Error al devolver el servicio');
+          const errorData = await response.json();
+          if (errorData.error && errorData.error.includes('cancelado')) {
+            showError(
+              'Este servicio ya fue cancelado por el cliente',
+              'Servicio cancelado',
+              () => {
+                hideModal();
+                onBack();
+              }
+            );
+          } else {
+            showError(errorData.error || 'Error al devolver el servicio');
+          }
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión');
+        showError('Error de conexión');
       } finally {
         setLoading(false);
       }
@@ -426,6 +481,18 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };

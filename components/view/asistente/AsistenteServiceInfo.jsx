@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import { 
   FaCar, 
   FaMapMarkerAlt, 
@@ -19,6 +21,7 @@ import {
 } from "react-icons/fa";
 
 const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) => {
+  const { modalState, showSuccess, showError, hideModal } = useModal();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -62,50 +65,69 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
   // Función para actualizar estado del servicio
   const actualizarEstado = async (nuevoEstado) => {
     console.log('🔄 AsistenteServiceInfo: Actualizando estado a:', nuevoEstado);
-    console.log('📊 AsistenteServiceInfo: Datos a enviar:', {
-      userId: session.user.id,
-      action: 'update_service_state',
-      serviceId: servicio._id,
-      nuevoEstado: nuevoEstado
-    });
     
     setLoading(true);
     try {
-      const response = await fetch('/api/asistente', {
+      const response = await fetch('/api/servicerequests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: session.user.id,
-          action: 'update_service_state',
-          serviceId: servicio._id,
-          nuevoEstado: nuevoEstado
+          _id: servicio._id,
+          estado: nuevoEstado,
+          comentario: `Estado actualizado por asistente a: ${nuevoEstado}`
         })
       });
 
       console.log('📡 AsistenteServiceInfo: Response status:', response.status);
       
       if (response.ok) {
-        const data = await response.json();
-        console.log('✅ AsistenteServiceInfo: Estado actualizado exitosamente:', data);
-        onServiceUpdate();
+        const updatedService = await response.json();
+        console.log('✅ AsistenteServiceInfo: Estado actualizado exitosamente:', updatedService);
+        onServiceUpdate(updatedService);
         
-        // Si inicia el viaje, navegar al componente de tracking activo
-        if (nuevoEstado === 'en_camino') {
-          router.push(`/asistente/service-active/${servicio._id}`);
-          return;
+        // Mensajes específicos según el estado
+        switch (nuevoEstado) {
+          case 'cancelado':
+            showSuccess('Servicio cancelado correctamente');
+            break;
+          case 'en_camino':
+            showSuccess('Has iniciado el viaje hacia el cliente');
+            // Navegar al componente de tracking activo
+            router.push(`/asistente/service-active/${servicio._id}`);
+            return;
+          case 'finalizado':
+            showSuccess('Servicio completado exitosamente');
+            break;
+          default:
+            showSuccess(`Servicio actualizado a ${nuevoEstado}`);
         }
         
         if (nuevoEstado === 'finalizado' || nuevoEstado === 'cancelado') {
-          onBack();
+          setTimeout(() => onBack(), 1500);
         }
       } else {
         const errorData = await response.json();
         console.error('❌ AsistenteServiceInfo: Error del servidor:', errorData);
-        alert(errorData.error || 'Error al actualizar el servicio');
+        
+        // Mensajes específicos de error
+        if (errorData.error && errorData.error.includes('cancelado')) {
+          showError(
+            'Este servicio ya fue cancelado por el cliente',
+            'Servicio cancelado',
+            () => {
+              hideModal();
+              onBack();
+            }
+          );
+        } else if (errorData.error && errorData.error.includes('Transición inválida')) {
+          showError(`No se puede cambiar el estado a ${nuevoEstado}. ${errorData.error}`);
+        } else {
+          showError(errorData.error || 'Error al actualizar el servicio');
+        }
       }
     } catch (error) {
       console.error('❌ AsistenteServiceInfo: Error de conexión:', error);
-      alert('Error de conexión');
+      showError('Error de conexión. Verifica tu internet e intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -113,28 +135,48 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
 
   // Función para cancelar y devolver a pendiente
   const cancelarYDevolver = async () => {
-    if (confirm('¿Deseas cancelar este servicio y devolverlo a la lista de pendientes?')) {
+    if (confirm('¿Deseas devolver este servicio a la lista de pendientes?')) {
       setLoading(true);
       try {
-        const response = await fetch('/api/asistente', {
+        const response = await fetch('/api/servicerequests', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: session.user.id,
-            action: 'release_service',
-            serviceId: servicio._id
+            _id: servicio._id,
+            estado: 'pendiente',
+            asistente: null, // Remover asistente asignado
+            comentario: 'Servicio devuelto a pendientes por el asistente'
           })
         });
 
         if (response.ok) {
-          onServiceUpdate();
-          onBack();
+          showSuccess(
+            'Servicio devuelto a la lista de pendientes',
+            'Operación exitosa',
+            () => {
+              hideModal();
+              onServiceUpdate();
+              onBack();
+            }
+          );
         } else {
-          alert('Error al devolver el servicio');
+          const errorData = await response.json();
+          if (errorData.error && errorData.error.includes('cancelado')) {
+            showError(
+              'Este servicio ya fue cancelado por el cliente',
+              'Servicio cancelado',
+              () => {
+                hideModal();
+                onBack();
+              }
+            );
+          } else {
+            showError(errorData.error || 'Error al devolver el servicio');
+          }
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión');
+        showError('Error de conexión');
       } finally {
         setLoading(false);
       }
@@ -282,6 +324,18 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
           {loading ? 'Cancelando...' : 'Cancelar y Devolver'}
         </button>
       </div>
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };

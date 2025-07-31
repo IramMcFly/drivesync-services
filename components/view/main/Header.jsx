@@ -4,11 +4,12 @@
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { FaBolt, FaMapMarkerAlt, FaLifeRing, FaUser, FaBars, FaTimes } from "react-icons/fa"
+import { FaBolt, FaMapMarkerAlt, FaLifeRing, FaUser, FaBars, FaTimes, FaShieldAlt, FaToolbox, FaCog } from "react-icons/fa"
 import React from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 
-const navigationLinks = [
+const baseNavigationLinks = [
   {
     name: "Servicios Express",
     href: "/main/servicios-express",
@@ -34,6 +35,46 @@ export default function Header() {
   const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+  const { data: session } = useSession()
+
+  // Generar enlaces de navegación dinámicamente basados en el rol del usuario
+  const getNavigationLinks = () => {
+    const links = [...baseNavigationLinks]
+    
+    // Agregar enlace de Panel Administrativo para usuarios admin
+    if (session?.user?.userType === 'admin') {
+      links.push({
+        name: "Panel Admin",
+        href: "/admin",
+        icon: <FaShieldAlt size={16} />,
+        component: "AdminPanel"
+      })
+    }
+    
+    // Agregar enlace de Dashboard de Asistente para usuarios asistente
+    if (session?.user?.userType === 'asistente') {
+      links.push({
+        name: "Dashboard Asistente",
+        href: "/asistente",
+        icon: <FaToolbox size={16} />,
+        component: "AsistenteDashboard"
+      })
+    }
+    
+    // Agregar enlace de Dashboard de Taller para usuarios taller
+    if (session?.user?.userType === 'taller') {
+      links.push({
+        name: "Dashboard Taller",
+        href: "/taller/dashboard",
+        icon: <FaCog size={16} />,
+        component: "TallerDashboard"
+      })
+    }
+    
+    return links
+  }
+
+  const navigationLinks = getNavigationLinks()
 
   useEffect(() => {
     const checkIfMobile = () => {

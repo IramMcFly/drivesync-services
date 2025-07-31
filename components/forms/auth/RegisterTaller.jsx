@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaUserAlt, FaLock, FaEnvelope, FaPhone, FaMapMarkerAlt, FaEye, FaEyeSlash, FaTools, FaCog } from 'react-icons/fa';
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import dynamic from 'next/dynamic';
 
 // Importar LeafletMap dinámicamente para evitar SSR issues
@@ -13,6 +15,7 @@ const LeafletMap = dynamic(() => import('../../maps/LeafletMap'), {
 });
 
 export default function RegisterTaller() {
+  const { modalState, showError, hideModal } = useModal();
   const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -63,17 +66,29 @@ export default function RegisterTaller() {
         },
         (error) => {
           console.log('No se pudo obtener la ubicación del usuario:', error);
-          // Ubicación por defecto (Ciudad de México) solo para centrar el mapa
-          const defaultLocation = { lat: 19.4326, lng: -99.1332 };
-          setUserLocation(defaultLocation);
+          showError(
+            "Es necesario permitir el acceso a la ubicación para registrar un taller.",
+            "Ubicación requerida",
+            () => {
+              hideModal();
+              router.push('/login');
+            }
+          );
+          return;
         }
       );
     } else {
-      // Ubicación por defecto si no hay geolocalización (solo para centrar el mapa)
-      const defaultLocation = { lat: 19.4326, lng: -99.1332 };
-      setUserLocation(defaultLocation);
+      showError(
+        "Tu dispositivo no soporta geolocalización. No puedes registrar un taller.",
+        "Funcionalidad no disponible",
+        () => {
+          hideModal();
+          router.push('/login');
+        }
+      );
+      return;
     }
-  }, []);
+  }, [router]);
 
   const toggleServicio = (servicioId) => {
     setServiciosSeleccionados(prev =>
@@ -281,11 +296,11 @@ export default function RegisterTaller() {
                     </div>
                   )}
                   
-                  {showMap && (
+                  {showMap && userLocation && (
                     <div className="space-y-3">
                       <div className="border border-gray-600 rounded-lg overflow-hidden" style={{ height: '300px' }}>
                         <LeafletMap
-                          userLocation={userLocation || { lat: 19.4326, lng: -99.1332 }}
+                          userLocation={userLocation}
                           onSelect={handleLocationSelect}
                           markerLocation={tempLocation ? [tempLocation.lat, tempLocation.lng] : (selectedLocation ? [selectedLocation.lat, selectedLocation.lng] : null)}
                           markerLabel="Ubicación del taller"
@@ -483,6 +498,18 @@ export default function RegisterTaller() {
             </div>
           </div>
         </div>
+
+        <Modal
+          isOpen={modalState.isOpen}
+          onClose={hideModal}
+          title={modalState.title}
+          message={modalState.message}
+          type={modalState.type}
+          onConfirm={modalState.onConfirm}
+          confirmText={modalState.confirmText}
+          cancelText={modalState.cancelText}
+          showCancel={modalState.showCancel}
+        />
       </div>
     </div>
   );

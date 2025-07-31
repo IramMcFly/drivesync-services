@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import ServiceStatus from "@/components/view/main/ServiceStatus";
 import ProvidersWrapper from "@/components/ProvidersWrapper";
+import Header from "@/components/view/main/Header";
 
 export default function ServiceStatusPage() {
   const params = useParams();
@@ -53,6 +54,7 @@ export default function ServiceStatusPage() {
 
   return (
     <ProvidersWrapper>
+      <Header />
       <ServiceStatus serviceId={serviceId} />
     </ProvidersWrapper>
   );

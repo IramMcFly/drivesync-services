@@ -66,7 +66,7 @@ const handler = NextAuth({
               email: user.email, 
               nombre: user.nombre, 
               role: user.role, 
-              userType: 'usuario'
+              userType: user.role // Usar el rol real como userType
             };
           }
         } catch (error) {

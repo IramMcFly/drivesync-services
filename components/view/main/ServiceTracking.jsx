@@ -15,6 +15,8 @@ import {
   FaRoute,
   FaUser
 } from "react-icons/fa";
+import Modal from "@/components/ui/Modal";
+import { useModal } from "@/hooks/useModal";
 
 const MapComponent = dynamic(() => import("@/components/maps/LeafletMap"), { 
   ssr: false,
@@ -55,6 +57,7 @@ export default function ServiceTracking({ serviceId }) {
 
   const router = useRouter();
   const { data: session } = useSession();
+  const { modalState, showConfirm, showError } = useModal();
 
   console.log('🎯 ServiceTracking: Received serviceId prop:', serviceId);
 
@@ -100,6 +103,14 @@ export default function ServiceTracking({ serviceId }) {
         // Si el servicio está finalizado o cancelado, redirigir
         if (data.estado === 'finalizado' || data.estado === 'cancelado') {
           console.log('🔄 ServiceTracking: Redirecting to service-status due to state:', data.estado);
+          
+          // Limpiar datos antes del redirect para evitar efectos indeseados
+          setServiceData(null);
+          setAssistantLocation(null);
+          setRoute(null);
+          setDistancia(null);
+          setTiempo(null);
+          
           router.push(`/main/service-status/${serviceId}`);
           return;
         }
@@ -119,6 +130,12 @@ export default function ServiceTracking({ serviceId }) {
 
   // Obtener ubicación real del asistente desde la base de datos
   const getAssistantLocation = async () => {
+    // Validar que el servicio siga activo antes de obtener ubicación
+    if (!serviceData || ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
+      console.log('⚠️ ServiceTracking: Servicio no activo, cancelando getAssistantLocation');
+      return;
+    }
+
     if (!serviceData?.asistente?._id) {
       console.log('❌ ServiceTracking: No hay asistente asignado');
       return;
@@ -172,6 +189,12 @@ export default function ServiceTracking({ serviceId }) {
   // Obtener ruta usando OpenRouteService
   const getRoute = async (start, end) => {
     console.log('🗺️ ServiceTracking: Obteniendo ruta de:', start, 'a:', end);
+    
+    // Verificar que el servicio siga activo antes de hacer cualquier llamada
+    if (!serviceData || ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
+      console.log('⚠️ ServiceTracking: Servicio no activo, cancelando getRoute');
+      return;
+    }
     
     // Verificar que tenemos las coordenadas necesarias
     if (!start?.lat || !start?.lng || !end?.lat || !end?.lng) {
@@ -251,6 +274,14 @@ export default function ServiceTracking({ serviceId }) {
     
     const interval = setInterval(() => {
       console.log('🔄 ServiceTracking: Polling update');
+      
+      // Solo hacer polling si el servicio sigue activo
+      if (!serviceData || ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
+        console.log('⚠️ ServiceTracking: Servicio no activo, deteniendo polling');
+        clearInterval(interval);
+        return;
+      }
+      
       fetchServiceData();
       getAssistantLocation(); // Obtener ubicación real del asistente
     }, 3000); // Cada 3 segundos para tracking en tiempo real
@@ -259,10 +290,16 @@ export default function ServiceTracking({ serviceId }) {
       console.log('🛑 ServiceTracking: Cleanup interval');
       clearInterval(interval);
     };
-  }, [serviceId]);
+  }, [serviceId, serviceData]);
 
   // Calcular ruta cuando tengamos ambas ubicaciones
   useEffect(() => {
+    // Validar que el servicio siga activo antes de calcular ruta
+    if (!serviceData || ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
+      console.log('⚠️ ServiceTracking: Servicio no activo, evitando cálculo de ruta');
+      return;
+    }
+
     if (serviceData?.ubicacion && assistantLocation) {
       getRoute(assistantLocation, serviceData.ubicacion);
     }
@@ -270,10 +307,30 @@ export default function ServiceTracking({ serviceId }) {
 
   // Obtener ubicación inicial del asistente
   useEffect(() => {
+    // Validar que el servicio siga activo antes de obtener ubicación del asistente
+    if (!serviceData || ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
+      console.log('⚠️ ServiceTracking: Servicio no activo, evitando obtener ubicación del asistente');
+      return;
+    }
+
     if (serviceData?.ubicacion && !assistantLocation) {
       getAssistantLocation();
     }
   }, [serviceData]);
+
+  // Efecto de limpieza cuando el servicio cambia a estado inactivo
+  useEffect(() => {
+    if (serviceData && ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
+      console.log('🧹 ServiceTracking: Limpiando datos debido a estado inactivo:', serviceData.estado);
+      
+      // Limpiar todos los datos relacionados con tracking
+      setAssistantLocation(null);
+      setRoute(null);
+      setDistancia(null);
+      setTiempo(null);
+      setError(null);
+    }
+  }, [serviceData?.estado]);
 
   const handlePanic = () => {
     setShowPanicModal(true);
@@ -292,18 +349,30 @@ export default function ServiceTracking({ serviceId }) {
   };
 
   const handleCancelService = () => {
-    if (confirm('¿Estás seguro de que quieres cancelar este servicio?')) {
-      fetch(`/api/servicerequests`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          _id: serviceId,
-          estado: 'cancelado'
-        })
-      }).then(() => {
-        router.push('/main/servicios-express');
-      });
-    }
+    showConfirm(
+      '¿Estás seguro de que quieres cancelar este servicio? Esta acción no se puede deshacer.',
+      async () => {
+        try {
+          const response = await fetch(`/api/servicerequests`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              _id: serviceId,
+              estado: 'cancelado'
+            })
+          });
+
+          if (response.ok) {
+            router.push('/main/servicios-express');
+          } else {
+            showError('No se pudo cancelar el servicio. Inténtalo de nuevo.');
+          }
+        } catch (error) {
+          showError('Error de conexión. Verifica tu internet e inténtalo de nuevo.');
+        }
+      },
+      'Cancelar Servicio'
+    );
   };
 
   if (loading) {
@@ -558,6 +627,9 @@ export default function ServiceTracking({ serviceId }) {
           </div>
         </div>
       </div>
+      
+      {/* Modal Component */}
+      <Modal {...modalState} />
     </div>
   );
 }

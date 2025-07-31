@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 
 const ServiceForm = () => {
+  const { modalState, showError, hideModal } = useModal();
   const [formData, setFormData] = useState({
     marca: "",
     modelo: "",
@@ -52,19 +55,27 @@ const ServiceForm = () => {
           },
           (error) => {
             console.error("Error obteniendo ubicación:", error);
-            // Ubicación por defecto (Ciudad de México)
-            setUserLocation({
-              lat: 19.4326,
-              lng: -99.1332
-            });
+            showError(
+              "Es necesario permitir el acceso a la ubicación para usar este servicio.",
+              "Ubicación requerida",
+              () => {
+                hideModal();
+                router.back();
+              }
+            );
+            return;
           }
         );
       } else {
-        // Ubicación por defecto si no hay geolocalización
-        setUserLocation({
-          lat: 19.4326,
-          lng: -99.1332
-        });
+        showError(
+          "Tu dispositivo no soporta geolocalización. No puedes continuar.",
+          "Funcionalidad no disponible",
+          () => {
+            hideModal();
+            router.back();
+          }
+        );
+        return;
       }
     };
 
@@ -143,7 +154,7 @@ const ServiceForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isFormValid()) {
-      alert("Por favor, completa todos los campos obligatorios correctamente.");
+      showError("Por favor, completa todos los campos obligatorios correctamente.", "Campos incompletos");
       return;
     }
     
@@ -198,11 +209,11 @@ const ServiceForm = () => {
         // Redirigir a la página de estado del servicio
         router.push(`/main/service-status/${data.serviceRequest._id}`);
       } else {
-        alert("No se pudo enviar la solicitud");
+        showError("No se pudo enviar la solicitud");
         setIsLoading(false);
       }
     } catch {
-      alert("Error de red al enviar la solicitud");
+      showError("Error de red al enviar la solicitud");
       setIsLoading(false);
     }
   };
@@ -217,10 +228,10 @@ const ServiceForm = () => {
 
   // Mostrar precio destacado en grande y en blanco antes del botón de solicitar servicio
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-8 pb-20 transition-colors">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-4 sm:py-8 pb-20 transition-colors">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors mx-4">
         <form onSubmit={handleSubmit}>
-          <h2 className="text-gray-900 dark:text-gray-100 text-xl font-bold mb-6 transition-colors">
+          <h2 className="text-gray-900 dark:text-gray-100 text-lg sm:text-xl font-bold mb-4 sm:mb-6 transition-colors">
             {servicioDB?.nombre || "Servicio"}
           </h2>
           {servicioDB?.descripcion && (
@@ -233,7 +244,7 @@ const ServiceForm = () => {
                 name="subtipoServicio"
                 value={formData.subtipoServicio}
                 onChange={handleChange}
-                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                 required
               >
                 <option value="">Elige un tipo</option>
@@ -251,7 +262,7 @@ const ServiceForm = () => {
                 name="tallerServicio"
                 value={formData.tallerServicio}
                 onChange={handleChange}
-                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
+                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                 required
               >
                 <option value="">Elige un taller</option>
@@ -273,7 +284,7 @@ const ServiceForm = () => {
               name="tipoVehiculo"
               value={formData.tipoVehiculo}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
+              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
               required
             >
               <option value="">Elige tipo</option>
@@ -289,7 +300,7 @@ const ServiceForm = () => {
               name="metodoPago"
               value={formData.metodoPago}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-3 px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary"
+              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
               required
             >
               <option value="">Elige método</option>
@@ -301,8 +312,8 @@ const ServiceForm = () => {
           {/* Mostrar precio destacado justo antes del botón */}
           {formData.tipoVehiculo && formData.subtipoServicio && price > 0 && (
             <div className="mb-4 text-center">
-              <p className="text-gray-900 dark:text-gray-100 text-base mb-1 transition-colors">Precio estimado:</p>
-              <p className="text-gray-900 dark:text-gray-100 text-2xl font-bold transition-colors">${price.toFixed(2)} MXN</p>
+              <p className="text-gray-900 dark:text-gray-100 text-sm sm:text-base mb-1 transition-colors">Precio estimado:</p>
+              <p className="text-gray-900 dark:text-gray-100 text-xl sm:text-2xl font-bold transition-colors">${price.toFixed(2)} MXN</p>
               {showMultiplicadorNote && (
                 <p className="text-xs text-yellow-500 dark:text-yellow-400 mt-2 transition-colors">Incluye ajuste por tipo de vehículo (SUV, Pickup o Minivan).</p>
               )}
@@ -311,14 +322,14 @@ const ServiceForm = () => {
           <button
             type="submit"
             disabled={!isFormValid() || isLoading}
-            className={`mt-2 py-2 px-4 rounded-md transition-colors w-full font-semibold ${isFormValid() && !isLoading
+            className={`mt-2 py-2 sm:py-3 px-4 rounded-md transition-colors w-full font-semibold text-sm sm:text-base ${isFormValid() && !isLoading
               ? "bg-primary hover:bg-primary-hover text-white"
               : "bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed"
               }`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2"></div>
                 Procesando...
               </div>
             ) : (
@@ -327,6 +338,18 @@ const ServiceForm = () => {
           </button>
         </form>
       </div>
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };

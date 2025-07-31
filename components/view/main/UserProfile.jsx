@@ -2,6 +2,8 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { FaUserAlt, FaEnvelope, FaPhone, FaImage, FaLock, FaSave, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 
 export default function UserProfile() {
   const { data: session, status } = useSession();
@@ -20,6 +22,7 @@ export default function UserProfile() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef();
+  const { modalState, showSuccess, showError, showWarning, hideModal } = useModal();
 
   // Cargar datos del usuario autenticado
   useEffect(() => {
@@ -81,7 +84,7 @@ export default function UserProfile() {
         formData.append('foto', foto);
       } else if (field === 'password') {
         if (password.length < 6) {
-          setError('La contraseña debe tener al menos 6 caracteres');
+          showError('La contraseña debe tener al menos 6 caracteres');
           setLoading(false);
           return;
         }
@@ -94,16 +97,15 @@ export default function UserProfile() {
       });
 
       if (res.ok) {
-        setSuccess('Datos actualizados correctamente');
+        showSuccess('Datos actualizados correctamente');
         setEditField(null);
         setPassword("");
-        setTimeout(() => setSuccess(""), 3000);
       } else {
         const data = await res.json();
-        setError(data.error || 'Error al actualizar');
+        showError(data.error || 'Error al actualizar');
       }
     } catch (err) {
-      setError('Error de conexión');
+      showError('Error de conexión');
     } finally {
       setLoading(false);
     }
@@ -181,24 +183,25 @@ export default function UserProfile() {
       </div>
       
       {/* Content */}
-      <div className="flex-1 px-6 py-8">
-        <div className="max-w-sm mx-auto">
-          <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 p-6">
+      <div className="flex-1 px-4 sm:px-6 py-6 sm:py-8">
+        <div className="max-w-sm sm:max-w-md mx-auto">
+          <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 p-4 sm:p-6">
             {/* Foto de perfil */}
-            <div className="flex flex-col items-center mb-8">
+            <div className="flex flex-col items-center mb-6 sm:mb-8">
               <div className="relative">
                 <img
                   src={fotoPreview || "/window.svg"}
                   alt="Foto de perfil"
-                  className="w-24 h-24 object-cover rounded-full border-4 border-gray-600 bg-gray-700 shadow-lg"
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full border-4 border-gray-600 bg-gray-700 shadow-lg"
                 />
                 <button
                   type="button"
                   onClick={() => setEditField('foto') || fileInputRef.current?.click()}
-                  className="absolute -bottom-2 -right-2 bg-primary text-white w-10 h-10 rounded-full shadow-lg hover:bg-primary-hover flex items-center justify-center"
+                  className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 bg-primary text-white w-8 h-8 sm:w-10 sm:h-10 rounded-full shadow-lg hover:bg-primary-hover flex items-center justify-center"
                   title="Cambiar foto"
                 >
-                  <FaEdit size={14} />
+                  <FaEdit size={12} className="sm:hidden" />
+                  <FaEdit size={14} className="hidden sm:block" />
                 </button>
                 <input
                   type="file"
@@ -214,24 +217,24 @@ export default function UserProfile() {
                   disabled={loading}
                 />
               </div>
-              <h2 className="text-xl font-bold text-gray-100 mt-4">{user.nombre}</h2>
-              <p className="text-gray-400 text-sm">{user.email}</p>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-100 mt-3 sm:mt-4">{user.nombre}</h2>
+              <p className="text-gray-400 text-xs sm:text-sm">{user.email}</p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
                   Nombre completo
                 </label>
                 <div className="relative">
-                  <FaUserAlt className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm" />
+                  <FaUserAlt className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs sm:text-sm" />
                   <input
                     type="text"
                     value={nombre}
                     onChange={e => setNombre(e.target.value)}
                     placeholder="Tu nombre completo"
-                    className={`w-full h-14 pl-12 pr-12 rounded-xl border-2 transition-all outline-none ${
+                    className={`w-full h-12 sm:h-14 pl-10 sm:pl-12 pr-10 sm:pr-12 rounded-xl border-2 transition-all outline-none text-sm sm:text-base ${
                       editField === 'nombre' 
                         ? 'border-primary bg-gray-700 text-gray-100' 
                         : 'border-gray-600 bg-gray-700 text-gray-100'
@@ -241,7 +244,7 @@ export default function UserProfile() {
                     disabled={editField !== 'nombre' || loading}
                   />
                   {editField === 'nombre' ? (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                    <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 flex space-x-1 sm:space-x-2">
                       <button
                         type="button"
                         onClick={() => handleSaveField('nombre')}
@@ -249,7 +252,8 @@ export default function UserProfile() {
                         className="text-green-600 hover:text-green-700"
                         title="Guardar"
                       >
-                        <FaCheck size={16} />
+                        <FaCheck size={14} className="sm:hidden" />
+                        <FaCheck size={16} className="hidden sm:block" />
                       </button>
                       <button
                         type="button"
@@ -258,7 +262,8 @@ export default function UserProfile() {
                         className="text-red-600 hover:text-red-700"
                         title="Cancelar"
                       >
-                        <FaTimes size={16} />
+                        <FaTimes size={14} className="sm:hidden" />
+                        <FaTimes size={16} className="hidden sm:block" />
                       </button>
                     </div>
                   ) : (
@@ -266,10 +271,11 @@ export default function UserProfile() {
                       type="button"
                       onClick={() => setEditField('nombre')}
                       disabled={loading}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                      className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300"
                       title="Editar nombre"
                     >
-                      <FaEdit size={16} />
+                      <FaEdit size={14} className="sm:hidden" />
+                      <FaEdit size={16} className="hidden sm:block" />
                     </button>
                   )}
                 </div>
@@ -372,23 +378,6 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Messages */}
-            {error && (
-              <div className="mt-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-                <div className="text-red-600 dark:text-red-400 text-sm font-medium">
-                  {error}
-                </div>
-              </div>
-            )}
-            
-            {success && (
-              <div className="mt-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
-                <div className="text-green-600 dark:text-green-400 text-sm font-medium">
-                  {success}
-                </div>
-              </div>
-            )}
-
             {/* Cerrar sesión */}
             <button
               type="button"
@@ -468,6 +457,18 @@ export default function UserProfile() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 }

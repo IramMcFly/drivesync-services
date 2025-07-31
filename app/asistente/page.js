@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AsistenteDashboard from "@/components/view/asistente/AsistenteDashboard";
 import ProvidersWrapper from "@/components/ProvidersWrapper";
+import Header from "@/components/view/main/Header";
 
 export default function AsistentePage() {
   const { data: session, status } = useSession();
@@ -20,7 +21,7 @@ export default function AsistentePage() {
     }
 
     // Verificar que el usuario sea un asistente
-    if (session.user.role !== 'asistente') {
+    if (session.user.userType !== 'asistente') {
       router.push('/main'); // Redirigir a la página principal si no es asistente
       return;
     }
@@ -37,7 +38,7 @@ export default function AsistentePage() {
     );
   }
 
-  if (!session || session.user.role !== 'asistente') {
+  if (!session || session.user.userType !== 'asistente') {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -58,6 +59,7 @@ export default function AsistentePage() {
 
   return (
     <ProvidersWrapper>
+      <Header />
       <AsistenteDashboard />
     </ProvidersWrapper>
   );

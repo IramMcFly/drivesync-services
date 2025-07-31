@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import dynamic from 'next/dynamic';
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import { 
   FaArrowLeft, 
   FaUser, 
@@ -29,6 +31,7 @@ const LeafletMap = dynamic(() => import('../../maps/LeafletMap'), {
 });
 
 export default function AsistenteActiveService() {
+  const { modalState, showError, showWarning, hideModal } = useModal();
   const router = useRouter();
   const params = useParams();
   const { data: session } = useSession();
@@ -161,6 +164,26 @@ export default function AsistenteActiveService() {
     if (!session?.user?.id || !serviceId) return;
     
     try {
+      // Primero verificar el estado específico del servicio
+      const serviceResponse = await fetch(`/api/servicerequests?id=${serviceId}`);
+      if (serviceResponse.ok) {
+        const serviceData = await serviceResponse.json();
+        if (serviceData && serviceData.estado === 'cancelado') {
+          showError('Este servicio ha sido cancelado por el cliente.');
+          setTimeout(() => {
+            router.push('/asistente');
+          }, 3000);
+          return;
+        } else if (serviceData && serviceData.estado === 'finalizado') {
+          showError('Este servicio ya ha sido completado.');
+          setTimeout(() => {
+            router.push('/asistente');
+          }, 3000);
+          return;
+        }
+      }
+
+      // Luego obtener la lista de servicios activos del asistente
       const response = await fetch(`/api/asistente?userId=${session.user.id}`);
       if (!response.ok) {
         throw new Error('Error al cargar datos');
@@ -169,18 +192,30 @@ export default function AsistenteActiveService() {
       const data = await response.json();
       
       // Buscar el servicio específico en los servicios asignados
-      const servicioEncontrado = data.servicios?.find(s => 
-        s._id === serviceId && ['asignado', 'en_camino'].includes(s.estado)
-      );
+      const servicioEncontrado = data.servicios?.find(s => s._id === serviceId);
       
       if (servicioEncontrado) {
         setServiceData(servicioEncontrado);
         setError(null);
+        
+        // Verificaciones adicionales de estado
+        if (servicioEncontrado.estado === 'cancelado') {
+          showError('El servicio ha sido cancelado por el cliente');
+          setTimeout(() => {
+            router.push('/asistente');
+          }, 3000);
+        } else if (!['asignado', 'en_camino', 'completado'].includes(servicioEncontrado.estado)) {
+          showWarning(`Estado del servicio: ${servicioEncontrado.estado}`);
+        }
       } else {
-        throw new Error('Servicio no encontrado o no activo');
+        // El servicio no se encuentra en los servicios activos del asistente
+        showError('El servicio ya no está asignado a ti. Puede haber sido reasignado o cancelado.');
+        setTimeout(() => {
+          router.push('/asistente');
+        }, 3000);
       }
     } catch (error) {
-      setError(error.message);
+      showError('Error al obtener información del servicio: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -229,11 +264,11 @@ export default function AsistenteActiveService() {
         router.push('/asistente');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Error al devolver servicio');
+        showError(errorData.error || 'Error al devolver servicio');
       }
     } catch (error) {
       console.error('Error devolviendo servicio:', error);
-      alert('Error de conexión');
+      showError('Error de conexión');
     } finally {
       setLoading(false);
     }
@@ -261,11 +296,11 @@ export default function AsistenteActiveService() {
         }
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Error al actualizar servicio');
+        showError(errorData.error || 'Error al actualizar servicio');
       }
     } catch (error) {
       console.error('Error actualizando servicio:', error);
-      alert('Error de conexión');
+      showError('Error de conexión');
     } finally {
       setLoading(false);
     }
@@ -553,6 +588,18 @@ export default function AsistenteActiveService() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 }

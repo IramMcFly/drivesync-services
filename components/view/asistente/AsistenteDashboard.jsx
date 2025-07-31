@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AsistenteServiceInfo from "./AsistenteServiceInfo";
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import { 
   FaCar, 
   FaUser, 
@@ -26,6 +28,7 @@ import {
 import ServiceNotification from "./ServiceNotification";
 
 const AsistenteDashboard = () => {
+  const { modalState, showSuccess, showError, hideModal } = useModal();
   const { data: session } = useSession();
   const router = useRouter();
   const [asistenteData, setAsistenteData] = useState(null);
@@ -211,7 +214,7 @@ const AsistenteDashboard = () => {
           console.log('✅ Estado actualizado - showServiceInfo: true');
         } else {
           console.error('❌ No se recibió el servicio en la respuesta');
-          alert('Error: No se pudo obtener la información del servicio');
+          showError('No se pudo obtener la información del servicio');
         }
         
         // Actualizar datos después de la navegación (sin await para no bloquear)
@@ -220,34 +223,61 @@ const AsistenteDashboard = () => {
       } else {
         const errorData = await response.json();
         console.error('❌ Error del servidor:', errorData);
-        alert(errorData.error || 'Error al aceptar servicio');
+        showError(errorData.error || 'Error al aceptar servicio');
       }
     } catch (error) {
       console.error('❌ Error aceptando servicio:', error);
-      alert('Error de conexión');
+      showError('Error de conexión');
     }
   };
 
   // Función para actualizar estado de servicio asignado
   const actualizarEstadoServicio = async (serviceId, nuevoEstado) => {
     try {
-      const response = await fetch('/api/asistente', {
+      const response = await fetch('/api/servicerequests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: session.user.id,
-          action: 'update_service',
-          serviceId,
-          nuevoEstado
+          _id: serviceId,
+          estado: nuevoEstado,
+          comentario: `Estado actualizado por asistente a: ${nuevoEstado}`
         })
       });
 
       if (response.ok) {
-        fetchData();
-        alert(`Servicio actualizado a ${nuevoEstado}`);
+        const updatedService = await response.json();
+        fetchData(); // Refrescar datos
+        
+        // Mensajes específicos según el estado
+        switch (nuevoEstado) {
+          case 'cancelado':
+            showSuccess('Servicio cancelado correctamente');
+            break;
+          case 'en_camino':
+            showSuccess('Has iniciado el viaje hacia el cliente');
+            break;
+          case 'finalizado':
+            showSuccess('Servicio marcado como finalizado');
+            break;
+          default:
+            showSuccess(`Servicio actualizado a ${nuevoEstado}`);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Error del servidor:', errorData);
+        
+        // Mensajes específicos de error
+        if (errorData.error && errorData.error.includes('cancelado')) {
+          showError('Este servicio ya fue cancelado por el cliente');
+        } else if (errorData.error && errorData.error.includes('Transición inválida')) {
+          showError(`No se puede cambiar el estado a ${nuevoEstado}. ${errorData.error}`);
+        } else {
+          showError(errorData.error || 'Error al actualizar el servicio');
+        }
       }
     } catch (error) {
       console.error('Error actualizando servicio:', error);
+      showError('Error de conexión. Verifica tu internet e intenta de nuevo.');
     }
   };
 
@@ -583,6 +613,18 @@ const AsistenteDashboard = () => {
           onDismiss={descartarNotificacion}
         />
       )}
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import { 
   FaSearch, 
   FaUserCog, 
@@ -29,6 +31,7 @@ const LeafletMap = dynamic(() => import("@/components/maps/LeafletMap"), {
 });
 
 const ServiceStatus = ({ serviceId }) => {
+  const { modalState, showSuccess, showConfirm, hideModal } = useModal();
   const [serviceData, setServiceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -73,6 +76,15 @@ const ServiceStatus = ({ serviceId }) => {
       color: 'text-green-600',
       bgColor: 'bg-green-600/10',
       animation: ''
+    },
+    {
+      status: 'cancelado',
+      title: 'Servicio cancelado',
+      description: 'El servicio ha sido cancelado',
+      icon: FaTimes,
+      color: 'text-red-500',
+      bgColor: 'bg-red-500/10',
+      animation: ''
     }
   ];
 
@@ -89,12 +101,16 @@ const ServiceStatus = ({ serviceId }) => {
         setCurrentStep(stepIndex >= 0 ? stepIndex : 0);
         
         setLoading(false);
+      } else if (response.status === 404) {
+        setError('El servicio solicitado no existe o ha sido eliminado');
+        setLoading(false);
       } else {
         setError('No se pudo cargar la información del servicio');
         setLoading(false);
       }
     } catch (err) {
-      setError('Error de conexión');
+      console.error('Error fetching service data:', err);
+      setError('Error de conexión. Verifica tu conexión a internet');
       setLoading(false);
     }
   };
@@ -199,13 +215,17 @@ const ServiceStatus = ({ serviceId }) => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaExclamationTriangle className="text-red-500 text-2xl" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Error</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
           <button 
             onClick={() => router.push('/main/servicios-express')}
-            className="bg-primary text-white px-4 py-2 rounded-lg"
+            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
-            Volver a servicios
+            Volver al Dashboard
           </button>
         </div>
       </div>
@@ -403,19 +423,29 @@ const ServiceStatus = ({ serviceId }) => {
           {(serviceData.estado === 'pendiente' || serviceData.estado === 'asignado') && (
             <button
               onClick={() => {
-                if (confirm('¿Estás seguro de que quieres cancelar este servicio? Esta acción no se puede deshacer.')) {
-                  fetch(`/api/servicerequests`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      _id: serviceId,
-                      estado: 'cancelado'
-                    })
-                  }).then(() => {
-                    alert('Servicio cancelado correctamente');
-                    router.push('/main/servicios-express');
-                  });
-                }
+                showConfirm(
+                  '¿Estás seguro de que quieres cancelar este servicio? Esta acción no se puede deshacer.',
+                  () => {
+                    fetch(`/api/servicerequests`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        _id: serviceId,
+                        estado: 'cancelado'
+                      })
+                    }).then(() => {
+                      showSuccess(
+                        'Servicio cancelado correctamente',
+                        'Cancelación exitosa',
+                        () => {
+                          hideModal();
+                          router.push('/main/servicios-express');
+                        }
+                      );
+                    });
+                  },
+                  'Cancelar servicio'
+                );
               }}
               className="w-full bg-red-500 hover:bg-red-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition-colors text-sm sm:text-base shadow-lg service-action-button"
             >
@@ -458,6 +488,18 @@ const ServiceStatus = ({ serviceId }) => {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 };

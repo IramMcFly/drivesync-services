@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Modal } from "../../ui";
+import { useModal } from "../../../hooks/useModal";
 import { 
   FaTools, FaCog, FaUsers, FaClipboardList, FaChartBar, 
   FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus,
@@ -9,6 +11,7 @@ import {
 } from 'react-icons/fa';
 
 export default function TallerDashboard() {
+  const { modalState, showError, hideModal } = useModal();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
@@ -398,7 +401,7 @@ function AsistentesTab({ asistentes, tallerId, onUpdate }) {
       onUpdate(); // Recargar datos
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al eliminar asistente: ' + error.message);
+      showError('Error al eliminar asistente: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -617,9 +620,15 @@ function AsistentesTab({ asistentes, tallerId, onUpdate }) {
                     <div className="flex items-center gap-3 flex-1">
                       {asistente.user?.foto ? (
                         <img 
-                          src={`data:image/jpeg;base64,${Buffer.from(asistente.user.foto).toString('base64')}`}
+                          src={typeof asistente.user.foto === 'string' 
+                            ? asistente.user.foto 
+                            : `data:image/jpeg;base64,${asistente.user.foto}`}
                           alt={`Foto de ${asistente.user.nombre}`}
                           className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
                         />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -1074,9 +1083,15 @@ function ViewAsistenteModal({ asistente, onClose }) {
               <div className="flex-shrink-0">
                 {asistente.user?.foto ? (
                   <img 
-                    src={`data:image/jpeg;base64,${Buffer.from(asistente.user.foto).toString('base64')}`}
+                    src={typeof asistente.user.foto === 'string' 
+                      ? asistente.user.foto 
+                      : `data:image/jpeg;base64,${asistente.user.foto}`}
                     alt={`Foto de ${asistente.user.nombre}`}
                     className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center border-4 border-primary/20">
@@ -2013,6 +2028,18 @@ function SolicitudesTab({ solicitudes, onUpdate }) {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={hideModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+        onConfirm={modalState.onConfirm}
+        confirmText={modalState.confirmText}
+        cancelText={modalState.cancelText}
+        showCancel={modalState.showCancel}
+      />
     </div>
   );
 }
