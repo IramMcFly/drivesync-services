@@ -3,14 +3,15 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import ServiceStatus from "@/components/view/main/ServiceStatus";
 import Asistencia from "@/components/view/main/Asistencia";
 import ProvidersWrapper from "@/components/ProvidersWrapper";
 import Header from "@/components/view/main/Header";
 import ServiceStatusWrapper from "@/components/view/cliente/ServiceStatusWrapper";
 
-export default function AsistenciaPage() {
+// Componente que usa useSearchParams envuelto en Suspense
+function AsistenciaContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -29,19 +30,31 @@ export default function AsistenciaPage() {
   // Si hay un serviceId, mostrar el estado del servicio
   if (serviceId) {
     return (
-      <ProvidersWrapper>
+      <>
         <ServiceStatus serviceId={serviceId} />
         <ServiceStatusWrapper />
-      </ProvidersWrapper>
+      </>
     );
   }
 
   // Si no hay serviceId, mostrar la página de asistencia normal
   return (
-    <ProvidersWrapper>
+    <>
       <Header />
       <Asistencia />
       <ServiceStatusWrapper />
+    </>
+  );
+}
+
+export default function AsistenciaPage() {
+  return (
+    <ProvidersWrapper>
+      <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>}>
+        <AsistenciaContent />
+      </Suspense>
     </ProvidersWrapper>
   );
 }
