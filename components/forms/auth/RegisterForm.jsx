@@ -40,7 +40,7 @@ export default function RegisterForm() {
       if (foto) {
         formData.append('foto', foto);
       }
-      formData.append('role', 'user');
+      formData.append('role', 'cliente'); // Cambiado de 'user' a 'cliente'
       const res = await fetch('/api/users', {
         method: 'POST',
         body: formData,
@@ -52,7 +52,12 @@ export default function RegisterForm() {
           router.push('/');
         }, 2000);
       } else {
-        setError(data.error || 'Error al registrar usuario');
+        console.error('Error del servidor:', data);
+        let errorMessage = data.error || 'Error al registrar usuario';
+        if (data.details && Array.isArray(data.details)) {
+          errorMessage = data.details.join(', ');
+        }
+        setError(errorMessage);
       }
     } catch (err) {
       setError('Error de conexión');

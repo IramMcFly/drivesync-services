@@ -84,6 +84,7 @@ export async function POST(request) {
             try {
                 await userSchema.validate({ email, password, nombre, telefono, role }, { abortEarly: false });
             } catch (validationError) {
+                console.error('Error de validación:', validationError.errors);
                 return NextResponse.json({
                     error: 'Datos inválidos',
                     details: validationError.errors
