@@ -2,6 +2,8 @@ import { connectDB } from '@/lib/mongoose';
 import ServiceRequest from '@/models/ServiceRequest';
 import Asistente from '@/models/Asistente';
 import User from '@/models/User';
+import Taller from '@/models/Taller';
+import Servicio from '@/models/Servicio';
 import { NextResponse } from 'next/server';
 
 // GET: Obtener servicios disponibles para un asistente
@@ -68,7 +70,8 @@ export async function GET(request) {
         activo: asistente.activo,
         taller: asistente.taller.nombre,
         vehiculo: asistente.vehiculo,
-        placa: asistente.placa
+        placa: asistente.placa,
+        ubicacionActual: asistente.ubicacionActual // ✅ Agregar ubicación actual
       },
       servicios
     });
@@ -210,6 +213,47 @@ export async function PUT(request) {
         },
         { new: true }
       );
+
+      if (!servicioActualizado) {
+        return NextResponse.json({ 
+          error: 'Servicio no encontrado o no asignado a este asistente' 
+        }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Servicio actualizado a ${nuevoEstado}`,
+        servicio: servicioActualizado
+      });
+
+    } else if (action === 'update_service_state') {
+      // Actualizar estado de un servicio (misma funcionalidad que update_service pero con nombre diferente)
+      if (!serviceId || !nuevoEstado) {
+        return NextResponse.json({ 
+          error: 'ServiceId y nuevoEstado requeridos' 
+        }, { status: 400 });
+      }
+
+      const servicioActualizado = await ServiceRequest.findOneAndUpdate(
+        { 
+          _id: serviceId, 
+          asistente: asistente._id 
+        },
+        {
+          estado: nuevoEstado,
+          $push: {
+            historial: {
+              estado: nuevoEstado,
+              comentario: `Estado cambiado a ${nuevoEstado}`,
+              fecha: new Date()
+            }
+          }
+        },
+        { new: true }
+      ).populate('cliente', 'nombre telefono email')
+       .populate('taller', 'nombre direccion')
+       .populate('servicio', 'nombre descripcion')
+       .populate('asistente', 'placa vehiculo');
 
       if (!servicioActualizado) {
         return NextResponse.json({ 

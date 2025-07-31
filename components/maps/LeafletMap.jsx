@@ -53,8 +53,14 @@ const LeafletMap = ({
 
   // Convertir coordenadas de la ruta si existe
   let routeCoordinates = [];
-  if (route && route.geometry && route.geometry.coordinates) {
-    routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+  if (route) {
+    if (Array.isArray(route)) {
+      // Si route es un array de coordenadas directamente
+      routeCoordinates = route;
+    } else if (route.geometry && route.geometry.coordinates) {
+      // Si route es un objeto GeoJSON
+      routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+    }
   }
 
   return (

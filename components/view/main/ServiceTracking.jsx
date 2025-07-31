@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -42,7 +42,7 @@ function haversineDistance(coord1, coord2) {
   return R * c;
 }
 
-export default function ServiceTracking() {
+export default function ServiceTracking({ serviceId }) {
   const [serviceData, setServiceData] = useState(null);
   const [assistantLocation, setAssistantLocation] = useState(null);
   const [route, setRoute] = useState(null);
@@ -51,64 +51,157 @@ export default function ServiceTracking() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPanicModal, setShowPanicModal] = useState(false);
+  const [lastLocationUpdate, setLastLocationUpdate] = useState(null);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
-  const serviceId = searchParams.get('serviceId');
+
+  console.log('🎯 ServiceTracking: Received serviceId prop:', serviceId);
+
+  // Función auxiliar para formatear la información del vehículo
+  const formatVehicleInfo = (vehiculo) => {
+    if (!vehiculo || typeof vehiculo !== 'object') {
+      return vehiculo || 'No especificado';
+    }
+    
+    const parts = [];
+    if (vehiculo.marca) parts.push(vehiculo.marca);
+    if (vehiculo.modelo) parts.push(vehiculo.modelo);
+    if (vehiculo.año) parts.push(vehiculo.año);
+    if (vehiculo.color) parts.push(`(${vehiculo.color})`);
+    
+    return parts.length > 0 ? parts.join(' ') : 'No especificado';
+  };
 
   // Función para obtener datos del servicio
   const fetchServiceData = async () => {
+    console.log('🔍 ServiceTracking: Fetching data for serviceId:', serviceId);
+    
     try {
       const response = await fetch(`/api/servicerequests?id=${serviceId}`);
+      console.log('📡 ServiceTracking: Response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ ServiceTracking: Data received:', { 
+          estado: data.estado, 
+          id: data._id,
+          hasAsistente: !!data.asistente 
+        });
+        
         setServiceData(data);
+        
+        // Debug: Log vehicle data structure
+        if (data.asistente?.vehiculo) {
+          console.log('🚗 ServiceTracking: Vehicle data structure:', data.asistente.vehiculo);
+          console.log('🔍 ServiceTracking: Vehicle type:', typeof data.asistente.vehiculo);
+        }
         
         // Si el servicio está finalizado o cancelado, redirigir
         if (data.estado === 'finalizado' || data.estado === 'cancelado') {
+          console.log('🔄 ServiceTracking: Redirecting to service-status due to state:', data.estado);
           router.push(`/main/service-status/${serviceId}`);
           return;
         }
         
         setLoading(false);
       } else {
+        console.error('❌ ServiceTracking: API error:', response.status);
         setError('No se pudo cargar la información del servicio');
         setLoading(false);
       }
     } catch (err) {
+      console.error('❌ ServiceTracking: Fetch error:', err);
       setError('Error de conexión');
       setLoading(false);
     }
   };
 
-  // Simular ubicación del asistente (en producción esto vendría de la API)
-  const getAssistantLocation = () => {
-    if (!serviceData?.ubicacion) return;
+  // Obtener ubicación real del asistente desde la base de datos
+  const getAssistantLocation = async () => {
+    if (!serviceData?.asistente?._id) {
+      console.log('❌ ServiceTracking: No hay asistente asignado');
+      return;
+    }
     
-    // Simular movimiento del asistente hacia el cliente
-    const clientLat = serviceData.ubicacion.lat;
-    const clientLng = serviceData.ubicacion.lng;
-    
-    // Generar una ubicación aleatoria cerca del cliente
-    const offsetLat = (Math.random() - 0.5) * 0.02; // ~1km radius
-    const offsetLng = (Math.random() - 0.5) * 0.02;
-    
-    setAssistantLocation({
-      lat: clientLat + offsetLat,
-      lng: clientLng + offsetLng
-    });
+    try {
+      console.log('📍 ServiceTracking: Datos del asistente:', {
+        asistenteId: serviceData.asistente._id,
+        asistenteUser: serviceData.asistente.user,
+        asistenteCompleto: serviceData.asistente
+      });
+      
+      // Usar la nueva API específica para ubicación
+      const apiUrl = `/api/asistente/ubicacion?asistenteId=${serviceData.asistente._id}`;
+      
+      console.log('📡 ServiceTracking: Consultando API de ubicación:', apiUrl);
+      
+      // Obtener la ubicación actual del asistente desde la API específica
+      const response = await fetch(apiUrl);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📊 ServiceTracking: Respuesta de API de ubicación:', JSON.stringify(data, null, 2));
+        
+        if (data.asistente?.ubicacionActual) {
+          console.log('✅ ServiceTracking: Ubicación del asistente obtenida:', data.asistente.ubicacionActual);
+          setAssistantLocation({
+            lat: data.asistente.ubicacionActual.lat,
+            lng: data.asistente.ubicacionActual.lng
+          });
+          setLastLocationUpdate(new Date(data.asistente.ultimaActualizacion || Date.now()));
+        } else {
+          console.log('⚠️ ServiceTracking: Asistente sin ubicación actual registrada');
+          console.log('🔍 ServiceTracking: Estructura del asistente:', data.asistente);
+          // No mostrar ubicación falsa - el asistente debe actualizar su ubicación
+          setAssistantLocation(null);
+          setDistancia(null);
+          setTiempo(null);
+          setLastLocationUpdate(null);
+        }
+      } else {
+        console.error('❌ ServiceTracking: Error obteniendo ubicación del asistente:', response.status);
+        const errorText = await response.text();
+        console.error('❌ ServiceTracking: Error response:', errorText);
+      }
+    } catch (error) {
+      console.error('❌ ServiceTracking: Error de conexión al obtener ubicación del asistente:', error);
+    }
   };
 
   // Obtener ruta usando OpenRouteService
   const getRoute = async (start, end) => {
+    console.log('🗺️ ServiceTracking: Obteniendo ruta de:', start, 'a:', end);
+    
+    // Verificar que tenemos las coordenadas necesarias
+    if (!start?.lat || !start?.lng || !end?.lat || !end?.lng) {
+      console.error('❌ ServiceTracking: Coordenadas incompletas');
+      return;
+    }
+
     try {
+      const apiKey = process.env.NEXT_PUBLIC_OPENROUTE_API_KEY;
+      if (!apiKey) {
+        console.warn('⚠️ ServiceTracking: No hay API key de OpenRouteService, usando cálculo directo');
+        // Fallback al cálculo directo
+        const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
+        setDistancia(km.toFixed(2));
+        
+        const velocidadPromedio = 40;
+        const tiempoEnHoras = km / velocidadPromedio;
+        const minutos = Math.round(tiempoEnHoras * 60);
+        setTiempo(minutos);
+        return;
+      }
+
+      console.log('📡 ServiceTracking: Consultando OpenRouteService...');
       const response = await fetch(
-        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${process.env.NEXT_PUBLIC_OPENROUTE_API_KEY}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`
+        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`
       );
       
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ ServiceTracking: Ruta obtenida exitosamente');
         setRoute(data.features[0]);
         
         // Calcular distancia y tiempo de la ruta real
@@ -117,9 +210,19 @@ export default function ServiceTracking() {
         
         setDistancia(routeDistance.toFixed(2));
         setTiempo(routeTime);
+      } else {
+        console.error('❌ ServiceTracking: Error en API de rutas:', response.status);
+        // Fallback al cálculo directo
+        const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
+        setDistancia(km.toFixed(2));
+        
+        const velocidadPromedio = 40;
+        const tiempoEnHoras = km / velocidadPromedio;
+        const minutos = Math.round(tiempoEnHoras * 60);
+        setTiempo(minutos);
       }
     } catch (error) {
-      console.error('Error obteniendo ruta:', error);
+      console.error('❌ ServiceTracking: Error obteniendo ruta:', error);
       // Fallback al cálculo directo
       if (start && end) {
         const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
@@ -135,19 +238,27 @@ export default function ServiceTracking() {
 
   // Polling para actualizar datos
   useEffect(() => {
+    console.log('🚀 ServiceTracking: Component mounted with serviceId:', serviceId);
+    
     if (!serviceId) {
+      console.log('❌ ServiceTracking: No serviceId, redirecting to servicios-express');
       router.push('/main/servicios-express');
       return;
     }
 
+    console.log('⏳ ServiceTracking: Starting data fetch and polling');
     fetchServiceData();
     
     const interval = setInterval(() => {
+      console.log('🔄 ServiceTracking: Polling update');
       fetchServiceData();
-      getAssistantLocation(); // Simular movimiento del asistente
-    }, 5000);
+      getAssistantLocation(); // Obtener ubicación real del asistente
+    }, 3000); // Cada 3 segundos para tracking en tiempo real
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log('🛑 ServiceTracking: Cleanup interval');
+      clearInterval(interval);
+    };
   }, [serviceId]);
 
   // Calcular ruta cuando tengamos ambas ubicaciones
@@ -290,14 +401,14 @@ export default function ServiceTracking() {
             <FaRoute className="text-primary mx-auto mb-2" size={24} />
             <p className="text-sm text-gray-600 dark:text-gray-400">Distancia</p>
             <p className="text-xl font-bold text-primary">
-              {distancia ? `${distancia} km` : 'Calculando...'}
+              {assistantLocation && distancia ? `${distancia} km` : 'Esperando ubicación...'}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-lg">
             <FaClock className="text-green-500 mx-auto mb-2" size={24} />
             <p className="text-sm text-gray-600 dark:text-gray-400">Tiempo estimado</p>
             <p className="text-xl font-bold text-green-500">
-              {tiempo ? `${tiempo} min` : 'Calculando...'}
+              {assistantLocation && tiempo ? `${tiempo} min` : 'Esperando ubicación...'}
             </p>
           </div>
         </div>
@@ -305,24 +416,58 @@ export default function ServiceTracking() {
         {/* Mapa con ruta */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
           <div className="h-64 sm:h-80 lg:h-96">
-            {serviceData.ubicacion && assistantLocation && (
+            {serviceData.ubicacion && (
               <MapComponent
                 center={[serviceData.ubicacion.lat, serviceData.ubicacion.lng]}
-                zoom={13}
+                zoom={assistantLocation ? 13 : 15}
                 markers={[
                   {
                     position: [serviceData.ubicacion.lat, serviceData.ubicacion.lng],
                     popup: "Tu ubicación"
                   },
-                  {
+                  ...(assistantLocation ? [{
                     position: [assistantLocation.lat, assistantLocation.lng],
                     popup: "Asistente"
-                  }
+                  }] : [])
                 ]}
-                route={route}
+                route={assistantLocation ? route : null}
               />
             )}
           </div>
+          
+          {/* Mensaje de estado cuando no hay ubicación del asistente */}
+          {!assistantLocation && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400">
+              <div className="flex items-center">
+                <FaMapMarkerAlt className="text-blue-500 mr-3 animate-pulse" />
+                <div>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm font-medium">
+                    Esperando ubicación del asistente
+                  </p>
+                  <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">
+                    El asistente debe activar el seguimiento desde su aplicación. El mapa se actualizará automáticamente.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Mensaje cuando hay ubicación actualizada */}
+          {assistantLocation && lastLocationUpdate && (
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <FaMapMarkerAlt className="text-green-500 mr-2" />
+                  <span className="text-green-700 dark:text-green-300 text-sm font-medium">
+                    Ubicación en tiempo real activa
+                  </span>
+                </div>
+                <span className="text-green-600 dark:text-green-400 text-xs">
+                  Actualizado: {lastLocationUpdate.toLocaleTimeString()}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Botones de acción */}
           <div className="flex gap-3 p-4 bg-gray-50 dark:bg-gray-700">
@@ -379,7 +524,9 @@ export default function ServiceTracking() {
               {serviceData.asistente.vehiculo && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Vehículo:</span>
-                  <span className="font-medium">{serviceData.asistente.vehiculo}</span>
+                  <span className="font-medium">
+                    {formatVehicleInfo(serviceData.asistente.vehiculo)}
+                  </span>
                 </div>
               )}
             </div>

@@ -1,50 +1,50 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import dynamic from 'next/dynamic';
 import { 
+  FaArrowLeft, 
+  FaUser, 
   FaCar, 
+  FaPhoneAlt, 
   FaMapMarkerAlt, 
   FaClock, 
-  FaPhoneAlt,
-  FaCheck,
-  FaTimes,
-  FaArrowLeft,
   FaLocationArrow,
-  FaRoute,
+  FaPlay,
+  FaCheck,
+  FaStop,
+  FaTimes,
   FaExclamationTriangle,
-  FaUser,
-  FaCompass,
-  FaWifi
-} from "react-icons/fa";
-import dynamic from "next/dynamic";
+  FaWrench
+} from 'react-icons/fa';
 
-// Importar el mapa dinámicamente
-const LeafletMap = dynamic(() => import("@/components/maps/LeafletMap"), {
+// Importación dinámica para evitar errores de SSR
+const LeafletMap = dynamic(() => import('../../maps/LeafletMap'), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  )
+  loading: () => <div className="h-full w-full bg-gray-200 animate-pulse rounded-lg flex items-center justify-center">
+    <p className="text-gray-500">Cargando mapa...</p>
+  </div>
 });
 
-const AsistenteActiveService = ({ serviceId }) => {
-  const { data: session } = useSession();
+export default function AsistenteActiveService() {
   const router = useRouter();
+  const params = useParams();
+  const { data: session } = useSession();
+  const serviceId = params?.serviceId;
+
   const [serviceData, setServiceData] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
-  const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [distanceToClient, setDistanceToClient] = useState(null);
   const [timeToClient, setTimeToClient] = useState(null);
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  // Calcular distancia usando Haversine
+  // Función para calcular distancia haversine
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371;
+    const R = 6371; // Radio de la Tierra en km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -55,128 +55,200 @@ const AsistenteActiveService = ({ serviceId }) => {
     return R * c;
   };
 
-  // Obtener datos del servicio
-  const fetchServiceData = async () => {
-    try {
-      const response = await fetch(`/api/servicerequests?id=${serviceId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setServiceData(data);
-        
-        // Si el servicio está finalizado o cancelado, redirigir
-        if (data.estado === 'finalizado' || data.estado === 'cancelado') {
-          router.push('/asistente');
-          return;
-        }
-        
-        setLoading(false);
-      } else {
-        setError('No se pudo cargar la información del servicio');
-        setLoading(false);
-      }
-    } catch (err) {
-      setError('Error de conexión');
-      setLoading(false);
-    }
-  };
-
-  // Obtener y monitorear ubicación del usuario
-  useEffect(() => {
+  // Obtener ubicación del usuario
+  const getUserLocation = () => {
     if (navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
+      navigator.geolocation.getCurrentPosition(
         (position) => {
           const location = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
           setUserLocation(location);
-          setLastUpdate(new Date());
+          console.log('📍 AsistenteActiveService: Ubicación obtenida y enviando al servidor:', location);
           
           // Actualizar ubicación en el servidor
-          if (session?.user?.id) {
-            updateLocationOnServer(location);
-          }
-          
-          // Calcular distancia y tiempo si tenemos los datos del servicio
-          if (serviceData?.ubicacion) {
-            const distance = calculateDistance(
-              location.lat, 
-              location.lng, 
-              serviceData.ubicacion.lat, 
-              serviceData.ubicacion.lng
-            );
-            setDistanceToClient(distance);
-            setTimeToClient(Math.round(distance * 2.5)); // Estimación más realista
-            
-            // Obtener ruta si estamos en camino
-            if (serviceData.estado === 'en_camino') {
-              calculateRoute(location, serviceData.ubicacion);
-            }
-          }
+          fetch('/api/asistente', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: session?.user?.id,
+              action: 'update_location',
+              ubicacion: location
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('✅ AsistenteActiveService: Respuesta del servidor al actualizar ubicación:', data);
+          })
+          .catch(error => {
+            console.error('❌ AsistenteActiveService: Error actualizando ubicación:', error);
+          });
         },
-        (error) => {
-          console.error('Error obteniendo ubicación:', error);
-        },
-        { 
-          enableHighAccuracy: true, 
-          maximumAge: 5000, 
-          timeout: 10000 
-        }
+        (error) => console.error('Error obteniendo ubicación:', error),
+        { enableHighAccuracy: true, timeout: 10000 }
       );
-
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, [serviceData, session]);
-
-  // Actualizar ubicación en el servidor
-  const updateLocationOnServer = async (location) => {
-    try {
-      await fetch('/api/asistente', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: session.user.id,
-          action: 'update_location',
-          ubicacion: location
-        })
-      });
-    } catch (error) {
-      console.error('Error actualizando ubicación:', error);
     }
   };
 
-  // Calcular ruta usando OpenRouteService
-  const calculateRoute = async (from, to) => {
+  // Obtener ruta usando OpenRouteService
+  const getRoute = async (start, end) => {
+    console.log('🗺️ AsistenteActiveService: Obteniendo ruta de:', start, 'a:', end);
+    
+    // Verificar que tenemos las coordenadas necesarias
+    if (!start?.lat || !start?.lng || !end?.lat || !end?.lng) {
+      console.error('❌ AsistenteActiveService: Coordenadas incompletas');
+      return;
+    }
+
     try {
-      const apiKey = process.env.NEXT_PUBLIC_OPENROUTE_API_KEY || process.env.LEAFLETMAP_API_KEY;
+      const apiKey = process.env.NEXT_PUBLIC_OPENROUTE_API_KEY;
       if (!apiKey) {
-        console.warn('No se encontró API key para OpenRouteService');
+        console.warn('⚠️ AsistenteActiveService: No hay API key de OpenRouteService, usando cálculo directo');
+        // Fallback al cálculo directo
+        const km = calculateDistance(start.lat, start.lng, end.lat, end.lng);
+        setDistanceToClient(km);
+        
+        const velocidadPromedio = 40; // km/h
+        const tiempoEnHoras = km / velocidadPromedio;
+        const minutos = Math.round(tiempoEnHoras * 60);
+        setTimeToClient(minutos);
         return;
       }
 
+      console.log('📡 AsistenteActiveService: Consultando OpenRouteService...');
       const response = await fetch(
-        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${from.lng},${from.lat}&end=${to.lng},${to.lat}`
+        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`
       );
-
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ AsistenteActiveService: Ruta obtenida exitosamente');
+        
         const coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        const duration = Math.round(data.features[0].properties.segments[0].duration / 60);
+        const distance = data.features[0].properties.segments[0].distance / 1000; // km
+        
         setRouteCoordinates(coordinates);
+        setTimeToClient(duration);
+        setDistanceToClient(distance);
+      } else {
+        console.error('❌ AsistenteActiveService: Error en API de rutas:', response.status);
+        // Fallback al cálculo directo
+        const km = calculateDistance(start.lat, start.lng, end.lat, end.lng);
+        setDistanceToClient(km);
+        
+        const velocidadPromedio = 40;
+        const tiempoEnHoras = km / velocidadPromedio;
+        const minutos = Math.round(tiempoEnHoras * 60);
+        setTimeToClient(minutos);
       }
     } catch (error) {
-      console.error('Error calculando ruta:', error);
+      console.error('❌ AsistenteActiveService: Error obteniendo ruta:', error);
+      // Fallback al cálculo directo
+      const km = calculateDistance(start.lat, start.lng, end.lat, end.lng);
+      setDistanceToClient(km);
+      
+      const velocidadPromedio = 40;
+      const tiempoEnHoras = km / velocidadPromedio;
+      const minutos = Math.round(tiempoEnHoras * 60);
+      setTimeToClient(minutos);
     }
   };
 
-  // Actualizar estado del servicio
-  const actualizarEstado = async (nuevoEstado) => {
+  // Obtener datos del servicio específico
+  const fetchServiceData = async () => {
+    if (!session?.user?.id || !serviceId) return;
+    
+    try {
+      const response = await fetch(`/api/asistente?userId=${session.user.id}`);
+      if (!response.ok) {
+        throw new Error('Error al cargar datos');
+      }
+      
+      const data = await response.json();
+      
+      // Buscar el servicio específico en los servicios asignados
+      const servicioEncontrado = data.servicios?.find(s => 
+        s._id === serviceId && ['asignado', 'en_camino'].includes(s.estado)
+      );
+      
+      if (servicioEncontrado) {
+        setServiceData(servicioEncontrado);
+        setError(null);
+      } else {
+        throw new Error('Servicio no encontrado o no activo');
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calcular distancia cuando cambian las ubicaciones
+  useEffect(() => {
+    if (userLocation && serviceData?.ubicacion) {
+      const distance = calculateDistance(
+        userLocation.lat,
+        userLocation.lng,
+        serviceData.ubicacion.lat,
+        serviceData.ubicacion.lng
+      );
+      setDistanceToClient(distance);
+      
+      // Obtener ruta
+      getRoute(userLocation, serviceData.ubicacion);
+    }
+  }, [userLocation, serviceData]);
+
+  // Obtener ubicación del usuario cada 10 segundos para tracking en tiempo real
+  useEffect(() => {
+    if (session?.user?.id) {
+      getUserLocation();
+      const locationInterval = setInterval(getUserLocation, 10000); // Cada 10 segundos
+      return () => clearInterval(locationInterval);
+    }
+  }, [session]);
+
+  // Función para cancelar y devolver
+  const cancelarYDevolver = async () => {
+    setLoading(true);
     try {
       const response = await fetch('/api/asistente', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: session.user.id,
-          action: 'update_service',
+          action: 'release_service',
+          serviceId
+        })
+      });
+
+      if (response.ok) {
+        router.push('/asistente');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Error al devolver servicio');
+      }
+    } catch (error) {
+      console.error('Error devolviendo servicio:', error);
+      alert('Error de conexión');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para actualizar estado del servicio
+  const actualizarEstado = async (nuevoEstado) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/asistente', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: session.user.id,
+          action: 'update_service_state',
           serviceId,
           nuevoEstado
         })
@@ -187,22 +259,30 @@ const AsistenteActiveService = ({ serviceId }) => {
         if (nuevoEstado === 'finalizado') {
           setTimeout(() => router.push('/asistente'), 2000);
         }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Error al actualizar servicio');
       }
     } catch (error) {
       console.error('Error actualizando servicio:', error);
+      alert('Error de conexión');
+    } finally {
+      setLoading(false);
     }
   };
 
   // Polling para actualizar datos cada 10 segundos
   useEffect(() => {
-    fetchServiceData();
-    const interval = setInterval(fetchServiceData, 10000);
-    return () => clearInterval(interval);
-  }, [serviceId]);
+    if (session?.user?.id) {
+      fetchServiceData();
+      const interval = setInterval(fetchServiceData, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [serviceId, session]);
 
   const puedeFinalizarPorDistancia = distanceToClient !== null && distanceToClient <= 0.1;
 
-  if (loading) {
+  if (loading && !serviceData) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -233,187 +313,246 @@ const AsistenteActiveService = ({ serviceId }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Header fijo - optimizado para móvil */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-20">
-        <div className="px-3 py-2 sm:px-4 sm:py-3">
+      {/* Header fijo */}
+      <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => router.push('/asistente')}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 text-sm"
+              className="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full flex items-center justify-center transition-colors"
             >
-              <FaArrowLeft />
-              <span className="hidden sm:inline">Dashboard</span>
+              <FaArrowLeft className="text-gray-600 dark:text-gray-300" />
             </button>
             
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <FaWifi className="text-green-500" />
-              <span className="hidden sm:inline">Actualizado:</span>
-              <span>{lastUpdate.toLocaleTimeString()}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Información compacta del servicio - sticky en móvil */}
-      <div className="bg-primary text-white sticky top-12 sm:top-14 z-10">
-        <div className="px-3 py-2 sm:px-4 sm:py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <h1 className="font-bold text-sm sm:text-base truncate">
-                {serviceData.cliente.nombre}
-              </h1>
-              <p className="text-xs opacity-90 truncate">
-                {serviceData.servicio.nombre}
+            <div className="flex-1 text-center mx-4">
+              <h1 className="text-lg sm:text-xl font-semibold">Servicio Activo</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                {serviceData?.cliente?.nombre}
               </p>
             </div>
             
-            <div className="flex items-center gap-3 sm:gap-4 text-right">
-              {distanceToClient && (
-                <div>
-                  <p className="text-xs opacity-90">Distancia</p>
-                  <p className="font-bold text-sm sm:text-base">
-                    {distanceToClient.toFixed(1)} km
-                  </p>
-                </div>
-              )}
-              {timeToClient && (
-                <div>
-                  <p className="text-xs opacity-90">Tiempo</p>
-                  <p className="font-bold text-sm sm:text-base">
-                    {timeToClient} min
-                  </p>
-                </div>
-              )}
+            <div className="text-right min-w-0">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Distancia</p>
+              <p className="font-bold text-sm sm:text-base text-primary">
+                {distanceToClient ? `${distanceToClient.toFixed(1)} km` : '---'}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mapa principal - ocupa la mayor parte de la pantalla */}
-      <div className="relative h-[calc(100vh-200px)] sm:h-[calc(100vh-160px)]">
-        {userLocation && serviceData.ubicacion && (
-          <LeafletMap
-            center={userLocation ? [userLocation.lat, userLocation.lng] : [serviceData.ubicacion.lat, serviceData.ubicacion.lng]}
-            zoom={15}
-            markers={[
-              {
-                position: [userLocation.lat, userLocation.lng],
-                popup: "Mi ubicación",
-                iconColor: "blue"
-              },
-              {
-                position: [serviceData.ubicacion.lat, serviceData.ubicacion.lng],
-                popup: `Cliente: ${serviceData.cliente.nombre}`,
-                iconColor: "red"
-              }
-            ]}
-            route={routeCoordinates.length > 0 ? routeCoordinates : undefined}
-          />
-        )}
-        
-        {/* Overlay con información de navegación */}
-        <div className="absolute top-4 left-4 right-4 z-10">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <FaCompass className="text-primary" />
-                <span className="font-semibold text-sm sm:text-base">Navegación</span>
-              </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                serviceData.estado === 'asignado' 
-                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-              }`}>
-                {serviceData.estado === 'asignado' ? 'Asignado' : 'En Camino'}
-              </span>
-            </div>
-            
-            {distanceToClient && (
-              <div className="text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-primary">
-                  {distanceToClient.toFixed(1)} km
-                </p>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  {timeToClient} minutos estimados
-                </p>
-              </div>
+      <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6">
+        {/* Métricas principales */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 pt-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg">
+            <FaClock className="text-blue-500 mx-auto mb-2" size={20} />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Tiempo</p>
+            <p className="text-lg sm:text-xl font-bold text-blue-500">
+              {timeToClient ? `${timeToClient} min` : '---'}
+            </p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg">
+            <FaLocationArrow className="text-green-500 mx-auto mb-2" size={20} />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Distancia</p>
+            <p className="text-lg sm:text-xl font-bold text-green-500">
+              {distanceToClient ? `${distanceToClient.toFixed(1)} km` : '---'}
+            </p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg col-span-2 sm:col-span-1">
+            <FaMapMarkerAlt 
+              className={`mx-auto mb-2 ${
+                puedeFinalizarPorDistancia ? 'text-green-500' : 'text-gray-400'
+              }`} 
+              size={20} 
+            />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Estado</p>
+            <p className={`text-lg sm:text-xl font-bold ${
+              puedeFinalizarPorDistancia ? 'text-green-500' : 'text-gray-400'
+            }`}>
+              {puedeFinalizarPorDistancia ? 'Cerca' : 'Lejos'}
+            </p>
+          </div>
+        </div>
+
+        {/* Mapa */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+          <div className="h-64 sm:h-80 lg:h-96">
+            {userLocation && serviceData?.ubicacion && (
+              <LeafletMap
+                center={[
+                  (userLocation.lat + serviceData.ubicacion.lat) / 2,
+                  (userLocation.lng + serviceData.ubicacion.lng) / 2
+                ]}
+                zoom={15}
+                markers={[
+                  {
+                    position: [userLocation.lat, userLocation.lng],
+                    popup: "Mi ubicación",
+                    iconColor: "blue"
+                  },
+                  {
+                    position: [serviceData.ubicacion.lat, serviceData.ubicacion.lng],
+                    popup: `Cliente: ${serviceData.cliente?.nombre}`,
+                    iconColor: "red"
+                  }
+                ]}
+                route={routeCoordinates.length > 0 ? routeCoordinates : undefined}
+              />
             )}
           </div>
+          
+          {/* Estado de ruta */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+            <div className="flex items-center justify-center">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                Navegación activa
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Indicador de proximidad */}
-        {puedeFinalizarPorDistancia && (
-          <div className="absolute bottom-24 left-4 right-4 z-10">
-            <div className="bg-green-500 text-white rounded-xl shadow-lg p-3 sm:p-4 animate-pulse">
-              <div className="flex items-center justify-center gap-2">
-                <FaMapMarkerAlt />
-                <span className="font-semibold text-sm sm:text-base">
-                  ¡Estás cerca del cliente!
-                </span>
+        {/* Información del cliente y servicio */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FaUser className="text-primary" />
+            Información del Cliente
+          </h3>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <FaUser className="text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold truncate">{serviceData?.cliente?.nombre}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{serviceData?.cliente?.telefono}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => window.open(`tel:${serviceData?.cliente?.telefono}`, '_self')}
+                className="w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors shrink-0"
+              >
+                <FaPhoneAlt size={14} />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <FaCar className="text-purple-600 dark:text-purple-400 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{serviceData?.detallesVehiculo?.tipoVehiculo}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {serviceData?.detallesVehiculo?.marca} {serviceData?.detallesVehiculo?.modelo}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <FaWrench className="text-orange-600 dark:text-orange-400 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{serviceData?.servicio?.nombre}</p>
+                  <p className="text-sm text-primary font-semibold">${serviceData?.precio?.toFixed(2)} MXN</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Alerta de proximidad */}
+        {!puedeFinalizarPorDistancia && distanceToClient && serviceData?.estado === 'en_camino' && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <FaExclamationTriangle className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-200 text-sm">Acércate para finalizar</p>
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                  Distancia actual: {(distanceToClient * 1000).toFixed(0)}m (necesitas menos de 100m)
+                </p>
               </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Panel de acciones fijo en la parte inferior */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 sm:p-4">
-        <div className="flex gap-2 sm:gap-3">
-          {/* Llamar */}
-          <a
-            href={`tel:${serviceData.cliente.telefono}`}
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 sm:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
-          >
-            <FaPhoneAlt />
-            <span className="hidden sm:inline">Llamar</span>
-          </a>
-
-          {/* Acción principal según el estado */}
-          {serviceData.estado === 'asignado' && (
+        {/* Botones de acción */}
+        <div className="space-y-3 sm:space-y-4">
+          {serviceData?.estado === 'asignado' && (
             <button
               onClick={() => actualizarEstado('en_camino')}
-              className="flex-2 bg-primary hover:bg-primary-hover text-white py-2 sm:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm"
+              disabled={loading}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm sm:text-base"
             >
-              <FaCar />
-              Iniciar Viaje
+              {loading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <FaPlay size={14} />
+                  Iniciar Viaje
+                </>
+              )}
             </button>
           )}
 
-          {serviceData.estado === 'en_camino' && (
+          {serviceData?.estado === 'en_camino' && (
             <button
               onClick={() => actualizarEstado('finalizado')}
-              disabled={!puedeFinalizarPorDistancia}
-              className={`flex-2 py-2 sm:py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm ${
+              disabled={loading || !puedeFinalizarPorDistancia}
+              className={`w-full py-3 sm:py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm sm:text-base ${
                 puedeFinalizarPorDistancia
                   ? 'bg-green-500 hover:bg-green-600 text-white'
-                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400'
               }`}
             >
-              <FaCheck />
-              {puedeFinalizarPorDistancia ? 'Finalizar' : 'Acércate más'}
+              {loading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <FaCheck size={14} />
+                  <span className="text-center">
+                    {puedeFinalizarPorDistancia ? 'Finalizar Servicio' : 'Acércate más para finalizar'}
+                  </span>
+                </>
+              )}
             </button>
           )}
-        </div>
 
-        {/* Información del cliente */}
-        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200 dark:border-gray-600">
-          <div className="flex items-center justify-between text-xs sm:text-sm">
-            <div>
-              <p className="font-semibold">{serviceData.cliente.nombre}</p>
-              <p className="text-gray-600 dark:text-gray-400">
-                {serviceData.detallesVehiculo.marca} {serviceData.detallesVehiculo.modelo}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="font-bold text-primary text-lg sm:text-xl">
-                ${serviceData.precio.toFixed(2)}
-              </p>
-            </div>
+          {/* Acciones secundarias */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={cancelarYDevolver}
+              disabled={loading}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white py-2.5 sm:py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm"
+            >
+              <FaStop size={12} />
+              <span className="hidden sm:inline">Devolver Servicio</span>
+              <span className="sm:hidden">Devolver</span>
+            </button>
+            
+            <button
+              onClick={() => actualizarEstado('cancelado')}
+              disabled={loading}
+              className="bg-red-500 hover:bg-red-600 text-white py-2.5 sm:py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg text-sm"
+            >
+              <FaTimes size={12} />
+              <span className="hidden sm:inline">Cancelar Servicio</span>
+              <span className="sm:hidden">Cancelar</span>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modal de carga */}
+      {loading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 flex flex-col items-center gap-3 max-w-sm w-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p className="text-gray-700 dark:text-gray-300 font-medium text-center">Actualizando servicio...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default AsistenteActiveService;
+}

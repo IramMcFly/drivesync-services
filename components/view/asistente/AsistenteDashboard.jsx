@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import AsistenteServiceInfo from "./AsistenteServiceInfo";
 import { 
   FaCar, 
   FaUser, 
@@ -22,19 +23,7 @@ import {
   FaSignOutAlt,
   FaBell
 } from "react-icons/fa";
-import dynamic from "next/dynamic";
 import ServiceNotification from "./ServiceNotification";
-import AsistenteServiceManager from "./AsistenteServiceManager";
-
-// Importar el mapa dinámicamente
-const LeafletMap = dynamic(() => import("@/components/maps/LeafletMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-    </div>
-  )
-});
 
 const AsistenteDashboard = () => {
   const { data: session } = useSession();
@@ -50,7 +39,16 @@ const AsistenteDashboard = () => {
   const [newServiceNotification, setNewServiceNotification] = useState(null);
   const [previousServicesCount, setPreviousServicesCount] = useState(0);
   const [selectedService, setSelectedService] = useState(null);
-  const [showServiceManager, setShowServiceManager] = useState(false);
+  const [showServiceInfo, setShowServiceInfo] = useState(false);
+
+  // Debug inicial
+  useEffect(() => {
+    console.log('🚀 AsistenteDashboard montado', {
+      sessionUserId: session?.user?.id,
+      showServiceInfo,
+      hasSelectedService: !!selectedService
+    });
+  }, [session?.user?.id, showServiceInfo, selectedService]);
 
   // Obtener ubicación del usuario
   useEffect(() => {
@@ -185,6 +183,8 @@ const AsistenteDashboard = () => {
 
   // Función para aceptar un servicio
   const aceptarServicio = async (serviceId) => {
+    console.log('🔄 Iniciando aceptación de servicio:', serviceId);
+    
     try {
       const response = await fetch('/api/asistente', {
         method: 'POST',
@@ -197,15 +197,33 @@ const AsistenteDashboard = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Actualizar datos inmediatamente
-        fetchData();
-        alert('Servicio aceptado exitosamente');
+        console.log('✅ Servicio aceptado, datos recibidos:', data);
+        
+        // Navegar inmediatamente con el servicio devuelto por la API
+        if (data.servicio) {
+          console.log('🧭 Navegando a ServiceInfo con servicio:', data.servicio._id);
+          setSelectedService(data.servicio);
+          setShowServiceInfo(true);
+          
+          // Asegurar que se oculte cualquier notificación
+          setNewServiceNotification(null);
+          
+          console.log('✅ Estado actualizado - showServiceInfo: true');
+        } else {
+          console.error('❌ No se recibió el servicio en la respuesta');
+          alert('Error: No se pudo obtener la información del servicio');
+        }
+        
+        // Actualizar datos después de la navegación (sin await para no bloquear)
+        console.log('🔄 Actualizando datos en segundo plano...');
+        fetchData().catch(console.error);
       } else {
         const errorData = await response.json();
+        console.error('❌ Error del servidor:', errorData);
         alert(errorData.error || 'Error al aceptar servicio');
       }
     } catch (error) {
-      console.error('Error aceptando servicio:', error);
+      console.error('❌ Error aceptando servicio:', error);
       alert('Error de conexión');
     }
   };
@@ -236,14 +254,16 @@ const AsistenteDashboard = () => {
   // Función para manejar un servicio asignado
   const manejarServicio = (servicio) => {
     setSelectedService(servicio);
-    setShowServiceManager(true);
+    setShowServiceInfo(true);
   };
 
-  // Función para volver del service manager
-  const volverDelServiceManager = () => {
-    setShowServiceManager(false);
+  // Función para volver del service info
+  const volverDelServiceInfo = () => {
+    console.log('🔙 Volviendo del ServiceInfo al Dashboard');
+    setShowServiceInfo(false);
     setSelectedService(null);
-    fetchData(); // Actualizar datos
+    // Actualizar datos para refrescar el estado
+    fetchData().catch(console.error);
   };
 
   // Función para ir al tracking de un servicio específico
@@ -300,17 +320,25 @@ const AsistenteDashboard = () => {
     );
   }
 
-  // Si estamos mostrando el service manager
-  if (showServiceManager && selectedService) {
+  // Si estamos mostrando el service info
+  if (showServiceInfo && selectedService) {
+    console.log('🎯 Renderizando AsistenteServiceInfo con servicio:', selectedService._id);
     return (
-      <AsistenteServiceManager
+      <AsistenteServiceInfo
         servicio={selectedService}
         session={session}
         onServiceUpdate={fetchData}
-        onBack={volverDelServiceManager}
+        onBack={volverDelServiceInfo}
       />
     );
   }
+
+  console.log('🏠 Renderizando Dashboard principal', { 
+    showServiceInfo, 
+    hasSelectedService: !!selectedService,
+    serviciosDisponibles: serviciosDisponibles?.length || 0,
+    serviciosAsignados: serviciosAsignados?.length || 0
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -545,26 +573,6 @@ const AsistenteDashboard = () => {
             </div>
           )}
         </div>
-
-        {/* Mapa con ubicación actual */}
-        {userLocation && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FaMapMarkerAlt className="text-primary" />
-              Mi Ubicación Actual
-            </h2>
-            <div className="h-64 rounded-lg overflow-hidden">
-              <LeafletMap
-                center={[userLocation.lat, userLocation.lng]}
-                zoom={15}
-                markers={[{
-                  position: [userLocation.lat, userLocation.lng],
-                  popup: "Mi ubicación"
-                }]}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Notificación de nuevo servicio */}

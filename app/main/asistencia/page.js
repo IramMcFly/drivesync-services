@@ -8,6 +8,7 @@ import ServiceStatus from "@/components/view/main/ServiceStatus";
 import Asistencia from "@/components/view/main/Asistencia";
 import ProvidersWrapper from "@/components/ProvidersWrapper";
 import Header from "@/components/view/main/Header";
+import ServiceStatusWrapper from "@/components/view/cliente/ServiceStatusWrapper";
 
 export default function AsistenciaPage() {
   const searchParams = useSearchParams();
@@ -30,6 +31,7 @@ export default function AsistenciaPage() {
     return (
       <ProvidersWrapper>
         <ServiceStatus serviceId={serviceId} />
+        <ServiceStatusWrapper />
       </ProvidersWrapper>
     );
   }
@@ -39,6 +41,7 @@ export default function AsistenciaPage() {
     <ProvidersWrapper>
       <Header />
       <Asistencia />
+      <ServiceStatusWrapper />
     </ProvidersWrapper>
   );
 }

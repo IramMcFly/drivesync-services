@@ -1,5 +1,9 @@
 import { connectDB } from '@/lib/mongoose';
 import ServiceRequest from '@/models/ServiceRequest';
+import User from '@/models/User';
+import Taller from '@/models/Taller';
+import Servicio from '@/models/Servicio';
+import Asistente from '@/models/Asistente';
 import { NextResponse } from 'next/server';
 
 // GET: Listar todas las solicitudes de servicio o una por ID

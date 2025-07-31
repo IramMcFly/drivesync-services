@@ -1,5 +1,7 @@
 import { connectDB } from '@/lib/mongoose';
 import Asistente from '@/models/Asistente';
+import User from '@/models/User';
+import Taller from '@/models/Taller';
 import { NextResponse } from 'next/server';
 import * as yup from 'yup';
 
@@ -28,11 +30,36 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   const userId = searchParams.get('userId');
+  const asistenteId = searchParams.get('asistenteId');
   
   if (id) {
     const asistente = await Asistente.findById(id).populate('user').populate('taller');
     if (!asistente) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
     return NextResponse.json(asistente);
+  } else if (asistenteId) {
+    // Endpoint específico para obtener ubicación de asistente
+    const asistente = await Asistente.findById(asistenteId)
+      .populate('taller', 'nombre direccion telefono')
+      .select('nombre telefono ubicacionActual activo taller');
+    
+    if (!asistente) {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Asistente no encontrado' 
+      }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      asistente: {
+        _id: asistente._id,
+        nombre: asistente.nombre,
+        telefono: asistente.telefono,
+        ubicacionActual: asistente.ubicacionActual,
+        activo: asistente.activo,
+        taller: asistente.taller
+      }
+    });
   } else if (userId) {
     const asistentes = await Asistente.find({ user: userId }).populate('user').populate('taller');
     return NextResponse.json(asistentes);

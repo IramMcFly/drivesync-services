@@ -92,7 +92,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: session.user.id,
-          action: 'update_service',
+          action: 'update_service_state',
           serviceId: servicio._id,
           nuevoEstado
         })
@@ -104,7 +104,8 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
           onBack();
         }
       } else {
-        alert('Error al actualizar el servicio');
+        const errorData = await response.json();
+        alert(errorData.error || 'Error al actualizar el servicio');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -175,115 +176,141 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header responsivo */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10">
-        <div className="px-4 py-3 sm:py-4">
+      <div className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary transition-colors"
             >
               <FaArrowLeft />
-              <span className="hidden sm:inline">Volver</span>
+              <span className="text-sm sm:text-base">Volver</span>
             </button>
-            <h1 className="text-lg sm:text-xl font-semibold text-center flex-1">
-              Gestión de Servicio
-            </h1>
-            <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-white ${statusInfo.color}`}>
+            <div className={`px-3 py-1 rounded-full text-xs font-medium text-white ${statusInfo.color}`}>
               {statusInfo.text}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        {/* Información del servicio */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+      <div className="px-4 py-4 space-y-4 pb-20">
+        {/* Información principal del servicio */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
             <div className="flex-1">
-              <h2 className="text-xl sm:text-2xl font-bold mb-2">{servicio.servicio.nombre}</h2>
+              <h1 className="text-xl font-bold mb-1">{servicio.servicio.nombre}</h1>
               {servicio.subtipo && (
-                <p className="text-gray-600 dark:text-gray-400 mb-3">{servicio.subtipo}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{servicio.subtipo}</p>
               )}
               <p className="text-sm text-gray-500 mb-4">{statusInfo.description}</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
-                  <p className="font-semibold text-lg">{servicio.cliente.nombre}</p>
-                  <p className="text-sm text-gray-500">{servicio.cliente.telefono}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
-                  <p className="font-semibold">{servicio.detallesVehiculo.tipoVehiculo}</p>
-                  <p className="text-sm text-gray-500">
-                    {servicio.detallesVehiculo.marca} {servicio.detallesVehiculo.modelo} ({servicio.detallesVehiculo.año})
-                  </p>
-                </div>
-              </div>
             </div>
             
             <div className="text-center sm:text-right">
-              <p className="text-3xl sm:text-4xl font-bold text-primary mb-2">
+              <p className="text-2xl sm:text-3xl font-bold text-primary">
                 ${servicio.precio.toFixed(2)}
               </p>
-              <p className="text-sm text-gray-500">Valor del servicio</p>
+              <p className="text-xs text-gray-500">MXN</p>
             </div>
           </div>
         </div>
 
-        {/* Información de distancia y tiempo */}
+        {/* Cliente y Vehículo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <FaUser className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold">{servicio.cliente.nombre}</h3>
+                <p className="text-sm text-gray-500">{servicio.cliente.telefono}</p>
+              </div>
+            </div>
+            <a
+              href={`tel:${servicio.cliente.telefono}`}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+            >
+              <FaPhoneAlt />
+              Llamar Cliente
+            </a>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                <FaCar className="text-purple-600 dark:text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-semibold">{servicio.detallesVehiculo.tipoVehiculo}</h3>
+                <p className="text-sm text-gray-500">
+                  {servicio.detallesVehiculo.marca} {servicio.detallesVehiculo.modelo} ({servicio.detallesVehiculo.año})
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Métricas de distancia */}
         {userLocation && servicio.ubicacion && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg text-center">
-              <FaLocationArrow className="text-primary text-xl sm:text-2xl mx-auto mb-2" />
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Distancia</p>
-              <p className="font-bold text-sm sm:text-lg">
-                {distanceToClient ? `${distanceToClient.toFixed(1)} km` : 'Calculando...'}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+              <FaLocationArrow className="text-primary text-xl mx-auto mb-2" />
+              <p className="text-xs text-gray-600 dark:text-gray-400">Distancia</p>
+              <p className="font-bold text-sm">
+                {distanceToClient ? `${distanceToClient.toFixed(1)} km` : '---'}
               </p>
             </div>
             
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg text-center">
-              <FaClock className="text-blue-500 text-xl sm:text-2xl mx-auto mb-2" />
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Tiempo estimado</p>
-              <p className="font-bold text-sm sm:text-lg">
-                {timeToClient ? `${timeToClient} min` : 'Calculando...'}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+              <FaClock className="text-blue-500 text-xl mx-auto mb-2" />
+              <p className="text-xs text-gray-600 dark:text-gray-400">Tiempo</p>
+              <p className="font-bold text-sm">
+                {timeToClient ? `${timeToClient} min` : '---'}
               </p>
             </div>
 
-            <div className={`rounded-xl p-3 sm:p-4 shadow-lg text-center ${
+            <div className={`rounded-xl p-3 shadow-sm border text-center ${
               puedeFinalizarPorDistancia 
-                ? 'bg-green-100 dark:bg-green-900 border-2 border-green-500' 
-                : 'bg-white dark:bg-gray-800'
+                ? 'bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-700' 
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
             }`}>
-              <FaMapMarkerAlt className={`text-xl sm:text-2xl mx-auto mb-2 ${
+              <FaMapMarkerAlt className={`text-xl mx-auto mb-2 ${
                 puedeFinalizarPorDistancia ? 'text-green-600' : 'text-gray-400'
               }`} />
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Proximidad</p>
-              <p className={`font-bold text-sm sm:text-lg ${
+              <p className="text-xs text-gray-600 dark:text-gray-400">Proximidad</p>
+              <p className={`font-bold text-sm ${
                 puedeFinalizarPorDistancia ? 'text-green-600' : 'text-gray-500'
               }`}>
-                {puedeFinalizarPorDistancia ? 'Muy cerca' : 'Lejano'}
+                {puedeFinalizarPorDistancia ? 'Cerca' : 'Lejos'}
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-lg text-center">
-              <FaUser className="text-purple-500 text-xl sm:text-2xl mx-auto mb-2" />
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Estado</p>
-              <p className="font-bold text-sm sm:text-lg capitalize">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+              <FaUser className="text-orange-500 text-xl mx-auto mb-2" />
+              <p className="text-xs text-gray-600 dark:text-gray-400">Estado</p>
+              <p className="font-bold text-sm capitalize">
                 {servicio.estado.replace('_', ' ')}
               </p>
             </div>
           </div>
         )}
 
-        {/* Mapa con ubicaciones */}
+        {/* Mapa */}
         {userLocation && servicio.ubicacion && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FaRoute className="text-primary" />
-              Ubicaciones
-            </h3>
-            <div className="h-64 sm:h-80 lg:h-96 rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <FaRoute className="text-primary" />
+                Ubicaciones
+              </h3>
+              <button
+                onClick={() => router.push(`/asistente/service-active/${servicio._id}`)}
+                className="text-sm text-primary hover:text-primary-hover font-medium"
+              >
+                Vista completa →
+              </button>
+            </div>
+            <div className="h-48 sm:h-56 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
               <LeafletMap
                 center={[
                   (userLocation.lat + servicio.ubicacion.lat) / 2,
@@ -293,7 +320,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
                 markers={[
                   {
                     position: [userLocation.lat, userLocation.lng],
-                    popup: "Mi ubicación (Asistente)",
+                    popup: "Mi ubicación",
                     iconColor: "blue"
                   },
                   {
@@ -302,130 +329,102 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
                     iconColor: "red"
                   }
                 ]}
-                route={routeCoordinates.length > 0 ? routeCoordinates : undefined}
               />
             </div>
           </div>
         )}
 
-        {/* Acciones del servicio */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
-          <h3 className="text-lg font-semibold mb-4">Acciones del Servicio</h3>
-          
-          <div className="space-y-3">
-            {/* Llamar al cliente */}
-            <a
-              href={`tel:${servicio.cliente.telefono}`}
-              className="w-full bg-green-500 hover:bg-green-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-            >
-              <FaPhoneAlt />
-              Llamar a {servicio.cliente.nombre}
-            </a>
-
-            {/* Acciones según el estado */}
-            {servicio.estado === 'asignado' && (
-              <button
-                onClick={() => actualizarEstado('en_camino')}
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary-hover text-white py-3 sm:py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <FaPlay />
-                    Iniciar Viaje al Cliente
-                  </>
-                )}
-              </button>
-            )}
-
-            {servicio.estado === 'en_camino' && (
-              <button
-                onClick={() => actualizarEstado('finalizado')}
-                disabled={loading || !puedeFinalizarPorDistancia}
-                className={`w-full py-3 sm:py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-50 ${
-                  puedeFinalizarPorDistancia
-                    ? 'bg-green-500 hover:bg-green-600 text-white'
-                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
-                }`}
-                title={!puedeFinalizarPorDistancia ? 'Debes estar cerca del cliente para finalizar' : ''}
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <FaCheck />
-                    Finalizar Servicio
-                    {!puedeFinalizarPorDistancia && (
-                      <span className="text-xs">(Acércate más)</span>
-                    )}
-                  </>
-                )}
-              </button>
-            )}
-
-            {/* Botón para ir al tracking completo */}
-            <button
-              onClick={() => router.push(`/asistente/service-active/${servicio._id}`)}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 sm:py-4 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
-            >
-              <FaRoute />
-              Vista de Navegación Completa
-            </button>
-
-            {/* Acciones de cancelación */}
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-600 space-y-2">
-              <button
-                onClick={cancelarYDevolver}
-                disabled={loading}
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <FaStop />
-                    Cancelar y Devolver a Pendientes
-                  </>
-                )}
-              </button>
-              
-              <button
-                onClick={() => actualizarEstado('cancelado')}
-                disabled={loading}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                ) : (
-                  <>
-                    <FaTimes />
-                    Cancelar Definitivamente
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Información adicional */}
-        {!puedeFinalizarPorDistancia && servicio.estado === 'en_camino' && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+        {/* Mensaje de proximidad */}
+        {!puedeFinalizarPorDistancia && servicio.estado === 'en_camino' && distanceToClient && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <FaExclamationTriangle className="text-yellow-600 mt-1 flex-shrink-0" />
+              <FaExclamationTriangle className="text-amber-600 mt-1 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
-                  Proximidad requerida
+                <p className="font-medium text-amber-800 dark:text-amber-200 text-sm">
+                  Acércate para finalizar
                 </p>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  Para finalizar el servicio, debes estar a menos de 100 metros del cliente. 
-                  Tu distancia actual: {distanceToClient ? `${(distanceToClient * 1000).toFixed(0)} metros` : 'Calculando...'}
+                <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                  Distancia actual: {(distanceToClient * 1000).toFixed(0)} metros (necesitas &lt; 100m)
                 </p>
               </div>
             </div>
           </div>
         )}
+      </div>
+
+      {/* Panel de acciones fijo */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+        <div className="space-y-3">
+          {/* Acción principal */}
+          {servicio.estado === 'asignado' && (
+            <button
+              onClick={() => actualizarEstado('en_camino')}
+              disabled={loading}
+              className="w-full bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <FaPlay />
+                  Iniciar Viaje al Cliente
+                </>
+              )}
+            </button>
+          )}
+
+          {(servicio.estado === 'asignado' || servicio.estado === 'en_camino') && (
+            <button
+              onClick={() => router.push(`/asistente/active-service/${servicio._id}`)}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+            >
+              <FaMapMarkerAlt />
+              Navegación Completa
+            </button>
+          )}
+
+          {servicio.estado === 'en_camino' && (
+            <button
+              onClick={() => actualizarEstado('finalizado')}
+              disabled={loading || !puedeFinalizarPorDistancia}
+              className={`w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 ${
+                puedeFinalizarPorDistancia
+                  ? 'bg-green-500 hover:bg-green-600 text-white'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {loading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <FaCheck />
+                  {puedeFinalizarPorDistancia ? 'Finalizar Servicio' : 'Acércate más para finalizar'}
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Acciones secundarias */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={cancelarYDevolver}
+              disabled={loading}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            >
+              <FaStop />
+              Devolver
+            </button>
+            
+            <button
+              onClick={() => actualizarEstado('cancelado')}
+              disabled={loading}
+              className="bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+            >
+              <FaTimes />
+              Cancelar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
