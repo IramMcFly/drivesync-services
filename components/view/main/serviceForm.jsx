@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Modal } from "../../ui";
 import { useModal } from "../../../hooks/useModal";
+import { useGeolocation } from "../../../hooks/useGeolocation";
 
 const ServiceForm = () => {
-  const { modalState, showError, hideModal } = useModal();
+  const { modalState, showError, showSuccess, hideModal } = useModal();
   const [formData, setFormData] = useState({
     marca: "",
     modelo: "",
@@ -25,7 +26,8 @@ const ServiceForm = () => {
   const [servicios, setServicios] = useState([]);
   const [talleres, setTalleres] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  
   const tiposVehiculo = ["Sedán", "SUV", "Pickup", "Hatchback", "Minivan"];
   const metodosPago = ["Tarjeta", "Efectivo"];
   const multiplicadoresTipoVehiculo = {
@@ -39,47 +41,56 @@ const ServiceForm = () => {
   const searchParams = useSearchParams();
   const { data: session } = useSession();
 
+  // Usar el hook de geolocalización
+  const { 
+    location: userLocation, 
+    error: locationError, 
+    loading: locationLoading, 
+    requestLocation,
+    isSupported 
+  } = useGeolocation();
+
   // Obtener el tipo de servicio desde la URL
   const serviceType = searchParams.get("tipo") || "";
 
+  // Manejar errores de ubicación
   useEffect(() => {
-    // Obtener ubicación del usuario
-    const getUserLocation = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            setUserLocation({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            });
-          },
-          (error) => {
-            console.error("Error obteniendo ubicación:", error);
-            showError(
-              "Es necesario permitir el acceso a la ubicación para usar este servicio.",
-              "Ubicación requerida",
-              () => {
-                hideModal();
-                router.back();
-              }
-            );
-            return;
-          }
-        );
-      } else {
-        showError(
-          "Tu dispositivo no soporta geolocalización. No puedes continuar.",
-          "Funcionalidad no disponible",
-          () => {
-            hideModal();
-            router.back();
-          }
-        );
-        return;
-      }
-    };
+    if (locationError) {
+      setShowLocationModal(true);
+    }
+  }, [locationError]);
 
-    getUserLocation();
+  // Función para manejar la solicitud de ubicación
+  const handleLocationRequest = () => {
+    if (locationError?.code === 'PERMISSION_DENIED') {
+      showError(
+        "Para continuar, necesitas permitir el acceso a la ubicación. Ve a la configuración de tu navegador y permite la ubicación para este sitio.",
+        "Permisos de ubicación requeridos",
+        () => {
+          hideModal();
+          // Intentar nuevamente después de que el usuario haya dado permisos
+          setTimeout(() => {
+            requestLocation();
+          }, 1000);
+        }
+      );
+    } else if (locationError?.code === 'NOT_SUPPORTED') {
+      showError(
+        "Tu dispositivo no soporta geolocalización. No puedes continuar con la solicitud del servicio.",
+        "Funcionalidad no disponible",
+        () => {
+          hideModal();
+          router.back();
+        }
+      );
+    } else {
+      // Otros errores, permitir reintentar
+      requestLocation();
+    }
+    setShowLocationModal(false);
+  };
+
+  useEffect(() => {
 
     // Cargar talleres y servicios desde la API
     const fetchTalleres = async () => {
@@ -153,6 +164,20 @@ const ServiceForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Verificar que tenemos ubicación antes de continuar
+    if (!userLocation) {
+      showError(
+        "Necesitamos tu ubicación para procesar la solicitud. Por favor, permite el acceso a la ubicación.",
+        "Ubicación requerida",
+        () => {
+          hideModal();
+          requestLocation();
+        }
+      );
+      return;
+    }
+    
     if (!isFormValid()) {
       showError("Por favor, completa todos los campos obligatorios correctamente.", "Campos incompletos");
       return;
@@ -230,6 +255,50 @@ const ServiceForm = () => {
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-4 sm:py-8 pb-20 transition-colors">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors mx-4">
+        
+        {/* Estado de ubicación */}
+        {(locationLoading || locationError) && (
+          <div className="mb-4 p-3 rounded-lg border">
+            {locationLoading && (
+              <div className="flex items-center text-blue-600 dark:text-blue-400">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                <span className="text-sm">Obteniendo ubicación...</span>
+              </div>
+            )}
+            {locationError && (
+              <div className="text-red-600 dark:text-red-400">
+                <div className="flex items-center mb-2">
+                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-medium">Error de ubicación</span>
+                </div>
+                <p className="text-xs mb-2">{locationError.message}</p>
+                {locationError.canRetry && (
+                  <button
+                    onClick={requestLocation}
+                    className="text-xs bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-800 dark:text-red-200 px-2 py-1 rounded"
+                  >
+                    Intentar nuevamente
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Indicador de ubicación obtenida */}
+        {userLocation && (
+          <div className="mb-4 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-center text-green-700 dark:text-green-300">
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm">Ubicación obtenida correctamente</span>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <h2 className="text-gray-900 dark:text-gray-100 text-lg sm:text-xl font-bold mb-4 sm:mb-6 transition-colors">
             {servicioDB?.nombre || "Servicio"}
@@ -321,8 +390,8 @@ const ServiceForm = () => {
           )}
           <button
             type="submit"
-            disabled={!isFormValid() || isLoading}
-            className={`mt-2 py-2 sm:py-3 px-4 rounded-md transition-colors w-full font-semibold text-sm sm:text-base ${isFormValid() && !isLoading
+            disabled={!isFormValid() || isLoading || !userLocation}
+            className={`mt-2 py-2 sm:py-3 px-4 rounded-md transition-colors w-full font-semibold text-sm sm:text-base ${isFormValid() && !isLoading && userLocation
               ? "bg-primary hover:bg-primary-hover text-white"
               : "bg-gray-400 dark:bg-gray-600 text-gray-200 dark:text-gray-400 cursor-not-allowed"
               }`}
@@ -332,12 +401,72 @@ const ServiceForm = () => {
                 <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white mr-2"></div>
                 Procesando...
               </div>
+            ) : !userLocation ? (
+              'Esperando ubicación...'
             ) : (
               'Solicitar Servicio'
             )}
           </button>
         </form>
       </div>
+
+      {/* Modal para permisos de ubicación */}
+      {showLocationModal && locationError && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center mb-4">
+              <svg className="w-6 h-6 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Permisos de ubicación necesarios
+              </h3>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {locationError.code === 'PERMISSION_DENIED' 
+                  ? "Has denegado el acceso a la ubicación. Para continuar, necesitas permitir el acceso en tu navegador."
+                  : locationError.message
+                }
+              </p>
+              
+              {locationError.code === 'PERMISSION_DENIED' && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+                    ¿Cómo permitir el acceso?
+                  </h4>
+                  <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>1. Busca el ícono de ubicación 📍 en la barra de direcciones</li>
+                    <li>2. Haz clic en "Permitir" o "Allow"</li>
+                    <li>3. Recarga la página si es necesario</li>
+                  </ol>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex space-x-3">
+              {locationError.canRetry && (
+                <button
+                  onClick={handleLocationRequest}
+                  className="flex-1 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg font-medium"
+                >
+                  Intentar nuevamente
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setShowLocationModal(false);
+                  router.back();
+                }}
+                className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg font-medium"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Modal
         isOpen={modalState.isOpen}

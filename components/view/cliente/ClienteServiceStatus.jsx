@@ -90,74 +90,51 @@ export default function ClienteServiceStatus({
     }
   }, [serviceRequest?.asistente?._id, serviceRequest?.estado]);
 
-  // Obtener ruta desde asistente hasta cliente con timeout
+  // Calcular ruta usando solo cálculo directo (sin API externa para evitar errores)
   const getRoute = useCallback(async (start, end) => {
     try {
       // Validate service is still active
       if (!serviceRequest || ['cancelado', 'finalizado'].includes(serviceRequest.estado)) {
-        console.log('Skipping route calculation for inactive service');
+        console.log('🚫 ClienteServiceStatus: Saltando cálculo de ruta para servicio inactivo');
         return;
       }
 
       // Validate coordinates
       if (!start || !end || !start.lat || !start.lng || !end.lat || !end.lng) {
-        console.warn('Invalid coordinates provided for routing');
+        console.warn('⚠️ ClienteServiceStatus: Coordenadas inválidas para routing');
         return;
       }
 
-      // Check for API key
-      const apiKey = process.env.NEXT_PUBLIC_OPENROUTE_API_KEY || '5b3ce3597851110001cf6248a1e0bd5aac6144f1b35549ad864b37fb';
-      if (!apiKey) {
-        console.warn('OpenRoute API key not configured');
+      // Validate coordinates are numbers
+      if (isNaN(start.lat) || isNaN(start.lng) || isNaN(end.lat) || isNaN(end.lng)) {
+        console.warn('⚠️ ClienteServiceStatus: Coordenadas no son números válidos');
         return;
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      console.log('🗺️ ClienteServiceStatus: Calculando ruta directa...');
       
-      const response = await fetch(
-        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`,
-        { 
-          signal: controller.signal,
-          cache: 'no-cache',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          }
-        }
-      );
+      // Usar solo cálculo directo para evitar errores de fetch
+      const distance = calculateDistance(start.lat, start.lng, end.lat, end.lng);
       
-      clearTimeout(timeoutId);
+      // Crear coordenadas de ruta simple
+      const coordinates = [[start.lat, start.lng], [end.lat, end.lng]];
+      setRouteCoordinates(coordinates);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      // Calcular tiempo estimado de llegada (40 km/h promedio)
+      const velocidadPromedio = 40;
+      const tiempoEnHoras = distance / velocidadPromedio;
+      const tiempoEnSegundos = tiempoEnHoras * 3600;
+      const arrivalTime = new Date(Date.now() + tiempoEnSegundos * 1000);
+      setTimeToArrival(arrivalTime);
       
-      // Validate response structure
-      if (data.features && data.features[0] && data.features[0].geometry && data.features[0].geometry.coordinates) {
-        const coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-        const duration = data.features[0].properties?.segments?.[0]?.duration 
-          ? Math.round(data.features[0].properties.segments[0].duration / 60)
-          : null;
-        
-        setRouteCoordinates(coordinates);
-        if (duration) {
-          setTimeToArrival(duration);
-        }
-      } else {
-        console.warn('Unexpected response structure from OpenRoute API');
-      }
+      console.log(`📊 ClienteServiceStatus: Ruta calculada - ${distance.toFixed(2)}km, llegada: ${arrivalTime.toLocaleTimeString()}`);
+      
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Error obteniendo ruta:', error);
-        // Don't set route coordinates on error to prevent crashes
-        setRouteCoordinates([]);
-        setTimeToArrival(null);
-      }
+      console.error('❌ ClienteServiceStatus: Error calculando ruta:', error);
+      setRouteCoordinates([]);
+      setTimeToArrival(null);
     }
-  }, [serviceRequest]);
+  }, [serviceRequest, calculateDistance]);
 
   // Calcular distancia y ruta cuando cambian las ubicaciones
   useEffect(() => {

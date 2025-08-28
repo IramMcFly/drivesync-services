@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { FaUserAlt, FaLock, FaEnvelope, FaPhone, FaMapMarkerAlt, FaEye, FaEyeSlash, FaTools, FaCog } from 'react-icons/fa';
 import { Modal } from "../../ui";
 import { useModal } from "../../../hooks/useModal";
+import { useGeolocation } from '../../../hooks/useGeolocation';
 import dynamic from 'next/dynamic';
 
 // Importar LeafletMap dinámicamente para evitar SSR issues
@@ -15,7 +16,7 @@ const LeafletMap = dynamic(() => import('../../maps/LeafletMap'), {
 });
 
 export default function RegisterTaller() {
-  const { modalState, showError, hideModal } = useModal();
+  const { modalState, showError, showSuccess, hideModal } = useModal();
   const [nombre, setNombre] = useState('');
   const [direccion, setDireccion] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -31,12 +32,19 @@ export default function RegisterTaller() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Estados para el mapa
-  const [userLocation, setUserLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [tempLocation, setTempLocation] = useState(null); // Ubicación temporal antes de confirmar
   const [showMap, setShowMap] = useState(false);
   
   const router = useRouter();
+
+  // Usar el hook de geolocalización solo para centrar el mapa inicialmente
+  const { 
+    location: userLocation, 
+    error: locationError, 
+    loading: locationLoading, 
+    requestLocation 
+  } = useGeolocation();
 
     useEffect(() => {
     // Obtener servicios disponibles
@@ -53,42 +61,7 @@ export default function RegisterTaller() {
     };
 
     fetchServicios();
-
-    // Intentar obtener la ubicación del usuario (solo para centrar el mapa)
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const coords = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          setUserLocation(coords);
-        },
-        (error) => {
-          console.log('No se pudo obtener la ubicación del usuario:', error);
-          showError(
-            "Es necesario permitir el acceso a la ubicación para registrar un taller.",
-            "Ubicación requerida",
-            () => {
-              hideModal();
-              router.push('/login');
-            }
-          );
-          return;
-        }
-      );
-    } else {
-      showError(
-        "Tu dispositivo no soporta geolocalización. No puedes registrar un taller.",
-        "Funcionalidad no disponible",
-        () => {
-          hideModal();
-          router.push('/login');
-        }
-      );
-      return;
-    }
-  }, [router]);
+  }, []);
 
   const toggleServicio = (servicioId) => {
     setServiciosSeleccionados(prev =>

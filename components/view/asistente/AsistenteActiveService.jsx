@@ -58,17 +58,31 @@ export default function AsistenteActiveService() {
     return R * c;
   };
 
-  // Obtener ubicación del usuario
+  // Obtener ubicación del usuario con mejores opciones de precisión
   const getUserLocation = () => {
     if (navigator.geolocation) {
+      console.log('📍 AsistenteActiveService: Solicitando ubicación del usuario...');
+      
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 15000, // 15 segundos
+        maximumAge: 0 // No usar cache, siempre obtener ubicación fresca
+      };
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const location = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
+          
+          console.log('📍 AsistenteActiveService: Ubicación obtenida:', {
+            ...location,
+            accuracy: position.coords.accuracy + 'm',
+            timestamp: new Date(position.timestamp).toLocaleTimeString()
+          });
+          
           setUserLocation(location);
-          console.log('📍 AsistenteActiveService: Ubicación obtenida y enviando al servidor:', location);
           
           // Actualizar ubicación en el servidor
           fetch('/api/asistente', {
@@ -82,21 +96,41 @@ export default function AsistenteActiveService() {
           })
           .then(response => response.json())
           .then(data => {
-            console.log('✅ AsistenteActiveService: Respuesta del servidor al actualizar ubicación:', data);
+            console.log('✅ AsistenteActiveService: Ubicación actualizada en servidor:', data);
           })
           .catch(error => {
             console.error('❌ AsistenteActiveService: Error actualizando ubicación:', error);
           });
         },
-        (error) => console.error('Error obteniendo ubicación:', error),
-        { enableHighAccuracy: true, timeout: 10000 }
+        (error) => {
+          console.error('❌ AsistenteActiveService: Error obteniendo ubicación:', error);
+          let errorMessage = 'Error desconocido al obtener ubicación';
+          
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Permisos de ubicación denegados. Ve a configuración del navegador y permite la ubicación.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Tu ubicación no está disponible. Verifica que el GPS esté activado.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Tiempo agotado al obtener ubicación. Inténtalo de nuevo.';
+              break;
+          }
+          
+          showError(errorMessage, 'Error de ubicación');
+        },
+        options
       );
+    } else {
+      console.error('❌ AsistenteActiveService: Geolocalización no soportada');
+      showError('Tu dispositivo no soporta geolocalización', 'Funcionalidad no disponible');
     }
   };
 
-  // Obtener ruta usando OpenRouteService
+  // Obtener ruta usando solo cálculo directo (sin API externa para evitar errores)
   const getRoute = async (start, end) => {
-    console.log('🗺️ AsistenteActiveService: Obteniendo ruta de:', start, 'a:', end);
+    console.log('🗺️ AsistenteActiveService: Calculando ruta directa de:', start, 'a:', end);
     
     // Verificar que tenemos las coordenadas necesarias
     if (!start?.lat || !start?.lng || !end?.lat || !end?.lng) {
@@ -104,58 +138,33 @@ export default function AsistenteActiveService() {
       return;
     }
 
-    try {
-      const apiKey = process.env.NEXT_PUBLIC_OPENROUTE_API_KEY;
-      if (!apiKey) {
-        console.warn('⚠️ AsistenteActiveService: No hay API key de OpenRouteService, usando cálculo directo');
-        // Fallback al cálculo directo
-        const km = calculateDistance(start.lat, start.lng, end.lat, end.lng);
-        setDistanceToClient(km);
-        
-        const velocidadPromedio = 40; // km/h
-        const tiempoEnHoras = km / velocidadPromedio;
-        const minutos = Math.round(tiempoEnHoras * 60);
-        setTimeToClient(minutos);
-        return;
-      }
+    // Validar coordenadas
+    if (isNaN(start.lat) || isNaN(start.lng) || isNaN(end.lat) || isNaN(end.lng)) {
+      console.error('❌ AsistenteActiveService: Coordenadas inválidas');
+      return;
+    }
 
-      console.log('📡 AsistenteActiveService: Consultando OpenRouteService...');
-      const response = await fetch(
-        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ AsistenteActiveService: Ruta obtenida exitosamente');
-        
-        const coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-        const duration = Math.round(data.features[0].properties.segments[0].duration / 60);
-        const distance = data.features[0].properties.segments[0].distance / 1000; // km
-        
-        setRouteCoordinates(coordinates);
-        setTimeToClient(duration);
-        setDistanceToClient(distance);
-      } else {
-        console.error('❌ AsistenteActiveService: Error en API de rutas:', response.status);
-        // Fallback al cálculo directo
-        const km = calculateDistance(start.lat, start.lng, end.lat, end.lng);
-        setDistanceToClient(km);
-        
-        const velocidadPromedio = 40;
-        const tiempoEnHoras = km / velocidadPromedio;
-        const minutos = Math.round(tiempoEnHoras * 60);
-        setTimeToClient(minutos);
-      }
-    } catch (error) {
-      console.error('❌ AsistenteActiveService: Error obteniendo ruta:', error);
-      // Fallback al cálculo directo
+    try {
+      // Usar solo cálculo directo para evitar errores de fetch
       const km = calculateDistance(start.lat, start.lng, end.lat, end.lng);
       setDistanceToClient(km);
       
-      const velocidadPromedio = 40;
+      const velocidadPromedio = 40; // km/h
       const tiempoEnHoras = km / velocidadPromedio;
       const minutos = Math.round(tiempoEnHoras * 60);
       setTimeToClient(minutos);
+      
+      console.log(`📊 AsistenteActiveService: Cálculo directo - ${km.toFixed(2)}km, ${minutos}min`);
+      
+      // Crear coordenadas de ruta simple (línea recta) para mostrar en el mapa
+      const routeCoords = [
+        [start.lat, start.lng],
+        [end.lat, end.lng]
+      ];
+      setRouteCoordinates(routeCoords);
+      
+    } catch (calcError) {
+      console.error('❌ AsistenteActiveService: Error en cálculo directo:', calcError);
     }
   };
 

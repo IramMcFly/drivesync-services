@@ -28,20 +28,41 @@ const MapComponent = dynamic(() => import("@/components/maps/LeafletMap"), {
 });
 
 function haversineDistance(coord1, coord2) {
-  const toRad = (x) => (x * Math.PI) / 180;
-  const R = 6371; // km
+  try {
+    const toRad = (x) => (x * Math.PI) / 180;
+    const R = 6371; // km
 
-  const dLat = toRad(coord2[0] - coord1[0]);
-  const dLon = toRad(coord2[1] - coord1[1]);
-  const lat1 = toRad(coord1[0]);
-  const lat2 = toRad(coord2[0]);
+    // Validar coordenadas
+    if (!coord1 || !coord2 || coord1.length !== 2 || coord2.length !== 2) {
+      console.error('❌ haversineDistance: Coordenadas inválidas');
+      return 0;
+    }
 
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const [lat1, lon1] = coord1;
+    const [lat2, lon2] = coord2;
 
-  return R * c;
+    // Verificar que son números válidos
+    if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
+      console.error('❌ haversineDistance: Coordenadas no son números');
+      return 0;
+    }
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const rLat1 = toRad(lat1);
+    const rLat2 = toRad(lat2);
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.sin(dLon / 2) ** 2 * Math.cos(rLat1) * Math.cos(rLat2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    const distance = R * c;
+    return distance > 0 ? distance : 0;
+  } catch (error) {
+    console.error('❌ haversineDistance: Error en cálculo:', error);
+    return 0;
+  }
 }
 
 export default function ServiceTracking({ serviceId }) {
@@ -186,9 +207,9 @@ export default function ServiceTracking({ serviceId }) {
     }
   };
 
-  // Obtener ruta usando OpenRouteService
+  // Calcular ruta usando solo cálculo directo (sin API externa para evitar errores)
   const getRoute = async (start, end) => {
-    console.log('🗺️ ServiceTracking: Obteniendo ruta de:', start, 'a:', end);
+    console.log('🗺️ ServiceTracking: Calculando ruta directa de:', start, 'a:', end);
     
     // Verificar que el servicio siga activo antes de hacer cualquier llamada
     if (!serviceData || ['cancelado', 'finalizado', 'completado'].includes(serviceData.estado)) {
@@ -202,60 +223,36 @@ export default function ServiceTracking({ serviceId }) {
       return;
     }
 
-    try {
-      const apiKey = process.env.NEXT_PUBLIC_OPENROUTE_API_KEY;
-      if (!apiKey) {
-        console.warn('⚠️ ServiceTracking: No hay API key de OpenRouteService, usando cálculo directo');
-        // Fallback al cálculo directo
-        const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
-        setDistancia(km.toFixed(2));
-        
-        const velocidadPromedio = 40;
-        const tiempoEnHoras = km / velocidadPromedio;
-        const minutos = Math.round(tiempoEnHoras * 60);
-        setTiempo(minutos);
-        return;
-      }
+    // Validar coordenadas
+    if (isNaN(start.lat) || isNaN(start.lng) || isNaN(end.lat) || isNaN(end.lng)) {
+      console.error('❌ ServiceTracking: Coordenadas inválidas');
+      return;
+    }
 
-      console.log('📡 ServiceTracking: Consultando OpenRouteService...');
-      const response = await fetch(
-        `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${start.lng},${start.lat}&end=${end.lng},${end.lat}`
-      );
+    try {
+      // Usar solo cálculo directo para evitar errores de fetch
+      const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
+      setDistancia(km.toFixed(2));
       
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ ServiceTracking: Ruta obtenida exitosamente');
-        setRoute(data.features[0]);
-        
-        // Calcular distancia y tiempo de la ruta real
-        const routeDistance = data.features[0].properties.segments[0].distance / 1000; // km
-        const routeTime = Math.round(data.features[0].properties.segments[0].duration / 60); // minutos
-        
-        setDistancia(routeDistance.toFixed(2));
-        setTiempo(routeTime);
-      } else {
-        console.error('❌ ServiceTracking: Error en API de rutas:', response.status);
-        // Fallback al cálculo directo
-        const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
-        setDistancia(km.toFixed(2));
-        
-        const velocidadPromedio = 40;
-        const tiempoEnHoras = km / velocidadPromedio;
-        const minutos = Math.round(tiempoEnHoras * 60);
-        setTiempo(minutos);
-      }
-    } catch (error) {
-      console.error('❌ ServiceTracking: Error obteniendo ruta:', error);
-      // Fallback al cálculo directo
-      if (start && end) {
-        const km = haversineDistance([start.lat, start.lng], [end.lat, end.lng]);
-        setDistancia(km.toFixed(2));
-        
-        const velocidadPromedio = 40;
-        const tiempoEnHoras = km / velocidadPromedio;
-        const minutos = Math.round(tiempoEnHoras * 60);
-        setTiempo(minutos);
-      }
+      const velocidadPromedio = 40; // km/h promedio en ciudad
+      const tiempoEnHoras = km / velocidadPromedio;
+      const minutos = Math.round(tiempoEnHoras * 60);
+      setTiempo(minutos);
+      
+      console.log(`📊 ServiceTracking: Cálculo directo - ${km.toFixed(2)}km, ${minutos}min`);
+      
+      // Crear coordenadas de ruta simple para mostrar en el mapa
+      const routeFeature = {
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [[start.lng, start.lat], [end.lng, end.lat]]
+        }
+      };
+      setRoute(routeFeature);
+      
+    } catch (calcError) {
+      console.error('❌ ServiceTracking: Error en cálculo directo:', calcError);
     }
   };
 
@@ -300,10 +297,32 @@ export default function ServiceTracking({ serviceId }) {
       return;
     }
 
+    // Verificar que tenemos ubicaciones válidas
     if (serviceData?.ubicacion && assistantLocation) {
-      getRoute(assistantLocation, serviceData.ubicacion);
+      // Validar que las coordenadas son números válidos
+      const clientLat = serviceData.ubicacion.lat;
+      const clientLng = serviceData.ubicacion.lng;
+      const assistantLat = assistantLocation.lat;
+      const assistantLng = assistantLocation.lng;
+      
+      if (!isNaN(clientLat) && !isNaN(clientLng) && !isNaN(assistantLat) && !isNaN(assistantLng) &&
+          clientLat !== 0 && clientLng !== 0 && assistantLat !== 0 && assistantLng !== 0) {
+        
+        // Verificar que no son las mismas coordenadas
+        const distance = Math.abs(clientLat - assistantLat) + Math.abs(clientLng - assistantLng);
+        if (distance > 0.0001) { // Diferencia mínima para evitar cálculos innecesarios
+          console.log('🗺️ ServiceTracking: Calculando ruta con coordenadas válidas');
+          getRoute(assistantLocation, serviceData.ubicacion);
+        } else {
+          console.log('📍 ServiceTracking: Ubicaciones muy cercanas, omitiendo cálculo de ruta');
+          setDistancia('0.1');
+          setTiempo(1);
+        }
+      } else {
+        console.warn('⚠️ ServiceTracking: Coordenadas inválidas detectadas');
+      }
     }
-  }, [serviceData, assistantLocation]);
+  }, [serviceData?.ubicacion, assistantLocation]);
 
   // Obtener ubicación inicial del asistente
   useEffect(() => {
