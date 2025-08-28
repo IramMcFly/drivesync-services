@@ -21,8 +21,21 @@ export default function UserProfile() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
   const fileInputRef = useRef();
   const { modalState, showSuccess, showError, showWarning, hideModal } = useModal();
+
+  // Verificar autenticación con delay
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      const timer = setTimeout(() => {
+        setShowUnauthorized(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (status === "authenticated") {
+      setShowUnauthorized(false);
+    }
+  }, [status]);
 
   // Cargar datos del usuario autenticado
   useEffect(() => {
@@ -151,11 +164,23 @@ export default function UserProfile() {
     );
   }
 
-  if (status === "unauthenticated") {
+  if (status === "unauthenticated" && showUnauthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center text-gray-100">
           <p className="text-red-400">No estás autenticado</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si está verificando autenticación, mostrar loading
+  if (status === "unauthenticated" && !showUnauthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-gray-100">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Verificando autenticación...</p>
         </div>
       </div>
     );

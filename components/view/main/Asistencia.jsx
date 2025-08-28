@@ -2,10 +2,24 @@
 import { useSession } from "next-auth/react"
 import { FiPhone, FiMessageCircle } from "react-icons/fi"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 const Asistencia = () => {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [showUnauthorized, setShowUnauthorized] = useState(false)
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      // Esperar un poco antes de mostrar el mensaje de no autorizado
+      const timer = setTimeout(() => {
+        setShowUnauthorized(true)
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (status === "authenticated") {
+      setShowUnauthorized(false)
+    }
+  }, [status])
 
   // Función para manejar la llamada de asistencia
   const handleLlamada = () => {
@@ -28,7 +42,7 @@ const Asistencia = () => {
     )
   }
 
-  if (status === "unauthenticated") {
+  if (status === "unauthenticated" && showUnauthorized) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center transition-colors">
         <div className="text-center">
@@ -40,6 +54,18 @@ const Asistencia = () => {
           >
             Iniciar Sesión
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Si está cargando la sesión o aún no se determina el estado, mostrar loading
+  if (status === "unauthenticated" && !showUnauthorized) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center transition-colors">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Verificando autenticación...</p>
         </div>
       </div>
     )

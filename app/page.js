@@ -1,5 +1,5 @@
-import LoginForm from "@/components/forms/auth/LoginForm";
+import LandingPage from "@/components/view/landing/LandingPage";
 
 export default function Home() {
-  return <LoginForm />;
+  return <LandingPage />;
 }

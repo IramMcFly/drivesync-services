@@ -58,6 +58,61 @@ label {
   color: var(--text-primary) !important;
 }
 
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* Mejoras para móvil */
+@media (max-width: 640px) {
+  /* Evitar zoom en inputs en iOS */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  
+  /* Mejor legibilidad en móvil */
+  .text-gradient-mobile {
+    background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-primary-mobile {
+    background: linear-gradient(135deg, #FF4500 0%, #F48C06 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Animaciones optimizadas para móvil */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   .font-montserrat {
     font-family: var(--font-montserrat), 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;

@@ -7,6 +7,10 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '375px',
+        // => @media (min-width: 375px) { ... }
+      },
       colors: {
         primary: {
           DEFAULT: '#FF4500',

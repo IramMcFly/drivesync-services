@@ -11,11 +11,27 @@ export default function Servicios() {
   const [servicios, setServicios] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [redirectTimer, setRedirectTimer] = useState(null)
 
   useEffect(() => {
+    // Limpiar el timer anterior si existe
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+    }
+
     if (status === "unauthenticated") {
-      router.replace("/login");
+      // Esperar un poco antes de redirigir para evitar problemas con la actualización de sesión
+      const timer = setTimeout(() => {
+        router.replace("/login");
+      }, 1000);
+      setRedirectTimer(timer);
     } else if (status === "authenticated") {
+      // Limpiar cualquier timer de redirección si el usuario se autentica
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+        setRedirectTimer(null);
+      }
+      
       const fetchServicios = async () => {
         try {
           const res = await fetch("/api/servicios")
@@ -41,6 +57,13 @@ export default function Servicios() {
       }
       fetchServicios()
     }
+
+    // Cleanup function
+    return () => {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+    };
   }, [status, router])
 
   if (status === "loading") {
