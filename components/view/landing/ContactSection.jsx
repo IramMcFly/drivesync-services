@@ -56,7 +56,7 @@ export default function ContactSection() {
     {
       icon: FaPhoneAlt,
       title: "Teléfono",
-      details: "+52 55 1234 5678",
+      details: "+52 614 128 9937",
       subtitle: "Llámanos 24/7"
     },
     {
@@ -68,7 +68,7 @@ export default function ContactSection() {
     {
       icon: FaMapMarkerAlt,
       title: "Ubicación",
-      details: "Ciudad de México, México",
+      details: "Chihuahua, México",
       subtitle: "Cobertura nacional"
     },
     {
@@ -217,7 +217,7 @@ export default function ContactSection() {
                         value={formData.telefono}
                         onChange={handleChange}
                         className="w-full bg-gray-600 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
-                        placeholder="+52 55 1234 5678"
+                        placeholder="+52 614 128 9937"
                       />
                     </div>
                     <div>

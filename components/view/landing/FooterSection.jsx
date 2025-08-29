@@ -66,7 +66,7 @@ export default function FooterSection() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-400">
                 <FaPhone className="text-primary" />
-                <span>+52 55 1234 5678</span>
+                <span>+52 614 128 9937</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400">
                 <FaEnvelope className="text-primary" />
@@ -74,7 +74,7 @@ export default function FooterSection() {
               </div>
               <div className="flex items-center space-x-3 text-gray-400">
                 <FaMapMarkerAlt className="text-primary" />
-                <span>Ciudad de México, México</span>
+                <span>Chihuahua, Chihuahua, México</span>
               </div>
             </div>
 
@@ -188,7 +188,7 @@ export default function FooterSection() {
           <div className="mt-4 text-center">
             <p className="text-gray-500 text-xs">
               🚨 Para emergencias vehiculares, llama al{" "}
-              <span className="text-primary font-semibold">+52 55 1234 5678</span> - 
+              <span className="text-primary font-semibold">+52 614 128 9937</span> - 
               Disponible 24/7
             </p>
           </div>

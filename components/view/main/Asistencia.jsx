@@ -23,7 +23,7 @@ const Asistencia = () => {
 
   // Función para manejar la llamada de asistencia
   const handleLlamada = () => {
-    window.location.href = "tel:+526141110404"
+    window.location.href = "tel:+526141289937"
   }
 
   // Función para manejar el inicio de chat
