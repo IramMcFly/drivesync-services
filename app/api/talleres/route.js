@@ -27,11 +27,11 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (id) {
-    const taller = await Taller.findById(id);
+    const taller = await Taller.findById(id).populate('servicios');
     if (!taller) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
     return NextResponse.json(taller);
   } else {
-    const talleres = await Taller.find({});
+    const talleres = await Taller.find({}).populate('servicios');
     return NextResponse.json(talleres);
   }
 }
@@ -70,14 +70,39 @@ export async function PUT(req) {
   await connectDB();
   const data = await req.json();
   if (!data._id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
+  
+  // Crear una copia de los datos sin el ID para la validación
+  const { _id, ...updateData } = data;
+  
+  // Si no hay contraseña, no la validamos (edición sin cambio de contraseña)
+  let validationSchema = tallerSchema;
+  if (!updateData.password) {
+    validationSchema = tallerSchema.omit(['password']);
+  }
+  
   try {
-    await tallerSchema.validate(data, { abortEarly: false });
+    await validationSchema.validate(updateData, { abortEarly: false });
   } catch (validationError) {
     return NextResponse.json({ error: 'Datos inválidos', details: validationError.errors }, { status: 400 });
   }
-  const taller = await Taller.findByIdAndUpdate(data._id, data, { new: true });
-  if (!taller) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
-  return NextResponse.json(taller);
+  
+  // Hashear la contraseña solo si se proporcionó una nueva
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 12);
+  }
+  
+  // Agregar la dirección a la ubicación si no está presente
+  if (updateData.ubicacion && !updateData.ubicacion.direccion) {
+    updateData.ubicacion.direccion = updateData.direccion;
+  }
+  
+  try {
+    const taller = await Taller.findByIdAndUpdate(_id, updateData, { new: true }).populate('servicios');
+    if (!taller) return NextResponse.json({ error: 'Taller no encontrado' }, { status: 404 });
+    return NextResponse.json({ message: 'Taller actualizado exitosamente', taller });
+  } catch (error) {
+    return NextResponse.json({ error: 'Error al actualizar taller', details: error.message }, { status: 400 });
+  }
 }
 
 // DELETE: Eliminar un taller
@@ -86,6 +111,12 @@ export async function DELETE(req) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
-  await Taller.findByIdAndDelete(id);
-  return NextResponse.json({ message: 'Eliminado' }, { status: 200 });
+  
+  try {
+    const deleted = await Taller.findByIdAndDelete(id);
+    if (!deleted) return NextResponse.json({ error: 'Taller no encontrado' }, { status: 404 });
+    return NextResponse.json({ message: 'Taller eliminado exitosamente' }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Error al eliminar taller', details: error.message }, { status: 400 });
+  }
 }

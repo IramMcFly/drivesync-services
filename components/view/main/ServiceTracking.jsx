@@ -1,5 +1,6 @@
 "use client";
 
+import useModal from '@/hooks/useModal';
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -16,7 +17,6 @@ import {
   FaUser
 } from "react-icons/fa";
 import Modal from "@/components/ui/Modal";
-import { useModal } from "@/hooks/useModal";
 
 const MapComponent = dynamic(() => import("@/components/maps/LeafletMap"), { 
   ssr: false,

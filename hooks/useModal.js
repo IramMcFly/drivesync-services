@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const useModal = () => {
+const useModal = () => {
   const [modalState, setModalState] = useState({
     isOpen: false,
     title: '',
@@ -86,7 +86,10 @@ export const useModal = () => {
   };
 
   return {
-    modalState,
+    modalState: {
+      ...modalState,
+      onClose: hideModal
+    },
     showModal,
     hideModal,
     showSuccess,
@@ -96,3 +99,5 @@ export const useModal = () => {
     showConfirm
   };
 };
+
+export default useModal;
