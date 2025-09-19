@@ -83,7 +83,7 @@ export default function ServiceStatusWrapper() {
       }
     } catch (error) {
       console.error('Error al cancelar servicio:', error);
-      // Aquí podrías agregar una notificación de error al usuario
+      // Mostrar error al usuario
       alert(`Error al cancelar el servicio: ${error.message}`);
     } finally {
       setIsCancelling(false);
@@ -108,7 +108,7 @@ export default function ServiceStatusWrapper() {
 
   const stateInfo = getStateInfo(activeService.estado);
   const canClose = [SERVICE_STATES.FINALIZADO, SERVICE_STATES.CANCELADO].includes(activeService.estado);
-  const canCancel = [SERVICE_STATES.PENDIENTE, SERVICE_STATES.ASIGNADO].includes(activeService.estado);
+  const canCancel = [SERVICE_STATES.PENDIENTE, SERVICE_STATES.ASIGNADO, SERVICE_STATES.EN_CAMINO].includes(activeService.estado);
   
   // Componente minimizado para móviles
   if (isMinimized) {
@@ -301,8 +301,18 @@ export default function ServiceStatusWrapper() {
               </div>
               
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                ¿Estás seguro de que quieres cancelar este servicio? 
-                Una vez cancelado, no podrás reactivarlo y tendrás que solicitar un nuevo servicio.
+                {activeService.estado === 'en_camino' ? (
+                  <>
+                    ¿Estás seguro de que quieres cancelar este servicio? 
+                    El asistente ya está en camino hacia tu ubicación. 
+                    Una vez cancelado, no podrás reactivarlo y tendrás que solicitar un nuevo servicio.
+                  </>
+                ) : (
+                  <>
+                    ¿Estás seguro de que quieres cancelar este servicio? 
+                    Una vez cancelado, no podrás reactivarlo y tendrás que solicitar un nuevo servicio.
+                  </>
+                )}
               </p>
               
               <div className="flex gap-3">
