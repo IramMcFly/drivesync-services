@@ -25,7 +25,6 @@ export const metadata = {
   title: "DriveSync Services",
   description: "Todo en la palma de tu mano",
   manifest: "/manifest.json",
-  themeColor: "#0f172a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -45,7 +44,8 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover"
+  viewportFit: "cover",
+  themeColor: "#0f172a"
 };
 
 export default function RootLayout({ children }) {
