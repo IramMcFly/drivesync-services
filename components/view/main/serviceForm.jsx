@@ -53,6 +53,19 @@ const ServiceForm = () => {
   // Obtener el tipo de servicio desde la URL
   const serviceType = searchParams.get("tipo") || "";
 
+  // Función auxiliar para obtener talleres disponibles para el servicio actual
+  const getTalleresDisponibles = () => {
+    if (!servicioDB?._id || talleres.length === 0) return [];
+    
+    return talleres.filter(t => {
+      if (!Array.isArray(t.servicios)) return false;
+      return t.servicios.some(servicio => {
+        const servicioId = servicio._id || servicio;
+        return servicioId.toString() === servicioDB._id.toString();
+      });
+    });
+  };
+
   // Manejar errores de ubicación
   useEffect(() => {
     if (locationError) {
@@ -131,7 +144,20 @@ const ServiceForm = () => {
 
   // Validación: tipo de vehículo, subtipo de servicio y método de pago
   const isFormValid = () => {
-    return formData.tipoVehiculo && formData.subtipoServicio && formData.metodoPago;
+    const hasRequiredFields = formData.tipoVehiculo && formData.subtipoServicio && formData.metodoPago;
+    
+    // Si no hay talleres disponibles para el servicio, el formulario no es válido
+    const talleresDisponibles = getTalleresDisponibles();
+    
+    if (servicioDB?._id && talleresDisponibles.length === 0) {
+      return false;
+    }
+    
+    if (servicioDB?._id && talleresDisponibles.length > 0) {
+      return hasRequiredFields && formData.tallerServicio;
+    }
+    
+    return hasRequiredFields;
   };
 
   // Calcular precio según subtipo y tipo de vehículo
@@ -179,7 +205,19 @@ const ServiceForm = () => {
     }
     
     if (!isFormValid()) {
-      showError("Por favor, completa todos los campos obligatorios correctamente.", "Campos incompletos");
+      // Dar mensajes específicos según el problema
+      const talleresDisponibles = getTalleresDisponibles();
+      
+      if (servicioDB?._id && talleresDisponibles.length === 0) {
+        showError(
+          `No hay talleres disponibles que ofrezcan el servicio "${servicioDB.nombre}" en este momento. Por favor, intenta más tarde o selecciona otro servicio.`,
+          "Talleres no disponibles"
+        );
+      } else if (servicioDB?._id && talleresDisponibles.length > 0 && !formData.tallerServicio) {
+        showError("Por favor, selecciona un taller para continuar.", "Taller requerido");
+      } else {
+        showError("Por favor, completa todos los campos obligatorios correctamente.", "Campos incompletos");
+      }
       return;
     }
     
@@ -335,8 +373,7 @@ const ServiceForm = () => {
                 required
               >
                 <option value="">Elige un taller</option>
-                {talleres
-                  .filter(t => Array.isArray(t.servicios) && t.servicios.some(sid => sid == servicioDB._id))
+                {getTalleresDisponibles()
                   .sort((a, b) => (b.calificacion || 0) - (a.calificacion || 0))
                   .map((t, i) => (
                     <option key={i} value={t.nombre}>
@@ -346,6 +383,17 @@ const ServiceForm = () => {
               </select>
             </div>
           )}
+          
+          {/* Mensaje informativo cuando no hay talleres disponibles para el servicio */}
+          {talleres.length > 0 && servicioDB?._id && getTalleresDisponibles().length === 0 && (
+            <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded-md">
+              <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                No hay talleres disponibles que ofrezcan el servicio "{servicioDB.nombre}" en este momento. 
+                Por favor, intenta más tarde o selecciona otro servicio.
+              </p>
+            </div>
+          )}
+          
           {/* Selector de Tipo de Vehículo para todos los servicios */}
           <div className="mb-4">
             <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Tipo de Vehículo</label>

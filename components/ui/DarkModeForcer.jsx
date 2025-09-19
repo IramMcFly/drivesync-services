@@ -4,6 +4,26 @@ import { useEffect } from 'react';
 
 export default function DarkModeForcer() {
   useEffect(() => {
+    // Función helper para obtener className de forma segura
+    const getClassName = (element) => {
+      if (typeof element.className === 'string') {
+        return element.className;
+      } else if (element.className && element.className.baseVal) {
+        // Para elementos SVG
+        return element.className.baseVal;
+      }
+      return '';
+    };
+
+    // Función helper para verificar si un elemento tiene una clase específica
+    const hasClass = (element, className) => {
+      if (element.classList && element.classList.contains(className)) {
+        return true;
+      }
+      const elementClassName = getClassName(element);
+      return elementClassName.includes(className);
+    };
+
     // Forzar modo oscuro al cargar la página
     const forceDarkMode = () => {
       // Agregar clase dark al HTML
@@ -54,11 +74,11 @@ export default function DarkModeForcer() {
               if (node.nodeType === 1) { // Es un elemento
                 const element = node;
                 if (element.classList) {
-                  if (element.classList.contains('bg-gray-800') || element.className.includes('bg-gray-800')) {
+                  if (hasClass(element, 'bg-gray-800')) {
                     element.style.setProperty('background-color', '#1e293b', 'important');
                     element.style.setProperty('color', '#f1f5f9', 'important');
                   }
-                  if (element.classList.contains('text-gray-900') || element.className.includes('text-gray-900')) {
+                  if (hasClass(element, 'text-gray-900')) {
                     element.style.setProperty('color', '#f1f5f9', 'important');
                   }
                 }

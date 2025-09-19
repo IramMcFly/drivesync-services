@@ -2,8 +2,8 @@
 
 import { useServiceStatus } from '../../../hooks/useServiceStatus';
 import ClienteServiceStatus from './ClienteServiceStatus';
-import { useEffect, useState } from 'react';
-import { FaTimes, FaSpinner, FaExclamationTriangle } from 'react-icons/fa';
+import { useEffect, useState, useCallback } from 'react';
+import { FaTimes, FaSpinner, FaExclamationTriangle, FaSyncAlt } from 'react-icons/fa';
 
 export default function ServiceStatusWrapper() {
   const { 
@@ -13,11 +13,82 @@ export default function ServiceStatusWrapper() {
     isLoading, 
     error,
     getStateInfo,
-    SERVICE_STATES 
+    SERVICE_STATES,
+    checkActiveService
   } = useServiceStatus();
   
   const [isMinimized, setIsMinimized] = useState(false);
   const [lastShownState, setLastShownState] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
+
+  // Comentamos la auto-actualización para que solo sea manual
+  // useEffect(() => {
+  //   if (!autoRefreshEnabled || !activeService) return;
+
+  //   const interval = setInterval(() => {
+  //     checkActiveService(true);
+  //     setLastRefresh(Date.now());
+  //   }, 20000); // 20 segundos
+
+  //   return () => clearInterval(interval);
+  // }, [autoRefreshEnabled, activeService, checkActiveService]);
+
+  // Función para refrescar manualmente
+  const handleManualRefresh = useCallback(() => {
+    checkActiveService(true);
+  }, [checkActiveService]);
+
+  // Función para mostrar confirmación de cancelación
+  const handleCancelClick = useCallback(() => {
+    setShowCancelConfirm(true);
+  }, []);
+
+  // Función para cancelar servicio con confirmación
+  const handleCancelService = useCallback(async () => {
+    if (!activeService) return;
+
+    setIsCancelling(true);
+    setShowCancelConfirm(false);
+
+    try {
+      const response = await fetch(`/api/servicerequests`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          _id: activeService._id,
+          estado: SERVICE_STATES.CANCELADO
+        })
+      });
+
+      if (response.ok) {
+        // Verificar que se canceló correctamente
+        const updatedService = await response.json();
+        if (updatedService.estado === SERVICE_STATES.CANCELADO) {
+          setCancelSuccess(true);
+          // Actualizar inmediatamente después de cancelar
+          setTimeout(() => {
+            checkActiveService(true);
+            setCancelSuccess(false);
+          }, 2000);
+        } else {
+          throw new Error('El servicio no se canceló correctamente');
+        }
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al cancelar el servicio');
+      }
+    } catch (error) {
+      console.error('Error al cancelar servicio:', error);
+      // Aquí podrías agregar una notificación de error al usuario
+      alert(`Error al cancelar el servicio: ${error.message}`);
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [activeService, SERVICE_STATES.CANCELADO, checkActiveService]);
 
   // Auto-mostrar cuando hay cambios de estado importantes
   useEffect(() => {
@@ -37,6 +108,7 @@ export default function ServiceStatusWrapper() {
 
   const stateInfo = getStateInfo(activeService.estado);
   const canClose = [SERVICE_STATES.FINALIZADO, SERVICE_STATES.CANCELADO].includes(activeService.estado);
+  const canCancel = [SERVICE_STATES.PENDIENTE, SERVICE_STATES.ASIGNADO].includes(activeService.estado);
   
   // Componente minimizado para móviles
   if (isMinimized) {
@@ -133,13 +205,27 @@ export default function ServiceStatusWrapper() {
             </p>
           </div>
 
-          {/* Estado de carga */}
-          {isLoading && (
-            <div className="flex items-center justify-center p-4 border-b border-gray-200 dark:border-gray-700">
-              <FaSpinner className="animate-spin text-blue-500 mr-2" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Actualizando información...
-              </span>
+          {/* Botón de actualizar */}
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <button
+              onClick={handleManualRefresh}
+              disabled={isLoading}
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              <FaSyncAlt className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              {isLoading ? 'Actualizando...' : 'Actualizar'}
+            </button>
+          </div>
+
+          {/* Estado de éxito al cancelar */}
+          {cancelSuccess && (
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-white"></div>
+                </div>
+                <span className="text-sm font-medium">Servicio cancelado exitosamente</span>
+              </div>
             </div>
           )}
 
@@ -166,19 +252,77 @@ export default function ServiceStatusWrapper() {
             />
           </div>
 
-          {/* Footer para estados finales */}
-          {canClose && (
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          {/* Footer con botones */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
+            {canClose ? (
               <button
                 onClick={() => setShowServiceStatus(false)}
                 className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
               >
                 Cerrar
               </button>
-            </div>
-          )}
+            ) : canCancel ? (
+              <button
+                onClick={handleCancelClick}
+                disabled={isCancelling}
+                className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white rounded-lg transition-colors text-sm font-medium flex items-center justify-center gap-2"
+              >
+                {isCancelling ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Cancelando...
+                  </>
+                ) : (
+                  'Cancelar Servicio'
+                )}
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
+
+      {/* Modal de confirmación para cancelar */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+                  <FaExclamationTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    ¿Cancelar servicio?
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Esta acción no se puede deshacer
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                ¿Estás seguro de que quieres cancelar este servicio? 
+                Una vez cancelado, no podrás reactivarlo y tendrás que solicitar un nuevo servicio.
+              </p>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                >
+                  No, mantener servicio
+                </button>
+                <button
+                  onClick={handleCancelService}
+                  className="flex-1 py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  Sí, cancelar servicio
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
