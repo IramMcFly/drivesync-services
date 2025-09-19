@@ -114,7 +114,7 @@ export default function ServiceForm({ servicio = null, onSubmit, onCancel, isLoa
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+    <div className="bg-gray-800 rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           {servicio ? 'Editar Servicio' : 'Nuevo Servicio'}

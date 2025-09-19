@@ -237,7 +237,7 @@ const ServiceStatus = ({ serviceId }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 service-status-container">
       {/* Header fijo - más responsivo */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-0 z-10 bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-center">
             <h1 className="text-lg sm:text-xl font-semibold">Estado del Servicio</h1>
@@ -281,7 +281,7 @@ const ServiceStatus = ({ serviceId }) => {
           
           {serviceData.asistente && (
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-              <div className="bg-white dark:bg-gray-700 rounded-lg p-3 sm:p-4">
+              <div className="bg-gray-800 dark:bg-gray-700 rounded-lg p-3 sm:p-4">
                 <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-1">
                   Asistente asignado:
                 </p>
@@ -301,7 +301,7 @@ const ServiceStatus = ({ serviceId }) => {
         </div>
 
         {/* Progreso del servicio - Layout mejorado para móvil */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg service-info-card">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg service-info-card">
           <h3 className="text-lg sm:text-xl font-semibold mb-4">Progreso del servicio</h3>
           <div className="space-y-3 sm:space-y-4">
             {statusSteps.map((step, index) => (
@@ -336,7 +336,7 @@ const ServiceStatus = ({ serviceId }) => {
         </div>
 
         {/* Mapa con ubicación - Altura responsiva */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg service-info-card">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg service-info-card">
           <h3 className="text-lg sm:text-xl font-semibold mb-4 flex items-center gap-2">
             <FaMapMarkerAlt className="text-primary" />
             Tu ubicación
@@ -360,7 +360,7 @@ const ServiceStatus = ({ serviceId }) => {
         </div>
 
         {/* Detalles del servicio - Grid responsivo */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg service-info-card">
+        <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg service-info-card">
           <h3 className="text-lg sm:text-xl font-semibold mb-4">Detalles del servicio</h3>
           <div className="service-details-grid">
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">

@@ -373,7 +373,7 @@ const AsistenteDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header del Dashboard */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10">
+      <div className="bg-gray-800 shadow-sm sticky top-0 z-10">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -415,7 +415,7 @@ const AsistenteDashboard = () => {
 
       <div className="px-4 py-6 space-y-6">
         {/* Información del Asistente */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FaCar className="text-primary" />
             Mi Información
@@ -446,7 +446,7 @@ const AsistenteDashboard = () => {
 
         {/* Servicios Asignados (Prioritarios) */}
         {serviciosAsignados.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border-l-4 border-primary">
+          <div className="bg-gray-800 rounded-2xl p-6 shadow-lg border-l-4 border-primary">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <FaBell className="text-primary animate-pulse" />
               Mis Servicios Activos ({serviciosAsignados.length})
@@ -522,7 +522,7 @@ const AsistenteDashboard = () => {
         )}
 
         {/* Servicios Disponibles */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <FaTools className="text-primary" />

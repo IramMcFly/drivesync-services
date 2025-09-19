@@ -79,7 +79,8 @@ export default function Servicios() {
           {servicios.map((servicio) => (
             <div
               key={servicio._id}
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-md hover:shadow-lg dark:hover:shadow-2xl hover:shadow-orange-500/20 dark:hover:shadow-orange-500/30 transition-all duration-300 flex flex-col overflow-hidden"
+              className="!bg-gray-800 border !border-gray-700 rounded-xl shadow-md hover:shadow-lg hover:shadow-2xl hover:shadow-orange-500/20 hover:shadow-orange-500/30 transition-all duration-300 flex flex-col overflow-hidden"
+              style={{ backgroundColor: '#1e293b !important', borderColor: '#374151 !important' }}
             >
               <div className="relative h-48 sm:h-52 lg:h-60">
                 <img
@@ -90,10 +91,10 @@ export default function Servicios() {
                   loading="lazy"
                 />
               </div>
-              <div className="p-3 sm:p-4 flex flex-col gap-2">
+              <div className="p-3 sm:p-4 flex flex-col gap-2" style={{ backgroundColor: '#1e293b !important' }}>
                 <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{servicio.nombre}</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">Desde: ${typeof servicio.precioMin === 'number' ? servicio.precioMin.toFixed(2) : "-"} MXN</p>
+                  <h3 className="text-base sm:text-lg font-semibold !text-gray-100" style={{ color: '#f1f5f9 !important' }}>{servicio.nombre}</h3>
+                  <p className="text-xs sm:text-sm !text-gray-400 mt-1" style={{ color: '#94a3b8 !important' }}>Desde: ${typeof servicio.precioMin === 'number' ? servicio.precioMin.toFixed(2) : "-"} MXN</p>
                 </div>
                 <Link href={`/main/extra/serviceForm?tipo=${encodeURIComponent(servicio.nombre)}`}>
                   <button className="w-full bg-primary hover:bg-primary-hover text-white py-2 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-colors">

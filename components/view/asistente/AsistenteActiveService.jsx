@@ -358,7 +358,7 @@ export default function AsistenteActiveService() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header fijo */}
-      <div className="sticky top-0 z-20 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-0 z-20 bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <button
@@ -388,7 +388,7 @@ export default function AsistenteActiveService() {
       <div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-4 sm:space-y-6">
         {/* Métricas principales */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 pt-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg">
+          <div className="bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg">
             <FaClock className="text-blue-500 mx-auto mb-2" size={20} />
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Tiempo</p>
             <p className="text-lg sm:text-xl font-bold text-blue-500">
@@ -396,7 +396,7 @@ export default function AsistenteActiveService() {
             </p>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg">
+          <div className="bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg">
             <FaLocationArrow className="text-green-500 mx-auto mb-2" size={20} />
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Distancia</p>
             <p className="text-lg sm:text-xl font-bold text-green-500">
@@ -404,7 +404,7 @@ export default function AsistenteActiveService() {
             </p>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg col-span-2 sm:col-span-1">
+          <div className="bg-gray-800 rounded-xl p-3 sm:p-4 text-center shadow-lg col-span-2 sm:col-span-1">
             <FaMapMarkerAlt 
               className={`mx-auto mb-2 ${
                 puedeFinalizarPorDistancia ? 'text-green-500' : 'text-gray-400'
@@ -421,7 +421,7 @@ export default function AsistenteActiveService() {
         </div>
 
         {/* Mapa */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
           <div className="h-64 sm:h-80 lg:h-96">
             {userLocation && serviceData?.ubicacion && (
               <LeafletMap
@@ -459,7 +459,7 @@ export default function AsistenteActiveService() {
         </div>
 
         {/* Información del cliente y servicio */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <FaUser className="text-primary" />
             Información del Cliente
@@ -591,7 +591,7 @@ export default function AsistenteActiveService() {
       {/* Modal de carga */}
       {loading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 flex flex-col items-center gap-3 max-w-sm w-full">
+          <div className="bg-gray-800 rounded-xl p-6 flex flex-col items-center gap-3 max-w-sm w-full">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <p className="text-gray-700 dark:text-gray-300 font-medium text-center">Actualizando servicio...</p>
           </div>

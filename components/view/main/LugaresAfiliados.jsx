@@ -200,7 +200,7 @@ export default function LugaresAfiliados() {
               placeholder="Buscar talleres por nombre o ubicación..."
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+              className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
             />
           </div>
         </motion.div>
@@ -209,7 +209,7 @@ export default function LugaresAfiliados() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg animate-pulse">
+              <div key={index} className="bg-gray-800 rounded-xl p-6 shadow-lg animate-pulse">
                 <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-4"></div>
                 <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-3"></div>
                 <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-3"></div>
@@ -225,7 +225,7 @@ export default function LugaresAfiliados() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
                 {/* Header del Taller */}
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -306,7 +306,7 @@ export default function LugaresAfiliados() {
                     <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
                       {comentarios[taller._id]?.length > 0 ? (
                         comentarios[taller._id].map((comentario, idx) => (
-                          <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4">
+                          <div key={idx} className="bg-gray-800 rounded-lg p-4">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center space-x-2">
                                 <FaUser className="text-gray-500" />
@@ -372,7 +372,7 @@ export default function LugaresAfiliados() {
                         onChange={(e) => setNuevoComentario(e.target.value)}
                         placeholder="Comparte tu experiencia con este taller..."
                         rows={3}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
                       />
 
                       {/* Botón de Envío */}

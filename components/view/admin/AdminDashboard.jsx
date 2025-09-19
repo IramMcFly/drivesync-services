@@ -361,7 +361,7 @@ export default function AdminDashboard() {
             
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center">
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
                     <FaUsers className="text-blue-600 dark:text-blue-400 text-xl" />
@@ -373,7 +373,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center">
                   <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-lg">
                     <FaWarehouse className="text-green-600 dark:text-green-400 text-xl" />
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center">
                   <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
                     <FaTools className="text-purple-600 dark:text-purple-400 text-xl" />
@@ -397,7 +397,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+              <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center">
                   <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
                     <FaFileAlt className="text-orange-600 dark:text-orange-400 text-xl" />
@@ -411,7 +411,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+            <div className="bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Actividad Reciente</h3>
               <div className="space-y-3">
                 {serviceRequests.slice(0, 5).map((request) => (
@@ -454,7 +454,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-900/50">
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {users.map((user) => (
                       <tr key={user._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -479,7 +479,7 @@ export default function AdminDashboard() {
                           <select
                             value={user.role || 'cliente'}
                             onChange={(e) => handleChangeUserRole(user._id, e.target.value)}
-                            className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                            className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           >
                             <option value="cliente">Cliente</option>
                             <option value="asistente">Asistente</option>
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-900/50">
@@ -558,7 +558,7 @@ export default function AdminDashboard() {
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                       {talleres.map((taller) => (
                         <tr key={taller._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -663,7 +663,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {servicios.map((servicio) => (
-                  <div key={servicio._id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+                  <div key={servicio._id} className="bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{servicio.nombre}</h3>
                       <div className="flex space-x-2">
@@ -740,7 +740,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead className="bg-gray-50 dark:bg-gray-900/50">
@@ -752,7 +752,7 @@ export default function AdminDashboard() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {serviceRequests.map((request) => (
                       <tr key={request._id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -808,7 +808,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex">
         {/* Sidebar */}
-        <div className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700`}>
+        <div className={`${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 shadow-lg transform lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700`}>
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -846,7 +846,7 @@ export default function AdminDashboard() {
                     {item.count !== null && (
                       <span className={`px-2 py-1 text-xs rounded-full ${
                         activeTab === item.key
-                          ? 'bg-white/20 text-white'
+                          ? 'bg-gray-800/20 text-white'
                           : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                       }`}>
                         {item.count}
@@ -872,7 +872,7 @@ export default function AdminDashboard() {
         {/* Main Content */}
         <div className="flex-1 lg:ml-0">
           {/* Top Bar */}
-          <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
             <div className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <button

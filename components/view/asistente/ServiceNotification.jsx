@@ -80,7 +80,7 @@ const ServiceNotification = ({ servicio, onAccept, onDismiss, timeLimit = 30 }) 
         `}
       >
         <div className={`
-          bg-white dark:bg-gray-800 rounded-xl shadow-2xl border-2 overflow-hidden
+          bg-gray-800 rounded-xl shadow-2xl border-2 overflow-hidden
           ${isUrgent ? 'border-red-500 shadow-red-500/25' : 'border-blue-500 shadow-blue-500/25'}
           transform transition-transform duration-200
           ${isProcessing ? 'scale-95 opacity-75' : 'scale-100 opacity-100'}

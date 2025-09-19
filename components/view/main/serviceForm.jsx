@@ -254,7 +254,7 @@ const ServiceForm = () => {
   // Mostrar precio destacado en grande y en blanco antes del botón de solicitar servicio
   return (
     <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-4 sm:py-8 pb-20 transition-colors">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors mx-4">
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors mx-4">
         
         {/* Estado de ubicación */}
         {(locationLoading || locationError) && (
@@ -313,7 +313,7 @@ const ServiceForm = () => {
                 name="subtipoServicio"
                 value={formData.subtipoServicio}
                 onChange={handleChange}
-                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+                className="w-full bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                 required
               >
                 <option value="">Elige un tipo</option>
@@ -331,7 +331,7 @@ const ServiceForm = () => {
                 name="tallerServicio"
                 value={formData.tallerServicio}
                 onChange={handleChange}
-                className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+                className="w-full bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
                 required
               >
                 <option value="">Elige un taller</option>
@@ -353,7 +353,7 @@ const ServiceForm = () => {
               name="tipoVehiculo"
               value={formData.tipoVehiculo}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+              className="w-full bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
               required
             >
               <option value="">Elige tipo</option>
@@ -369,7 +369,7 @@ const ServiceForm = () => {
               name="metodoPago"
               value={formData.metodoPago}
               onChange={handleChange}
-              className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+              className="w-full bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
               required
             >
               <option value="">Elige método</option>
@@ -413,7 +413,7 @@ const ServiceForm = () => {
       {/* Modal para permisos de ubicación */}
       {showLocationModal && locationError && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center mb-4">
               <svg className="w-6 h-6 text-yellow-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />

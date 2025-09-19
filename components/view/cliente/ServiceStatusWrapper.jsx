@@ -80,7 +80,7 @@ export default function ServiceStatusWrapper() {
         
         ${showServiceStatus ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
       `}>
-        <div className="h-full bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="h-full bg-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
           {/* Header */}
           <div className={`
             px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0

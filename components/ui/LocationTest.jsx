@@ -12,7 +12,7 @@ export default function LocationTest() {
   } = useGeolocation();
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="p-6 max-w-md mx-auto bg-gray-800 rounded-lg shadow-lg">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
         Test de Geolocalización
       </h2>

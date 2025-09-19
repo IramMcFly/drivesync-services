@@ -207,7 +207,7 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
       </div>
 
       {/* Información del servicio */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
+      <div className="bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg">
         <div className="flex flex-col sm:flex-row sm:items-start gap-4">
           <div className="flex-1">
             <h1 className="text-xl font-bold mb-1">{servicio.servicio.nombre}</h1>
@@ -228,7 +228,7 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
 
       {/* Cliente y Vehículo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
               <FaUser className="text-blue-600 dark:text-blue-400" />
@@ -247,7 +247,7 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
           </a>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
               <FaCar className="text-purple-600 dark:text-purple-400" />
@@ -263,7 +263,7 @@ const AsistenteServiceInfo = ({ servicio, session, onServiceUpdate, onBack }) =>
       </div>
 
       {/* Ubicación */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <h3 className="font-semibold flex items-center gap-2 mb-3">
           <FaMapMarkerAlt className="text-primary" />
           Ubicación del Cliente

@@ -231,7 +231,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header responsivo */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-gray-800 shadow-sm sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
             <button
@@ -250,7 +250,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
 
       <div className="px-4 py-4 space-y-4 pb-20">
         {/* Información principal del servicio */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
             <div className="flex-1">
               <h1 className="text-xl font-bold mb-1">{servicio.servicio.nombre}</h1>
@@ -271,7 +271,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
 
         {/* Cliente y Vehículo */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                 <FaUser className="text-blue-600 dark:text-blue-400" />
@@ -290,7 +290,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
             </a>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
                 <FaCar className="text-purple-600 dark:text-purple-400" />
@@ -308,7 +308,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
         {/* Métricas de distancia */}
         {userLocation && servicio.ubicacion && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+            <div className="bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
               <FaLocationArrow className="text-primary text-xl mx-auto mb-2" />
               <p className="text-xs text-gray-600 dark:text-gray-400">Distancia</p>
               <p className="font-bold text-sm">
@@ -316,7 +316,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
               </p>
             </div>
             
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+            <div className="bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
               <FaClock className="text-blue-500 text-xl mx-auto mb-2" />
               <p className="text-xs text-gray-600 dark:text-gray-400">Tiempo</p>
               <p className="font-bold text-sm">
@@ -327,7 +327,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
             <div className={`rounded-xl p-3 shadow-sm border text-center ${
               puedeFinalizarPorDistancia 
                 ? 'bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-700' 
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+                : 'bg-gray-800 border-gray-200 dark:border-gray-700'
             }`}>
               <FaMapMarkerAlt className={`text-xl mx-auto mb-2 ${
                 puedeFinalizarPorDistancia ? 'text-green-600' : 'text-gray-400'
@@ -340,7 +340,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
+            <div className="bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-200 dark:border-gray-700 text-center">
               <FaUser className="text-orange-500 text-xl mx-auto mb-2" />
               <p className="text-xs text-gray-600 dark:text-gray-400">Estado</p>
               <p className="font-bold text-sm capitalize">
@@ -352,7 +352,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
 
         {/* Mapa */}
         {userLocation && servicio.ubicacion && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <FaRoute className="text-primary" />
@@ -408,7 +408,7 @@ const AsistenteServiceManager = ({ servicio, session, onServiceUpdate, onBack })
       </div>
 
       {/* Panel de acciones fijo */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
         <div className="space-y-3">
           {/* Acción principal */}
           {servicio.estado === 'asignado' && (

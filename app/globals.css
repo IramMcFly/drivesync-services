@@ -1,5 +1,62 @@
 @import "tailwindcss";
 
+/* Forzar modo oscuro siempre */
+* {
+  color-scheme: dark !important;
+}
+
+html {
+  color-scheme: dark !important;
+}
+
+/* Forzar background oscuro en toda la aplicación */
+html, body {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+/* Forzar modo oscuro en elementos comunes que pueden ser problemáticos */
+.bg-white,
+div[class*="bg-white"],
+section[class*="bg-white"],
+article[class*="bg-white"],
+main[class*="bg-white"] {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+/* Forzar colores de texto oscuros */
+.text-gray-900,
+.text-black,
+div[class*="text-gray-900"],
+div[class*="text-black"] {
+  color: #f1f5f9 !important;
+}
+
+.text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+/* Forzar bordes oscuros */
+.border-gray-200,
+div[class*="border-gray-200"] {
+  border-color: #374151 !important;
+}
+
+/* Prevenir que el sistema operativo override el modo */
+@media (prefers-color-scheme: light) {
+  html, body {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+  }
+  
+  .bg-white,
+  div[class*="bg-white"] {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+  }
+}
+
 :root {
   /* Variables de color para modo oscuro */
   --background: #0f172a;

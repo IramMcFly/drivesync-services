@@ -2,6 +2,7 @@
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
 import ProvidersWrapper from "../components/ProvidersWrapper";
+import DarkModeForcer from "../components/ui/DarkModeForcer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,8 +27,9 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`}>
+    <html lang="en" className="dark" style={{ colorScheme: 'dark' }}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased bg-gray-900 text-white`}>
+        <DarkModeForcer />
         <ProvidersWrapper>
           {children}
         </ProvidersWrapper>

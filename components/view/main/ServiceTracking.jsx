@@ -435,7 +435,7 @@ export default function ServiceTracking({ serviceId }) {
               initial={{ scale: 0.7 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.7 }}
-              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-sm w-full"
+              className="bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-sm w-full"
             >
               <motion.div
                 animate={{ rotate: [0, 20, -20, 20, -20, 0] }}
@@ -468,7 +468,7 @@ export default function ServiceTracking({ serviceId }) {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="sticky top-0 z-10 bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="px-4 sm:px-6 py-3 sm:py-4">
           <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -485,14 +485,14 @@ export default function ServiceTracking({ serviceId }) {
       <div className="px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Información de tiempo y distancia */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-lg">
+          <div className="bg-gray-800 rounded-xl p-4 text-center shadow-lg">
             <FaRoute className="text-primary mx-auto mb-2" size={24} />
             <p className="text-sm text-gray-600 dark:text-gray-400">Distancia</p>
             <p className="text-xl font-bold text-primary">
               {assistantLocation && distancia ? `${distancia} km` : 'Esperando ubicación...'}
             </p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-lg">
+          <div className="bg-gray-800 rounded-xl p-4 text-center shadow-lg">
             <FaClock className="text-green-500 mx-auto mb-2" size={24} />
             <p className="text-sm text-gray-600 dark:text-gray-400">Tiempo estimado</p>
             <p className="text-xl font-bold text-green-500">
@@ -502,7 +502,7 @@ export default function ServiceTracking({ serviceId }) {
         </div>
 
         {/* Mapa con ruta */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
           <div className="h-64 sm:h-80 lg:h-96">
             {serviceData.ubicacion && (
               <MapComponent
@@ -590,7 +590,7 @@ export default function ServiceTracking({ serviceId }) {
 
         {/* Información del asistente */}
         {serviceData.asistente && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+          <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <FaUser className="text-primary" />
               Tu asistente
@@ -622,7 +622,7 @@ export default function ServiceTracking({ serviceId }) {
         )}
 
         {/* Detalles del servicio */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
           <h3 className="text-lg font-semibold mb-4">Detalles del servicio</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
