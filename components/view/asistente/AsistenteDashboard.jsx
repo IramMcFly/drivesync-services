@@ -374,70 +374,70 @@ const AsistenteDashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header del Dashboard */}
       <div className="bg-gray-800 shadow-sm sticky top-0 z-10">
-        <div className="px-4 py-4">
+        <div className="px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className={`w-4 h-4 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-              <h1 className="text-xl font-bold">Dashboard Asistente</h1>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+              <h1 className="text-lg sm:text-xl font-bold truncate">Dashboard</h1>
             </div>
             
-            <div className="flex items-center space-x-3">
-              {/* Indicador de última actualización */}
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              {/* Indicador de última actualización - oculto en móvil muy pequeño */}
+              <div className="hidden xs:flex items-center space-x-2 text-xs sm:text-sm text-gray-500">
                 <FaWifi className="text-green-500" />
-                <span>{lastUpdate.toLocaleTimeString()}</span>
+                <span className="hidden sm:inline">{lastUpdate.toLocaleTimeString()}</span>
               </div>
               
               {/* Botón de estado */}
               <button
                 onClick={toggleOnlineStatus}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
+                className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg font-semibold transition-colors text-xs sm:text-sm ${
                   isOnline 
                     ? 'bg-red-500 hover:bg-red-600 text-white' 
                     : 'bg-green-500 hover:bg-green-600 text-white'
                 }`}
               >
-                {isOnline ? <FaStop /> : <FaPlay />}
-                <span>{isOnline ? 'Desconectar' : 'Conectar'}</span>
+                {isOnline ? <FaStop className="w-3 h-3" /> : <FaPlay className="w-3 h-3" />}
+                <span className="hidden sm:inline">{isOnline ? 'Desconectar' : 'Conectar'}</span>
               </button>
 
               {/* Botón de logout */}
               <button
                 onClick={() => router.push('/login')}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
               >
-                <FaSignOutAlt />
+                <FaSignOutAlt className="w-4 h-4" />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-safe">
         {/* Información del Asistente */}
-        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <FaCar className="text-primary" />
+        <div className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+            <FaCar className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
             Mi Información
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <span className="text-sm text-gray-600 dark:text-gray-400 block">Taller</span>
-              <span className="font-medium">{asistenteData.taller}</span>
+              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 block">Taller</span>
+              <span className="font-medium text-sm sm:text-base truncate block">{asistenteData.taller}</span>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <span className="text-sm text-gray-600 dark:text-gray-400 block">Placa</span>
-              <span className="font-medium">{asistenteData.placa}</span>
+              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 block">Placa</span>
+              <span className="font-medium text-sm sm:text-base">{asistenteData.placa}</span>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <span className="text-sm text-gray-600 dark:text-gray-400 block">Vehículo</span>
-              <span className="font-medium">
+              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 block">Vehículo</span>
+              <span className="font-medium text-sm sm:text-base truncate block">
                 {asistenteData.vehiculo?.marca} {asistenteData.vehiculo?.modelo}
               </span>
             </div>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <span className="text-sm text-gray-600 dark:text-gray-400 block">Estado</span>
-              <span className={`font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
+              <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 block">Estado</span>
+              <span className={`font-medium text-sm sm:text-base ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
                 {isOnline ? 'Conectado' : 'Desconectado'}
               </span>
             </div>
@@ -446,73 +446,75 @@ const AsistenteDashboard = () => {
 
         {/* Servicios Asignados (Prioritarios) */}
         {serviciosAsignados.length > 0 && (
-          <div className="bg-gray-800 rounded-2xl p-6 shadow-lg border-l-4 border-primary">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FaBell className="text-primary animate-pulse" />
+          <div className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border-l-4 border-primary">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
+              <FaBell className="text-primary animate-pulse w-4 h-4 sm:w-5 sm:h-5" />
               Mis Servicios Activos ({serviciosAsignados.length})
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {serviciosAsignados.map(servicio => (
-                <div key={servicio._id} className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{servicio.servicio.nombre}</h3>
+                <div key={servicio._id} className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg">{servicio.servicio.nombre}</h3>
                       {servicio.subtipo && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{servicio.subtipo}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{servicio.subtipo}</p>
                       )}
                     </div>
-                    <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    <div className="flex sm:flex-col items-start sm:items-end sm:text-right space-x-3 sm:space-x-0">
+                      <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
                         servicio.estado === 'asignado' 
                           ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                           : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                       }`}>
                         {servicio.estado === 'asignado' ? 'Asignado' : 'En Camino'}
                       </span>
-                      <p className="text-xl font-bold text-primary mt-1">
+                      <p className="text-lg sm:text-xl font-bold text-primary">
                         ${servicio.precio.toFixed(2)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
-                      <p className="font-medium">{servicio.cliente.nombre}</p>
-                      <p className="text-sm text-gray-500">{servicio.cliente.telefono}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
+                      <p className="font-medium text-sm sm:text-base">{servicio.cliente.nombre}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{servicio.cliente.telefono}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
-                      <p className="font-medium">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
+                      <p className="font-medium text-sm sm:text-base">
                         {servicio.detallesVehiculo.tipoVehiculo} - {servicio.detallesVehiculo.marca}
                       </p>
-                      <p className="text-sm text-gray-500">{servicio.detallesVehiculo.año}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{servicio.detallesVehiculo.año}</p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     <a
                       href={`tel:${servicio.cliente.telefono}`}
-                      className="flex items-center gap-2 bg-green-500 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-600 transition-colors"
+                      className="flex items-center gap-1 sm:gap-2 bg-green-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-600 transition-colors"
                     >
-                      <FaPhoneAlt />
-                      <span className="hidden sm:inline">Llamar</span>
+                      <FaPhoneAlt className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span>Llamar</span>
                     </a>
                     
                     <button
                       onClick={() => manejarServicio(servicio)}
-                      className="flex items-center gap-2 bg-primary text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-primary-hover transition-colors"
+                      className="flex items-center gap-1 sm:gap-2 bg-primary text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-primary-hover transition-colors"
                     >
-                      <FaCar />
+                      <FaCar className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Gestionar</span>
+                      <span className="sm:hidden">Gest.</span>
                     </button>
 
                     <button
                       onClick={() => router.push(`/asistente/service-active/${servicio._id}`)}
-                      className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-600 transition-colors"
+                      className="flex items-center gap-1 sm:gap-2 bg-blue-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-blue-600 transition-colors"
                     >
-                      <FaRoute />
+                      <FaRoute className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span className="hidden sm:inline">Navegar</span>
+                      <span className="sm:hidden">Nav.</span>
                     </button>
                   </div>
                 </div>
@@ -522,79 +524,79 @@ const AsistenteDashboard = () => {
         )}
 
         {/* Servicios Disponibles */}
-        <div className="bg-gray-800 rounded-2xl p-6 shadow-lg">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <FaTools className="text-primary" />
+        <div className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
+            <h2 className="text-base sm:text-lg font-semibold flex items-center gap-2">
+              <FaTools className="text-primary w-4 h-4 sm:w-5 sm:h-5" />
               Servicios Disponibles ({serviciosDisponibles.length})
             </h2>
             {!isOnline && (
-              <p className="text-sm text-red-500 flex items-center gap-2">
-                <FaExclamationTriangle />
+              <p className="text-xs sm:text-sm text-red-500 flex items-center gap-1 sm:gap-2">
+                <FaExclamationTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
                 Conéctate para ver servicios
               </p>
             )}
           </div>
 
           {!isOnline ? (
-            <div className="text-center py-8">
-              <FaPowerOff className="text-gray-400 text-4xl mx-auto mb-4" />
-              <p className="text-gray-500">Conéctate para recibir solicitudes de servicio</p>
+            <div className="text-center py-6 sm:py-8">
+              <FaPowerOff className="text-gray-400 text-2xl sm:text-4xl mx-auto mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-500">Conéctate para recibir solicitudes de servicio</p>
             </div>
           ) : serviciosDisponibles.length === 0 ? (
-            <div className="text-center py-8">
-              <FaClock className="text-gray-400 text-4xl mx-auto mb-4" />
-              <p className="text-gray-500">No hay servicios disponibles en este momento</p>
-              <p className="text-sm text-gray-400 mt-2">
+            <div className="text-center py-6 sm:py-8">
+              <FaClock className="text-gray-400 text-2xl sm:text-4xl mx-auto mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-500">No hay servicios disponibles en este momento</p>
+              <p className="text-xs sm:text-sm text-gray-400 mt-2">
                 Se actualizará automáticamente cada 20 segundos
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {serviciosDisponibles.map(servicio => (
-                <div key={servicio._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-lg">{servicio.servicio.nombre}</h3>
+                <div key={servicio._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-base sm:text-lg">{servicio.servicio.nombre}</h3>
                       {servicio.subtipo && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{servicio.subtipo}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{servicio.subtipo}</p>
                       )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-primary">
+                    <div className="flex sm:flex-col items-start sm:items-end sm:text-right space-x-3 sm:space-x-0">
+                      <p className="text-lg sm:text-2xl font-bold text-primary">
                         ${servicio.precio.toFixed(2)}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        <FaClock className="inline mr-1" />
+                      <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                        <FaClock className="w-3 h-3" />
                         {new Date(servicio.fechaSolicitud).toLocaleTimeString()}
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
-                      <p className="font-medium">{servicio.cliente.nombre}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
+                      <p className="font-medium text-sm sm:text-base">{servicio.cliente.nombre}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
-                      <p className="font-medium">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
+                      <p className="font-medium text-sm sm:text-base">
                         {servicio.detallesVehiculo.tipoVehiculo} - {servicio.detallesVehiculo.marca}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <FaMapMarkerAlt className="mr-1" />
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+                    <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                      <FaMapMarkerAlt className="w-3 h-3 mr-1" />
                       <span>Ubicación del cliente disponible</span>
                     </div>
                     
                     <button
                       onClick={() => aceptarServicio(servicio._id)}
-                      className="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                      className="bg-primary hover:bg-primary-hover text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
                     >
-                      <FaCheck />
+                      <FaCheck className="w-3 h-3 sm:w-4 sm:h-4" />
                       Aceptar Servicio
                     </button>
                   </div>

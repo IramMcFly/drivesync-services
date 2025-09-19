@@ -26,13 +26,6 @@ export const metadata = {
   description: "Todo en la palma de tu mano",
   manifest: "/manifest.json",
   themeColor: "#0f172a",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover"
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -45,6 +38,14 @@ export const metadata = {
     "msapplication-TileColor": "#0f172a",
     "msapplication-tap-highlight": "no"
   }
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover"
 };
 
 export default function RootLayout({ children }) {
@@ -62,10 +63,12 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased bg-gray-900 text-white`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased bg-gray-900 text-white safe-area-inset`}>
         <DarkModeForcer />
         <ProvidersWrapper>
-          {children}
+          <div className="min-h-screen flex flex-col">
+            {children}
+          </div>
         </ProvidersWrapper>
         <PWAInstallPrompt />
       </body>
