@@ -7,7 +7,9 @@ const serviceRequestSchema = new mongoose.Schema({
   servicio: { type: mongoose.Schema.Types.ObjectId, ref: 'Servicio', required: true },
   subtipo: { type: String },
   asistente: { type: mongoose.Schema.Types.ObjectId, ref: 'Asistente' }, // se asigna automáticamente
+  vehiculo: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', required: true }, // vehículo del cliente
   estado: { type: String, enum: ['pendiente', 'asignado', 'en_camino', 'finalizado', 'cancelado'], default: 'pendiente' },
+  // Mantener detallesVehiculo por compatibilidad, pero usar vehiculo como referencia principal
   detallesVehiculo: {
     marca: String,
     modelo: String,

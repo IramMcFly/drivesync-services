@@ -451,7 +451,7 @@ export default function AsistenteActiveService() {
                   },
                   {
                     position: [serviceData.ubicacion.lat, serviceData.ubicacion.lng],
-                    popup: `Cliente: ${serviceData.cliente?.nombre}`,
+                    popup: `Cliente: ${serviceData.cliente?.nombre}${serviceData?.vehiculo ? `\nVehículo: ${serviceData.vehiculo.marca} ${serviceData.vehiculo.modelo}\nPlaca: ${serviceData.vehiculo.placa}` : ''}`,
                     iconColor: "red"
                   }
                 ]}
@@ -497,22 +497,69 @@ export default function AsistenteActiveService() {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <FaCar className="text-purple-600 dark:text-purple-400 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{serviceData?.detallesVehiculo?.tipoVehiculo}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {serviceData?.detallesVehiculo?.marca} {serviceData?.detallesVehiculo?.modelo}
-                  </p>
+            {/* Información del Vehículo del Cliente */}
+            {serviceData?.vehiculo && (
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
+                <h4 className="text-base font-semibold mb-3 flex items-center gap-2 text-purple-800 dark:text-purple-300">
+                  <FaCar className="text-purple-600 dark:text-purple-400" />
+                  Vehículo del Cliente
+                </h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                      <FaCar className="text-purple-600 dark:text-purple-400 text-sm" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {serviceData.vehiculo.marca} {serviceData.vehiculo.modelo}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {serviceData.vehiculo.año} • {serviceData.vehiculo.color}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <FaMapMarkerAlt className="text-blue-600 dark:text-blue-400 text-sm" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wider">
+                        {serviceData.vehiculo.placa}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                        {serviceData.vehiculo.tipoVehiculo}
+                      </p>
+                    </div>
+                  </div>
                 </div>
+                
+                {serviceData.vehiculo.notas && (
+                  <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notas del vehículo:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{serviceData.vehiculo.notas}</p>
+                  </div>
+                )}
               </div>
-              
+            )}
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">              
               <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <FaWrench className="text-orange-600 dark:text-orange-400 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{serviceData?.servicio?.nombre}</p>
                   <p className="text-sm text-primary font-semibold">${serviceData?.precio?.toFixed(2)} MXN</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <FaClock className="text-green-600 dark:text-green-400 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-gray-700 dark:text-gray-300">Estado del Servicio</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                    {serviceData?.estado?.replace('_', ' ')}
+                  </p>
                 </div>
               </div>
             </div>

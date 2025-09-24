@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { FaUserAlt, FaEnvelope, FaPhone, FaImage, FaLock, FaSave, FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 import { Modal } from "../../ui";
 import { useModal } from "../../../hooks/useModal";
+import VehicleManager from "./VehicleManager";
 
 export default function UserProfile() {
   const { data: session, status } = useSession();
@@ -411,6 +412,13 @@ export default function UserProfile() {
             >
               Cerrar sesión
             </button>
+          </div>
+
+          {/* Sección de Vehículos */}
+          <div className="mt-6">
+            <div className="bg-gray-800 rounded-2xl shadow-lg border border-gray-700 p-4 sm:p-6">
+              <VehicleManager userId={user._id} />
+            </div>
           </div>
         </div>
       </div>

@@ -10,13 +10,15 @@ import { useGeolocation } from "../../../hooks/useGeolocation";
 const ServiceForm = () => {
   const { modalState, showError, showSuccess, hideModal } = useModal();
   const [formData, setFormData] = useState({
+    vehiculoSeleccionado: "",
+    metodoPago: "",
+    tallerServicio: "",
+    subtipoServicio: "",
+    // Mantener campos del vehículo para nuevo vehículo
     marca: "",
     modelo: "",
     año: "",
-    metodoPago: "",
-    tallerServicio: "",
     tipoVehiculo: "",
-    subtipoServicio: "",
   });
 
   const [price, setPrice] = useState(0);
@@ -25,17 +27,35 @@ const ServiceForm = () => {
   const [servicioDB, setServicioDB] = useState(null);
   const [servicios, setServicios] = useState([]);
   const [talleres, setTalleres] = useState([]);
+  const [vehiculos, setVehiculos] = useState([]);
+  const [showNuevoVehiculo, setShowNuevoVehiculo] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   
-  const tiposVehiculo = ["Sedán", "SUV", "Pickup", "Hatchback", "Minivan"];
+  const tiposVehiculo = [
+    { value: "sedan", label: "Sedán" },
+    { value: "suv", label: "SUV" },
+    { value: "pickup", label: "Pickup" },
+    { value: "hatchback", label: "Hatchback" },
+    { value: "minivan", label: "Minivan" },
+    { value: "coupe", label: "Coupé" },
+    { value: "convertible", label: "Convertible" },
+    { value: "wagon", label: "Wagon" },
+    { value: "motocicleta", label: "Motocicleta" },
+    { value: "otro", label: "Otro" }
+  ];
   const metodosPago = ["Tarjeta", "Efectivo"];
   const multiplicadoresTipoVehiculo = {
-    "Sedán": 1,
-    "Hatchback": 1,
-    "SUV": 1.1,
-    "Pickup": 1.2,
-    "Minivan": 1.2,
+    "sedan": 1,
+    "hatchback": 1,
+    "suv": 1.1,
+    "pickup": 1.2,
+    "minivan": 1.2,
+    "coupe": 1,
+    "convertible": 1,
+    "wagon": 1,
+    "motocicleta": 0.8,
+    "otro": 1,
   };
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,9 +148,31 @@ const ServiceForm = () => {
         }
       } catch {}
     };
+
+    // Cargar vehículos del usuario
+    const fetchVehiculos = async () => {
+      if (session?.user?.id) {
+        try {
+          const res = await fetch(`/api/vehicles?userId=${session.user.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setVehiculos(data);
+            // Seleccionar automáticamente el vehículo principal si existe
+            const principal = data.find(v => v.esPrincipal);
+            if (principal && !formData.vehiculoSeleccionado) {
+              setFormData(prev => ({ ...prev, vehiculoSeleccionado: principal._id }));
+            }
+          }
+        } catch (error) {
+          console.error('Error cargando vehículos:', error);
+        }
+      }
+    };
+
     fetchTalleres();
     fetchServicios();
-  }, [serviceType]);
+    fetchVehiculos();
+  }, [serviceType, session?.user?.id, formData.vehiculoSeleccionado]);
 
   const generarAnios = () => {
     const anios = [];
@@ -142,9 +184,20 @@ const ServiceForm = () => {
   };
   const aniosVehiculos = generarAnios();
 
-  // Validación: tipo de vehículo, subtipo de servicio y método de pago
+  // Validación: vehículo (seleccionado o nuevo), subtipo de servicio y método de pago
   const isFormValid = () => {
-    const hasRequiredFields = formData.tipoVehiculo && formData.subtipoServicio && formData.metodoPago;
+    let vehiculoValido = false;
+    
+    // Verificar si hay vehículo seleccionado o datos completos para vehículo nuevo
+    if (formData.vehiculoSeleccionado) {
+      vehiculoValido = true;
+    } else if (showNuevoVehiculo || vehiculos.length === 0) {
+      // Si está agregando vehículo nuevo o no tiene vehículos registrados
+      vehiculoValido = formData.marca && formData.modelo && formData.año && 
+                     formData.tipoVehiculo && formData.color && formData.placa;
+    }
+    
+    const hasRequiredFields = vehiculoValido && formData.subtipoServicio && formData.metodoPago;
     
     // Si no hay talleres disponibles para el servicio, el formulario no es válido
     const talleresDisponibles = getTalleresDisponibles();
@@ -176,12 +229,17 @@ const ServiceForm = () => {
     }
     let total = base;
     setShowMultiplicadorNote(false);
-    if (formData.tipoVehiculo && multiplicadoresTipoVehiculo[formData.tipoVehiculo]) {
-      total = total * multiplicadoresTipoVehiculo[formData.tipoVehiculo];
-      if (multiplicadoresTipoVehiculo[formData.tipoVehiculo] > 1) setShowMultiplicadorNote(true);
+    
+    // Obtener tipo de vehículo del vehículo seleccionado o del formulario de nuevo vehículo
+    const vehiculoSeleccionado = vehiculos.find(v => v._id === formData.vehiculoSeleccionado);
+    const tipoVehiculo = vehiculoSeleccionado?.tipo || formData.tipoVehiculo;
+    
+    if (tipoVehiculo && multiplicadoresTipoVehiculo[tipoVehiculo]) {
+      total = total * multiplicadoresTipoVehiculo[tipoVehiculo];
+      if (multiplicadoresTipoVehiculo[tipoVehiculo] > 1) setShowMultiplicadorNote(true);
     }
     setPrice(total);
-  }, [formData.subtipoServicio, formData.tipoVehiculo, servicioDB?._id, subtipos.map(s => s.nombre)]);
+  }, [formData.subtipoServicio, formData.vehiculoSeleccionado, formData.tipoVehiculo, vehiculos, servicioDB?._id, subtipos.map(s => s.nombre)]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -241,18 +299,62 @@ const ServiceForm = () => {
     if (subtipos.length > 0 && formData.subtipoServicio) {
       subtipo = subtipos.find(s => s.nombre === formData.subtipoServicio);
     }
+    // Manejar vehículo (existente o nuevo)
+    let vehiculoId = formData.vehiculoSeleccionado;
+    let vehiculoSeleccionado = vehiculos.find(v => v._id === formData.vehiculoSeleccionado);
+    
+    // Si no hay vehículo seleccionado pero hay datos para uno nuevo, crearlo primero
+    if (!vehiculoId && (showNuevoVehiculo || vehiculos.length === 0)) {
+      try {
+        const nuevoVehiculo = {
+          userId: userId, // Agregar el ID del usuario
+          marca: formData.marca,
+          modelo: formData.modelo,
+          año: formData.año,
+          tipoVehiculo: formData.tipoVehiculo, // Cambiar de 'tipo' a 'tipoVehiculo'
+          color: formData.color,
+          placa: formData.placa,
+          esPrincipal: vehiculos.length === 0, // Primer vehículo es principal automáticamente
+        };
+        
+        const vehiculoRes = await fetch("/api/vehicles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nuevoVehiculo),
+        });
+        
+        if (vehiculoRes.ok) {
+          const vehiculoCreado = await vehiculoRes.json();
+          vehiculoId = vehiculoCreado.vehicle._id;
+          vehiculoSeleccionado = vehiculoCreado.vehicle;
+        } else {
+          const errorData = await vehiculoRes.json();
+          showError(errorData.message || "Error al registrar el vehículo");
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        showError("Error de red al registrar el vehículo");
+        setIsLoading(false);
+        return;
+      }
+    }
+    
     // Construir el request para la API
     const requestBody = {
       cliente: userId,
       taller: tallerId,
       servicio: servicioDB?._id,
       subtipo: subtipo?.nombre || null,
-      detallesVehiculo: {
-        marca: formData.marca,
-        modelo: formData.modelo,
-        año: formData.año,
-        tipoVehiculo: formData.tipoVehiculo,
-      },
+      vehiculo: vehiculoId, // Referencia al vehículo
+      detallesVehiculo: vehiculoSeleccionado ? {
+        marca: vehiculoSeleccionado.marca,
+        modelo: vehiculoSeleccionado.modelo,
+        año: vehiculoSeleccionado.año,
+        color: vehiculoSeleccionado.color,
+        placa: vehiculoSeleccionado.placa,
+        tipoVehiculo: vehiculoSeleccionado.tipo,
+      } : null,
       ubicacion: userLocation, // Ahora incluimos la ubicación real
       precio: price,
       contacto: {
@@ -291,8 +393,8 @@ const ServiceForm = () => {
 
   // Mostrar precio destacado en grande y en blanco antes del botón de solicitar servicio
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-4 sm:py-8 pb-20 transition-colors">
-      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors mx-4">
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 py-4 sm:py-8 pb-20 transition-colors" suppressHydrationWarning>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 max-w-md mx-auto shadow-md border border-gray-200 dark:border-gray-700 transition-colors mx-4" suppressHydrationWarning>
         
         {/* Estado de ubicación */}
         {(locationLoading || locationError) && (
@@ -394,21 +496,133 @@ const ServiceForm = () => {
             </div>
           )}
           
-          {/* Selector de Tipo de Vehículo para todos los servicios */}
+          {/* Selector de Vehículo */}
           <div className="mb-4">
-            <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Tipo de Vehículo</label>
-            <select
-              name="tipoVehiculo"
-              value={formData.tipoVehiculo}
-              onChange={handleChange}
-              className="w-full bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
-              required
-            >
-              <option value="">Elige tipo</option>
-              {tiposVehiculo.map((t, i) => (
-                <option key={i} value={t}>{t}</option>
-              ))}
-            </select>
+            <label className="text-gray-900 dark:text-gray-100 text-sm mb-1 block transition-colors">Vehículo</label>
+            
+            {vehiculos.length > 0 && !showNuevoVehiculo ? (
+              <div className="space-y-3">
+                <select
+                  name="vehiculoSeleccionado"
+                  value={formData.vehiculoSeleccionado}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md appearance-none transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm sm:text-base"
+                  required
+                >
+                  <option value="">Selecciona un vehículo</option>
+                  {vehiculos.map((vehiculo) => (
+                    <option key={vehiculo._id} value={vehiculo._id}>
+                      {vehiculo.marca} {vehiculo.modelo} {vehiculo.año} - {vehiculo.placa}
+                      {vehiculo.esPrincipal ? ' (Principal)' : ''}
+                    </option>
+                  ))}
+                </select>
+                
+                <button
+                  type="button"
+                  onClick={() => setShowNuevoVehiculo(true)}
+                  className="w-full text-sm text-primary hover:text-primary-hover border border-primary hover:border-primary-hover py-2 px-3 rounded-md transition-colors"
+                >
+                  + Agregar nuevo vehículo
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* Formulario para nuevo vehículo */}
+                <div className="p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+                    {vehiculos.length > 0 ? 'Agregar nuevo vehículo' : 'Registra tu primer vehículo'}
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Marca (ej: Toyota, Honda)"
+                      value={formData.marca || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, marca: e.target.value }))}
+                      className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 px-3 rounded-md transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                      required={showNuevoVehiculo || vehiculos.length === 0}
+                    />
+                    
+                    <input
+                      type="text"
+                      placeholder="Modelo (ej: Corolla, Civic)"
+                      value={formData.modelo || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, modelo: e.target.value }))}
+                      className="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 px-3 rounded-md transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                      required={showNuevoVehiculo || vehiculos.length === 0}
+                    />
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <select
+                        value={formData.año || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, año: parseInt(e.target.value) }))}
+                        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 px-3 rounded-md transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                        required={showNuevoVehiculo || vehiculos.length === 0}
+                      >
+                        <option value="">Año</option>
+                        {aniosVehiculos.map(año => (
+                          <option key={año} value={año}>{año}</option>
+                        ))}
+                      </select>
+                      
+                      <select
+                        value={formData.tipoVehiculo || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, tipoVehiculo: e.target.value }))}
+                        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 px-3 rounded-md transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                        required={showNuevoVehiculo || vehiculos.length === 0}
+                      >
+                        <option value="">Tipo</option>
+                        {tiposVehiculo.map((tipo) => (
+                          <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Color"
+                        value={formData.color || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 px-3 rounded-md transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                        required={showNuevoVehiculo || vehiculos.length === 0}
+                      />
+                      
+                      <input
+                        type="text"
+                        placeholder="Placa"
+                        value={formData.placa || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, placa: e.target.value.toUpperCase() }))}
+                        className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 py-2 px-3 rounded-md transition-colors focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+                        required={showNuevoVehiculo || vehiculos.length === 0}
+                      />
+                    </div>
+                  </div>
+                  
+                  {vehiculos.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNuevoVehiculo(false);
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          marca: '', 
+                          modelo: '', 
+                          año: '', 
+                          color: '', 
+                          placa: '', 
+                          tipoVehiculo: '' 
+                        }));
+                      }}
+                      className="mt-3 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                    >
+                      ← Seleccionar vehículo existente
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
           {/* Campos generales */}
           <div className="mb-4">
@@ -427,7 +641,7 @@ const ServiceForm = () => {
             </select>
           </div>
           {/* Mostrar precio destacado justo antes del botón */}
-          {formData.tipoVehiculo && formData.subtipoServicio && price > 0 && (
+          {((formData.vehiculoSeleccionado && vehiculos.find(v => v._id === formData.vehiculoSeleccionado)) || formData.tipoVehiculo) && formData.subtipoServicio && price > 0 && (
             <div className="mb-4 text-center">
               <p className="text-gray-900 dark:text-gray-100 text-sm sm:text-base mb-1 transition-colors">Precio estimado:</p>
               <p className="text-gray-900 dark:text-gray-100 text-xl sm:text-2xl font-bold transition-colors">${price.toFixed(2)} MXN</p>

@@ -46,6 +46,7 @@ export async function GET(request) {
         .populate('cliente', 'nombre email telefono')
         .populate('taller', 'nombre direccion telefono')
         .populate('servicio', 'nombre descripcion')
+        .populate('vehiculo', 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal')
         .populate({
           path: 'asistente',
           populate: {
@@ -64,6 +65,7 @@ export async function GET(request) {
         .populate('cliente', 'nombre email telefono')
         .populate('taller', 'nombre direccion telefono')
         .populate('servicio', 'nombre descripcion')
+        .populate('vehiculo', 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal')
         .populate({
           path: 'asistente',
           populate: {

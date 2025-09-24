@@ -63,8 +63,8 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased bg-gray-900 text-white safe-area-inset`}>
-        <DarkModeForcer />
+      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased bg-gray-900 text-white safe-area-inset dark`}>
+        {/* <DarkModeForcer /> - Temporalmente deshabilitado para evitar errores de hidratación */}
         <ProvidersWrapper>
           <div className="min-h-screen flex flex-col">
             {children}
