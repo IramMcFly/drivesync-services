@@ -4,6 +4,7 @@ import User from '@/models/User';
 import Taller from '@/models/Taller';
 import Servicio from '@/models/Servicio';
 import Asistente from '@/models/Asistente';
+import Vehicle from '@/models/Vehicle';
 import { NextResponse } from 'next/server';
 
 // Estados válidos y sus transiciones permitidas
@@ -46,7 +47,11 @@ export async function GET(request) {
         .populate('cliente', 'nombre email telefono')
         .populate('taller', 'nombre direccion telefono')
         .populate('servicio', 'nombre descripcion')
-        .populate('vehiculo', 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal')
+        .populate({
+          path: 'vehiculo', 
+          select: 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal',
+          options: { strictPopulate: false } // Tolerante si no existe la referencia
+        })
         .populate({
           path: 'asistente',
           populate: {
@@ -65,7 +70,11 @@ export async function GET(request) {
         .populate('cliente', 'nombre email telefono')
         .populate('taller', 'nombre direccion telefono')
         .populate('servicio', 'nombre descripcion')
-        .populate('vehiculo', 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal')
+        .populate({
+          path: 'vehiculo', 
+          select: 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal',
+          options: { strictPopulate: false } // Tolerante si no existe la referencia
+        })
         .populate({
           path: 'asistente',
           populate: {
@@ -81,9 +90,20 @@ export async function GET(request) {
     }
   } catch (error) {
     console.error('Error en GET /api/servicerequests:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Si es un error de conexión a la base de datos, reintentar la conexión
+    if (error.message.includes('connection') || error.message.includes('MongooseError')) {
+      try {
+        await connectDB();
+      } catch (dbError) {
+        console.error('Error reconectando a la base de datos:', dbError);
+      }
+    }
+    
     return NextResponse.json({ 
       error: 'Error interno del servidor', 
-      details: error.message 
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Error processing request'
     }, { status: 500 });
   }
 }

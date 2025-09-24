@@ -31,7 +31,7 @@ const TIPOS_VEHICULO = [
   { value: 'otro', label: 'Otro' }
 ];
 
-export default function VehicleManager({ userId }) {
+export default function VehicleManager({ userId, onVehicleCountChange }) {
   const { data: session } = useSession();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +76,13 @@ export default function VehicleManager({ userId }) {
       fetchVehicles();
     }
   }, [userId, session?.user?.id]);
+
+  // Reportar el conteo de vehículos al componente padre
+  useEffect(() => {
+    if (onVehicleCountChange) {
+      onVehicleCountChange(vehicles.length);
+    }
+  }, [vehicles.length, onVehicleCountChange]);
 
   // Limpiar mensajes después de 3 segundos
   useEffect(() => {

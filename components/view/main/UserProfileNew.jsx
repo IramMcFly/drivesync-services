@@ -24,7 +24,6 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(false);
   const [showUnauthorized, setShowUnauthorized] = useState(false);
   const [vehicleCount, setVehicleCount] = useState(0);
-  const [serviceCount, setServiceCount] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const fileInputRef = useRef();
   const { modalState, showSuccess, showError, showWarning, hideModal } = useModal();
@@ -61,25 +60,6 @@ export default function UserProfile() {
         });
     }
   }, [session]);
-
-  // Cargar conteo de servicios del usuario
-  useEffect(() => {
-    const loadServiceCount = async () => {
-      if (session?.user?.id) {
-        try {
-          const response = await fetch(`/api/servicerequests?clienteId=${session.user.id}`);
-          if (response.ok) {
-            const services = await response.json();
-            setServiceCount(Array.isArray(services) ? services.length : 0);
-          }
-        } catch (error) {
-          console.error('Error loading service count:', error);
-        }
-      }
-    };
-
-    loadServiceCount();
-  }, [session?.user?.id]);
 
   // Función para guardar cambios de un campo específico
   const handleSaveField = async (field) => {
@@ -306,7 +286,7 @@ export default function UserProfile() {
                       </div>
                       <div className="text-center p-4 bg-gray-700/30 rounded-2xl">
                         <FaTools className="text-2xl text-green-400 mx-auto mb-2" />
-                        <div className="text-xl font-bold text-gray-100">{serviceCount}</div>
+                        <div className="text-xl font-bold text-gray-100">12</div>
                         <div className="text-xs text-gray-400 uppercase tracking-wide">Servicios</div>
                       </div>
                     </div>

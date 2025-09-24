@@ -118,22 +118,30 @@ export function useServiceStatus() {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Service request error:', response.status, response.statusText, errorText);
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      // Validar que la respuesta tenga el formato esperado
+      if (!Array.isArray(data) && (!data.servicios || !Array.isArray(data.servicios))) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from server');
+      }
         
+      // Normalizar la respuesta - puede ser un array directamente o un objeto con servicios
+      const servicios = Array.isArray(data) ? data : (data.servicios || []);
+      
       // Buscar servicios activos - excluir finalizados y cancelados antiguos
-      const activeServiceRequest = data.find ? data.find(servicio => 
-        servicio.cliente?._id === session.user.id && 
-        [SERVICE_STATES.ASIGNADO, SERVICE_STATES.EN_CAMINO].includes(servicio.estado)
-      ) : data.servicios?.find(servicio => 
+      const activeServiceRequest = servicios.find(servicio => 
         servicio.cliente?._id === session.user.id && 
         [SERVICE_STATES.ASIGNADO, SERVICE_STATES.EN_CAMINO].includes(servicio.estado)
       );
 
       // Buscar servicios recién finalizados o cancelados para notificar
-      const recentlyFinished = (data.find ? data : data.servicios || []).find(servicio => 
+      const recentlyFinished = servicios.find(servicio => 
         servicio.cliente?._id === session.user.id && 
         [SERVICE_STATES.FINALIZADO, SERVICE_STATES.CANCELADO].includes(servicio.estado) &&
         new Date(servicio.updatedAt) > new Date(Date.now() - 2 * 60 * 1000) // Últimos 2 minutos
