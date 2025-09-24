@@ -25,6 +25,7 @@ import {
   FaSignOutAlt,
   FaBell
 } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 import ServiceNotification from "./ServiceNotification";
 
 const AsistenteDashboard = () => {
@@ -43,6 +44,7 @@ const AsistenteDashboard = () => {
   const [previousServicesCount, setPreviousServicesCount] = useState(0);
   const [selectedService, setSelectedService] = useState(null);
   const [showServiceInfo, setShowServiceInfo] = useState(false);
+  const [showPanicModal, setShowPanicModal] = useState(false);
 
   // Debug inicial
   useEffect(() => {
@@ -287,6 +289,17 @@ const AsistenteDashboard = () => {
     setShowServiceInfo(true);
   };
 
+  // Funciones para el botón de pánico
+  const handlePanic = () => {
+    setShowPanicModal(true);
+  };
+
+  const confirmPanic = () => {
+    setShowPanicModal(false);
+    // Enviar alerta de emergencia y llamar a emergencias
+    window.location.href = "tel:911";
+  };
+
   // Función para volver del service info
   const volverDelServiceInfo = () => {
     console.log('🔙 Volviendo del ServiceInfo al Dashboard');
@@ -388,6 +401,15 @@ const AsistenteDashboard = () => {
                 <span className="hidden sm:inline">{lastUpdate.toLocaleTimeString()}</span>
               </div>
               
+              {/* Botón de pánico - siempre visible */}
+              <button
+                onClick={handlePanic}
+                className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors text-xs sm:text-sm shadow-lg"
+              >
+                <FaExclamationTriangle className="w-3 h-3" />
+                <span className="hidden sm:inline">SOS</span>
+              </button>
+
               {/* Botón de estado */}
               <button
                 onClick={toggleOnlineStatus}
@@ -615,6 +637,51 @@ const AsistenteDashboard = () => {
           onDismiss={descartarNotificacion}
         />
       )}
+
+      {/* Modal de pánico */}
+      <AnimatePresence>
+        {showPanicModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 px-4"
+          >
+            <motion.div
+              initial={{ scale: 0.7 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.7 }}
+              className="bg-gray-800 p-6 rounded-xl shadow-2xl text-center max-w-sm w-full"
+            >
+              <motion.div
+                animate={{ rotate: [0, 20, -20, 20, -20, 0] }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="text-4xl mb-4"
+              >
+                <FaExclamationTriangle className="text-red-500 mx-auto" />
+              </motion.div>
+              <h2 className="text-xl font-bold mb-2 text-white">Emergencia</h2>
+              <p className="text-gray-300 mb-6">
+                ¿Necesitas ayuda de emergencia? Se enviará tu ubicación actual y se contactarán los servicios de emergencia.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={confirmPanic}
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg w-full transition-colors"
+                >
+                  SÍ, LLAMAR A EMERGENCIAS
+                </button>
+                <button
+                  onClick={() => setShowPanicModal(false)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg w-full transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Modal
         isOpen={modalState.isOpen}
