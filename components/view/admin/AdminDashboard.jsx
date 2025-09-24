@@ -9,7 +9,7 @@ import TallerForm from '../../forms/admin/TallerForm';
 import { 
   FaShieldAlt, FaCog, FaUsers, FaClipboardList, FaChartBar, 
   FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus,
-  FaTimes, FaCar, FaBars, FaWarehouse, FaTools, FaFileAlt
+  FaTimes, FaCar, FaBars, FaWarehouse, FaTools, FaFileAlt, FaBolt
 } from 'react-icons/fa';
 
 export default function AdminDashboard() {
@@ -45,17 +45,24 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (status === 'loading') return;
     
-    if (!session) {
-      router.push('/login');
-      return;
+    // Solo redirigir si estamos seguros de que no hay sesión después de un tiempo
+    if (status === 'unauthenticated') {
+      const timer = setTimeout(() => {
+        if (status === 'unauthenticated') {
+          router.push('/login');
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
     }
     
-    if (session.user?.userType !== 'admin') {
+    if (session && session.user?.userType !== 'admin') {
       router.push('/main/servicios-express');
       return;
     }
     
-    loadDashboardData();
+    if (session && session.user?.userType === 'admin') {
+      loadDashboardData();
+    }
   }, [session, status, router]);
 
   const loadDashboardData = async () => {
@@ -858,7 +865,14 @@ export default function AdminDashboard() {
             </ul>
           </nav>
 
-          <div className="absolute bottom-4 left-4 right-4">
+          <div className="absolute bottom-4 left-4 right-4 space-y-2">
+            <button
+              onClick={() => router.push('/main/servicios-express')}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+            >
+              <FaBolt />
+              <span className="font-medium">Ir a Servicios Express</span>
+            </button>
             <button
               onClick={() => signOut()}
               className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"

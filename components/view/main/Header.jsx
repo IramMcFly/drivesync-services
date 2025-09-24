@@ -91,12 +91,15 @@ export default function Header() {
         <div className="mx-auto px-4 lg:px-6">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/main/servicios-express" className="flex items-center gap-3">
+              <button 
+                onClick={() => router.push('/main/servicios-express')} 
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              >
                 <div className="rounded-xl overflow-hidden w-10 h-10 bg-primary p-1">
                   <Image src="/images/logoDS.png" alt="DriveSync logo" width={32} height={32} className="w-full h-full object-contain" />
                 </div>
                 <span className="font-bold text-gray-100 text-xl transition-colors">DriveSync</span>
-              </Link>
+              </button>
             </div>
 
             {/* Desktop Navigation */}

@@ -20,10 +20,13 @@ export default function Servicios() {
     }
 
     if (status === "unauthenticated") {
-      // Esperar un poco antes de redirigir para evitar problemas con la actualización de sesión
+      // Esperar más tiempo antes de redirigir y verificar que realmente no hay sesión
       const timer = setTimeout(() => {
-        router.replace("/login");
-      }, 1000);
+        // Verificar nuevamente el estado de la sesión antes de redirigir
+        if (status === "unauthenticated") {
+          router.replace("/login");
+        }
+      }, 3000); // Aumentamos el tiempo de espera a 3 segundos
       setRedirectTimer(timer);
     } else if (status === "authenticated") {
       // Limpiar cualquier timer de redirección si el usuario se autentica
