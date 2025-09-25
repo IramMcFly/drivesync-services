@@ -11,6 +11,7 @@ import {
   FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus,
   FaTimes, FaCar, FaBars, FaWarehouse, FaTools, FaFileAlt, FaBolt
 } from 'react-icons/fa';
+import StarRating from '../../ui/StarRating';
 
 export default function AdminDashboard() {
   const { modalState, showError, showSuccess, showConfirm, hideModal } = useModal();
@@ -584,12 +585,13 @@ export default function AdminDashboard() {
                             <div className="text-xs text-gray-400 dark:text-gray-500">{taller.email || 'Sin email'}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {taller.calificacion ? taller.calificacion.toFixed(1) : '0.0'}
-                              </span>
-                              <span className="text-yellow-400 ml-1">★</span>
-                            </div>
+                            <StarRating 
+                              rating={taller.rating || taller.calificacion || 0}
+                              totalRatings={taller.totalRatings}
+                              size="text-sm"
+                              showNumber={true}
+                              className="justify-start"
+                            />
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-500 dark:text-gray-400">

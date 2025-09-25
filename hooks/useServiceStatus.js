@@ -33,6 +33,41 @@ export function useServiceStatus() {
   const pollingStopped = useRef(false);
   const lastFetchTime = useRef(0);
   
+  // Helper para manejar localStorage con manejo de errores
+  const getShownServices = useCallback(() => {
+    try {
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem('shownServices');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error reading from localStorage:', error);
+      return [];
+    }
+  }, []);
+
+  const addShownService = useCallback((serviceId, estado) => {
+    try {
+      if (typeof window === 'undefined') return;
+      const shownServices = getShownServices();
+      const serviceKey = `${serviceId}-${estado}`;
+      
+      // Agregar si no existe ya
+      if (!shownServices.includes(serviceKey)) {
+        shownServices.push(serviceKey);
+        // Mantener solo los últimos 50 para evitar acumulación
+        const limited = shownServices.slice(-50);
+        localStorage.setItem('shownServices', JSON.stringify(limited));
+      }
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  }, [getShownServices]);
+
+  const hasBeenShown = useCallback((serviceId, estado) => {
+    const shownServices = getShownServices();
+    return shownServices.includes(`${serviceId}-${estado}`);
+  }, [getShownServices]);
+  
   // Validar si una transición de estado es válida
   const isValidStateTransition = useCallback((currentState, newState) => {
     if (!currentState || !newState) return false;
@@ -140,13 +175,6 @@ export function useServiceStatus() {
         [SERVICE_STATES.ASIGNADO, SERVICE_STATES.EN_CAMINO].includes(servicio.estado)
       );
 
-      // Buscar servicios recién finalizados o cancelados para notificar
-      const recentlyFinished = servicios.find(servicio => 
-        servicio.cliente?._id === session.user.id && 
-        [SERVICE_STATES.FINALIZADO, SERVICE_STATES.CANCELADO].includes(servicio.estado) &&
-        new Date(servicio.updatedAt) > new Date(Date.now() - 2 * 60 * 1000) // Últimos 2 minutos
-      );
-
       if (activeServiceRequest) {
         const currentState = `${activeServiceRequest._id}-${activeServiceRequest.estado}`;
         const previousState = lastServiceState;
@@ -168,13 +196,24 @@ export function useServiceStatus() {
             timestamp: Date.now()
           }]);
         }
-      } else if (recentlyFinished) {
-        // Manejar servicio recién finalizado o cancelado
-        const finishedState = `${recentlyFinished._id}-${recentlyFinished.estado}`;
-        if (lastServiceState !== finishedState) {
+      } else {
+        // Buscar servicios recién finalizados o cancelados para notificar SOLO si no han sido mostrados antes
+        const recentlyFinished = servicios.find(servicio => 
+          servicio.cliente?._id === session.user.id && 
+          [SERVICE_STATES.FINALIZADO, SERVICE_STATES.CANCELADO].includes(servicio.estado) &&
+          new Date(servicio.updatedAt) > new Date(Date.now() - 2 * 60 * 1000) && // Últimos 2 minutos
+          !hasBeenShown(servicio._id, servicio.estado) // NO mostrado anteriormente
+        );
+
+        if (recentlyFinished) {
+          // Manejar servicio recién finalizado o cancelado
+          const finishedState = `${recentlyFinished._id}-${recentlyFinished.estado}`;
           setActiveService(recentlyFinished);
           setShowServiceStatus(true);
           setLastServiceState(finishedState);
+          
+          // Marcar como mostrado para evitar repeticiones
+          addShownService(recentlyFinished._id, recentlyFinished.estado);
           
           // Auto-cerrar después de un tiempo diferente según el estado
           const autoCloseTime = recentlyFinished.estado === SERVICE_STATES.CANCELADO ? 8000 : 5000;
@@ -182,17 +221,8 @@ export function useServiceStatus() {
             setShowServiceStatus(false);
             setActiveService(null);
           }, autoCloseTime);
-        }
-      } else {
-        // No hay servicios activos
-        if (activeService && [SERVICE_STATES.FINALIZADO, SERVICE_STATES.CANCELADO].includes(activeService.estado)) {
-          // Mantener por un momento para mostrar el estado final
-          setTimeout(() => {
-            setActiveService(null);
-            setShowServiceStatus(false);
-            setLastServiceState(null);
-          }, 3000);
         } else {
+          // No hay servicios activos ni finalizados recientes sin mostrar
           setActiveService(null);
           setShowServiceStatus(false);
           setLastServiceState(null);
@@ -204,7 +234,7 @@ export function useServiceStatus() {
     } finally {
       setIsLoading(false);
     }
-  }, [session?.user?.id, lastServiceState, activeService, getStateInfo]);
+  }, [session?.user?.id, lastServiceState, activeService, getStateInfo, hasBeenShown, addShownService]);
 
   // Actualizar estado de servicio con validación
   const updateServiceState = useCallback(async (serviceId, newState, comment = '') => {

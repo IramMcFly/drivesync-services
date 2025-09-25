@@ -9,6 +9,7 @@ import {
   FaSignOutAlt, FaPlus, FaEdit, FaTrash, FaEye, FaSync, FaUserPlus,
   FaTimes, FaCar, FaBars
 } from 'react-icons/fa';
+import StarRating from '../../ui/StarRating';
 
 export default function TallerDashboard() {
   const { modalState, showError, hideModal } = useModal();
@@ -19,6 +20,7 @@ export default function TallerDashboard() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [tallerRating, setTallerRating] = useState({ rating: 0, totalRatings: 0 });
 
   // Verificar autenticación y tipo de usuario
   useEffect(() => {
@@ -55,6 +57,18 @@ export default function TallerDashboard() {
       if (solicitudesRes.ok) {
         const solicitudesData = await solicitudesRes.json();
         setSolicitudes(solicitudesData.filter(s => s.tallerId === session.user.id));
+      }
+
+      // Cargar calificación del taller
+      const ratingsRes = await fetch(`/api/ratings?tallerId=${session.user.id}`);
+      if (ratingsRes.ok) {
+        const ratingsData = await ratingsRes.json();
+        if (ratingsData.taller) {
+          setTallerRating({
+            rating: ratingsData.taller.rating || 0,
+            totalRatings: ratingsData.taller.totalRatings || 0
+          });
+        }
       }
       
     } catch (error) {
@@ -106,6 +120,14 @@ export default function TallerDashboard() {
                 Dashboard - {session.user.nombre}
               </h1>
               <p className="text-sm text-gray-400">{session.user.email}</p>
+              <div className="mt-1">
+                <StarRating 
+                  rating={tallerRating.rating} 
+                  totalRatings={tallerRating.totalRatings}
+                  size="text-sm"
+                  className="justify-start"
+                />
+              </div>
             </div>
             <div className="sm:hidden">
               <h1 className="text-lg font-bold text-gray-100">Dashboard</h1>

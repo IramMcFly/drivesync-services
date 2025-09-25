@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { FaCar, FaPhone, FaMapMarkerAlt, FaClock, FaUser, FaTimes, FaCheck, FaSpinner, FaExclamationTriangle, FaRoute, FaMoneyBillWave } from 'react-icons/fa';
+import { FaCar, FaPhone, FaMapMarkerAlt, FaClock, FaUser, FaTimes, FaCheck, FaSpinner, FaExclamationTriangle, FaRoute, FaMoneyBillWave, FaStar } from 'react-icons/fa';
 import dynamic from 'next/dynamic';
+import RatingModal from '../../ui/RatingModal';
 
 // Importación dinámica para evitar errores de SSR
 const LeafletMap = dynamic(() => import('../../maps/LeafletMap'), {
@@ -28,6 +29,11 @@ export default function ClienteServiceStatus({
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
   const intervalRef = useRef(null);
+  
+  // Estados para el rating
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
 
   // Función para calcular distancia haversine
   const calculateDistance = useCallback((lat1, lon1, lat2, lon2) => {
@@ -193,6 +199,47 @@ export default function ClienteServiceStatus({
       }
     };
   }, [serviceRequest?.asistente?._id, serviceRequest?.estado, fetchAsistenteLocation]);
+
+  // Función para manejar el envío de calificación
+  const handleRatingSubmit = async (ratingData) => {
+    setIsSubmittingRating(true);
+    try {
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(ratingData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al enviar la calificación');
+      }
+
+      const result = await response.json();
+      console.log('Calificación enviada exitosamente:', result);
+      
+      setRatingSubmitted(true);
+      setShowRatingModal(false);
+      
+      // Opcional: mostrar mensaje de éxito
+      // toast.success('¡Gracias por tu calificación!');
+      
+    } catch (error) {
+      console.error('Error enviando calificación:', error);
+      throw error; // Re-throw para que el modal pueda mostrar el error
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
+  // Verificar si el servicio ya fue calificado
+  useEffect(() => {
+    if (serviceRequest?.isRated) {
+      setRatingSubmitted(true);
+    }
+  }, [serviceRequest?.isRated]);
 
   // Limpiar estado cuando el servicio se cancela o finaliza
   useEffect(() => {
@@ -482,20 +529,58 @@ export default function ClienteServiceStatus({
         {/* Footer para servicios finalizados o cancelados */}
         {(serviceRequest.estado === 'finalizado' || serviceRequest.estado === 'cancelado') && (
           <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={onClose}
-              className={`
-                w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-white
-                ${serviceRequest.estado === 'finalizado' 
-                  ? 'bg-green-500 hover:bg-green-600' 
-                  : 'bg-gray-600 hover:bg-gray-700'
+            {serviceRequest.estado === 'finalizado' && !ratingSubmitted && !serviceRequest.isRated ? (
+              // Mostrar botones de calificar y cerrar
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowRatingModal(true)}
+                  className="w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-white bg-yellow-500 hover:bg-yellow-600"
+                >
+                  <FaStar />
+                  Calificar Servicio
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full py-2 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-gray-600 bg-gray-100 hover:bg-gray-200"
+                >
+                  Cerrar sin calificar
+                </button>
+              </div>
+            ) : (
+              // Botón normal para servicios cancelados o ya calificados
+              <button
+                onClick={onClose}
+                className={`
+                  w-full py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-white
+                  ${serviceRequest.estado === 'finalizado' 
+                    ? ratingSubmitted || serviceRequest.isRated
+                      ? 'bg-green-500 hover:bg-green-600'
+                      : 'bg-green-500 hover:bg-green-600'
+                    : 'bg-gray-600 hover:bg-gray-700'
+                  }
+                `}
+              >
+                <FaCheck />
+                {serviceRequest.estado === 'finalizado' 
+                  ? (ratingSubmitted || serviceRequest.isRated ? '¡Gracias por calificar!' : '¡Entendido!')
+                  : 'Cerrar'
                 }
-              `}
-            >
-              <FaCheck />
-              {serviceRequest.estado === 'finalizado' ? '¡Entendido!' : 'Cerrar'}
-            </button>
+              </button>
+            )}
           </div>
+        )}
+
+        {/* Rating Modal */}
+        {showRatingModal && (
+          <RatingModal
+            isOpen={showRatingModal}
+            onClose={() => setShowRatingModal(false)}
+            onSubmit={handleRatingSubmit}
+            tallerNombre={serviceRequest?.taller?.nombre || 'el taller'}
+            serviceId={serviceRequest?._id}
+            tallerId={serviceRequest?.taller?._id}
+            isLoading={isSubmittingRating}
+          />
         )}
       </div>
     </div>

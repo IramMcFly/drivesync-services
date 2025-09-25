@@ -23,6 +23,24 @@ export default function ServiceStatusWrapper() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
 
+  // Helper para marcar servicios como mostrados
+  const addShownService = useCallback((serviceId, estado) => {
+    try {
+      if (typeof window === 'undefined') return;
+      const stored = localStorage.getItem('shownServices');
+      const shownServices = stored ? JSON.parse(stored) : [];
+      const serviceKey = `${serviceId}-${estado}`;
+      
+      if (!shownServices.includes(serviceKey)) {
+        shownServices.push(serviceKey);
+        const limited = shownServices.slice(-50);
+        localStorage.setItem('shownServices', JSON.stringify(limited));
+      }
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  }, []);
+
   // Comentamos la auto-actualización para que solo sea manual
   // useEffect(() => {
   //   if (!autoRefreshEnabled || !activeService) return;
@@ -246,7 +264,13 @@ export default function ServiceStatusWrapper() {
           <div className="flex-1 overflow-hidden">
             <ClienteServiceStatus
               serviceRequest={activeService}
-              onClose={() => setShowServiceStatus(false)}
+              onClose={() => {
+                // Marcar como mostrado al cerrar desde el componente interno
+                if (activeService) {
+                  addShownService(activeService._id, activeService.estado);
+                }
+                setShowServiceStatus(false);
+              }}
               isEmbedded={true}
               stateInfo={stateInfo}
             />
@@ -256,7 +280,13 @@ export default function ServiceStatusWrapper() {
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
             {canClose ? (
               <button
-                onClick={() => setShowServiceStatus(false)}
+                onClick={() => {
+                  // Marcar como mostrado al cerrar manualmente
+                  if (activeService) {
+                    addShownService(activeService._id, activeService.estado);
+                  }
+                  setShowServiceStatus(false);
+                }}
                 className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
               >
                 Cerrar

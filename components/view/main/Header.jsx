@@ -87,23 +87,23 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full bg-gray-800 border-b border-gray-700 transition-colors">
+      <header className="sticky top-0 z-40 w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 backdrop-blur-lg border-b border-gray-600/50 shadow-lg transition-all duration-300">
         <div className="mx-auto px-4 lg:px-6">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex h-18 items-center justify-between">
+            <div className="flex items-center gap-4">
               <button 
                 onClick={() => router.push('/main/servicios-express')} 
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-4 hover:scale-105 transition-all duration-300 group"
               >
-                <div className="rounded-xl overflow-hidden w-10 h-10 bg-primary p-1">
-                  <Image src="/images/logoDS.png" alt="DriveSync logo" width={32} height={32} className="w-full h-full object-contain" />
+                <div className="rounded-2xl overflow-hidden w-12 h-12 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 p-1.5 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                  <Image src="/images/logoDS.png" alt="DriveSync logo" width={40} height={40} className="w-full h-full object-contain filter drop-shadow-sm" />
                 </div>
-                <span className="font-bold text-gray-100 text-xl transition-colors">DriveSync</span>
+                <span className="font-bold text-white text-2xl tracking-wide bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent transition-all duration-300">DriveSync</span>
               </button>
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav className="hidden md:flex items-center space-x-2">
               {navigationLinks.map((link) => (
                 <NavItem
                   key={link.href}
@@ -117,41 +117,41 @@ export default function Header() {
             </nav>
 
             {/* User Profile Button */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
-                className="text-gray-300 hover:bg-gray-700 p-2.5 rounded-full transition-colors"
+                className="text-gray-300 hover:text-white hover:bg-white/10 p-3 rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20"
                 onClick={() => router.push("/main/userProfile")}
                 aria-label="Perfil de usuario"
               >
-                <FaUser size={18} />
+                <FaUser size={20} />
               </button>
               
               {/* Mobile menu button */}
               <button
-                className="md:hidden text-gray-300 hover:bg-gray-700 p-2.5 rounded-full ml-2 transition-colors"
+                className="md:hidden text-gray-300 hover:text-white hover:bg-white/10 p-3 rounded-xl ml-2 transition-all duration-300 backdrop-blur-sm border border-white/10 hover:border-white/20"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
-                {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+                {isMenuOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
               </button>
             </div>
           </div>
 
           {/* Mobile Navigation Menu */}
           {isMenuOpen && (
-            <nav className="md:hidden py-4 border-t border-gray-600 bg-gray-800 transition-colors">
-              <div className="flex flex-col space-y-2">
+            <nav className="md:hidden py-6 border-t border-gray-600/50 bg-gradient-to-b from-gray-800/95 to-gray-900/95 backdrop-blur-lg transition-all duration-300">
+              <div className="flex flex-col space-y-3">
                 {navigationLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2 transition-colors ${
+                    className={`flex items-center px-6 py-4 text-sm font-medium rounded-2xl mx-4 transition-all duration-300 backdrop-blur-sm border ${
                       pathname === link.href
-                        ? "bg-primary text-white"
-                        : "text-gray-300 hover:bg-gray-700"
+                        ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border-orange-500/30 shadow-lg"
+                        : "text-gray-300 hover:bg-white/10 border-white/10 hover:border-white/20 hover:text-white"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <span className="mr-3 text-base">{link.icon}</span>
+                    <span className="mr-4 text-lg">{link.icon}</span>
                     {link.name}
                   </Link>
                 ))}
@@ -163,12 +163,12 @@ export default function Header() {
 
       {/* Bottom Navigation for Mobile */}
       {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 h-16 flex items-center justify-around z-50 shadow-lg transition-colors">
+        <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-800 to-gray-800/95 backdrop-blur-xl border-t border-gray-600/50 h-20 flex items-center justify-around z-50 shadow-2xl transition-all duration-300">
           {navigationLinks.map((link) => (
             <MobileNavItem
               key={link.href}
               href={link.href}
-              icon={React.cloneElement(link.icon, { size: 24 })}
+              icon={React.cloneElement(link.icon, { size: 26 })}
               active={pathname === link.href}
             >
               {link.name}
@@ -184,13 +184,13 @@ function NavItem({ href, children, active, icon }) {
   return (
     <Link
       href={href}
-      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center ${
+      className={`px-5 py-3 rounded-2xl text-sm font-medium transition-all duration-300 flex items-center backdrop-blur-sm border ${
         active 
-          ? "bg-primary text-white shadow-md" 
-          : "text-gray-300 hover:bg-gray-700"
+          ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 text-white border-orange-500/30 shadow-lg transform scale-105" 
+          : "text-gray-300 hover:text-white hover:bg-white/10 border-white/10 hover:border-white/20 hover:scale-105"
       }`}
     >
-      {icon && <span className="mr-2 text-base">{icon}</span>}
+      {icon && <span className="mr-3 text-base">{icon}</span>}
       {children}
     </Link>
   )
@@ -198,14 +198,20 @@ function NavItem({ href, children, active, icon }) {
 
 function MobileNavItem({ href, children, icon, active }) {
   return (
-    <Link href={href} className="flex flex-col items-center justify-center py-2 px-3 min-w-0 flex-1">
-      <span className={`mb-1 text-lg transition-colors ${
-        active ? "text-primary" : "text-gray-400"
+    <Link href={href} className="flex flex-col items-center justify-center py-3 px-4 min-w-0 flex-1 group">
+      <div className={`p-2 rounded-xl mb-2 transition-all duration-300 ${
+        active 
+          ? "bg-gradient-to-br from-orange-500/30 to-red-500/30 border border-orange-500/40" 
+          : "group-hover:bg-white/10 border border-transparent group-hover:border-white/20"
       }`}>
-        {icon}
-      </span>
-      <span className={`text-xs font-medium truncate transition-colors ${
-        active ? "text-primary" : "text-gray-400"
+        <span className={`text-xl transition-all duration-300 ${
+          active ? "text-orange-400" : "text-gray-400 group-hover:text-white"
+        }`}>
+          {icon}
+        </span>
+      </div>
+      <span className={`text-xs font-medium truncate transition-all duration-300 ${
+        active ? "text-orange-400" : "text-gray-400 group-hover:text-white"
       }`}>
         {children}
       </span>

@@ -16,7 +16,9 @@ const tallerSchema = new mongoose.Schema({
     lng: Number,
     direccion: String,
   },
-  calificacion: { type: Number, default: 0, min: 0, max: 5 }, // Promedio de calificación del taller
+  rating: { type: Number, default: 0, min: 0, max: 5 }, // Promedio de calificación del taller
+  totalRatings: { type: Number, default: 0 }, // Número total de calificaciones recibidas
+  calificacion: { type: Number, default: 0, min: 0, max: 5 }, // Campo legacy, usar 'rating' en su lugar
 }, {
   timestamps: true
 });

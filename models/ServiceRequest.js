@@ -27,6 +27,7 @@ const serviceRequestSchema = new mongoose.Schema({
     comentario: String,
   }],
   fechaSolicitud: { type: Date, default: Date.now },
+  isRated: { type: Boolean, default: false }, // Indica si el servicio ya fue calificado
 }, {
   timestamps: true
 });
