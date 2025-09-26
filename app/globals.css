@@ -146,6 +146,58 @@ div[class*="border-gray-200"] {
   --gray-900: #f8fafc;
 }
 
+/* Mejorar scroll en móvil para dashboards */
+.dashboard-container {
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Asegurar que los botones sean completamente accesibles en móvil */
+.mobile-service-button {
+  min-height: 48px; /* Tamaño mínimo recomendado para touch */
+  touch-action: manipulation; /* Mejora responsividad touch */
+  -webkit-tap-highlight-color: transparent; /* Elimina highlight azul en iOS */
+}
+
+/* Mejorar área de scroll en móvil */
+@media (max-width: 640px) {
+  .dashboard-content {
+    padding-bottom: 6rem; /* Espacio extra para evitar que el contenido se oculte */
+    margin-bottom: env(safe-area-inset-bottom); /* Respeta safe areas */
+  }
+  
+  /* Asegurar que los sticky headers no interfieran */
+  .sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  /* Mejorar visibilidad de botones en servicios */
+  .mobile-service-button {
+    position: relative;
+    z-index: 10;
+  }
+}
+
+/* Fix para scroll mejorado en móvil */
+@media (max-width: 640px) {
+  /* Asegurar scroll suave en contenedores de dashboard */
+  .dashboard-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
 /* Aplicar tema al body */
 body {
   background-color: var(--background);

@@ -384,9 +384,9 @@ const AsistenteDashboard = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="dashboard-container bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header del Dashboard */}
-      <div className="bg-gray-800 shadow-sm sticky top-0 z-10">
+      <div className="sticky-header bg-gray-800 shadow-sm border-b border-gray-700">
         <div className="px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-3">
@@ -435,7 +435,7 @@ const AsistenteDashboard = () => {
         </div>
       </div>
 
-      <div className="px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-safe">
+      <div className="dashboard-content px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-24 sm:pb-8">
         {/* Información del Asistente */}
         <div className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
@@ -608,7 +608,7 @@ const AsistenteDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="flex items-center text-xs sm:text-sm text-gray-500">
                       <FaMapMarkerAlt className="w-3 h-3 mr-1" />
                       <span>Ubicación del cliente disponible</span>
@@ -616,10 +616,10 @@ const AsistenteDashboard = () => {
                     
                     <button
                       onClick={() => aceptarServicio(servicio._id)}
-                      className="bg-primary hover:bg-primary-hover text-white px-4 sm:px-6 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full sm:w-auto"
+                      className="mobile-service-button bg-primary hover:bg-primary-hover active:bg-primary-dark text-white px-4 py-3 sm:py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 text-sm sm:text-base w-full shadow-lg hover:shadow-xl transform active:scale-95 transition-transform"
                     >
-                      <FaCheck className="w-3 h-3 sm:w-4 sm:h-4" />
-                      Aceptar Servicio
+                      <FaCheck className="w-4 h-4" />
+                      <span>Aceptar Servicio</span>
                     </button>
                   </div>
                 </div>
