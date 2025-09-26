@@ -163,17 +163,19 @@ export default function Header() {
 
       {/* Bottom Navigation for Mobile */}
       {isMobile && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-800 to-gray-800/95 backdrop-blur-xl border-t border-gray-600/50 h-20 flex items-center justify-around z-50 shadow-2xl transition-all duration-300">
-          {navigationLinks.map((link) => (
-            <MobileNavItem
-              key={link.href}
-              href={link.href}
-              icon={React.cloneElement(link.icon, { size: 26 })}
-              active={pathname === link.href}
-            >
-              {link.name}
-            </MobileNavItem>
-          ))}
+        <nav className="mobile-nav-bottom fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-800 to-gray-800/95 backdrop-blur-xl border-t border-gray-600/50 z-50 shadow-2xl transition-all duration-300">
+          <div className="grid grid-cols-4 h-16 items-center px-1">
+            {navigationLinks.map((link) => (
+              <MobileNavItem
+                key={link.href}
+                href={link.href}
+                icon={React.cloneElement(link.icon, { size: 20 })}
+                active={pathname === link.href}
+              >
+                {link.name}
+              </MobileNavItem>
+            ))}
+          </div>
         </nav>
       )}
     </>
@@ -197,23 +199,35 @@ function NavItem({ href, children, active, icon }) {
 }
 
 function MobileNavItem({ href, children, icon, active }) {
+  // Acortar nombres para móvil
+  const shortNames = {
+    "Servicios Express": "Servicios",
+    "Lugares Afiliados": "Lugares",
+    "Asistencia Especial": "Asistencia",
+    "Dashboard Asistente": "Dashboard",
+    "Panel Admin": "Admin",
+    "Dashboard Taller": "Taller"
+  };
+
+  const displayName = shortNames[children] || children;
+
   return (
-    <Link href={href} className="flex flex-col items-center justify-center py-3 px-4 min-w-0 flex-1 group">
-      <div className={`p-2 rounded-xl mb-2 transition-all duration-300 ${
+    <Link href={href} className="flex flex-col items-center justify-center py-2 px-1 min-w-0 group">
+      <div className={`p-1.5 rounded-lg mb-1 transition-all duration-300 ${
         active 
-          ? "bg-gradient-to-br from-orange-500/30 to-red-500/30 border border-orange-500/40" 
-          : "group-hover:bg-white/10 border border-transparent group-hover:border-white/20"
+          ? "bg-gradient-to-br from-orange-500/30 to-red-500/30" 
+          : "group-hover:bg-white/10"
       }`}>
-        <span className={`text-xl transition-all duration-300 ${
+        <span className={`transition-all duration-300 ${
           active ? "text-orange-400" : "text-gray-400 group-hover:text-white"
         }`}>
           {icon}
         </span>
       </div>
-      <span className={`text-xs font-medium truncate transition-all duration-300 ${
+      <span className={`mobile-nav-text font-medium text-center transition-all duration-300 max-w-full px-0.5 ${
         active ? "text-orange-400" : "text-gray-400 group-hover:text-white"
       }`}>
-        {children}
+        {displayName}
       </span>
     </Link>
   )

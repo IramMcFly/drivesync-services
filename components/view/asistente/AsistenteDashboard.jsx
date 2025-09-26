@@ -435,7 +435,7 @@ const AsistenteDashboard = () => {
         </div>
       </div>
 
-      <div className="dashboard-content px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-24 sm:pb-8">
+      <div className="dashboard-content px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-20 sm:pb-8">
         {/* Información del Asistente */}
         <div className="bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
