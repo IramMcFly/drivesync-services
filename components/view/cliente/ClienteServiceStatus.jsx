@@ -318,7 +318,7 @@ export default function ClienteServiceStatus({
   // Renderizado para modo embedded (dentro del wrapper)
   if (isEmbedded) {
     return (
-      <div className="h-full overflow-y-auto">
+      <div className="h-full">
         <div className="p-4 space-y-4">
           {/* Información del asistente */}
           {serviceRequest.asistente && (

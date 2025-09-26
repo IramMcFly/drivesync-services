@@ -195,6 +195,20 @@ div[class*="border-gray-200"] {
     word-break: break-word;
     hyphens: auto;
   }
+  
+  /* ServiceStatusWrapper móvil */
+  .service-status-modal {
+    max-height: calc(100vh - 140px); /* Restar header + menú inferior + padding */
+  }
+  
+  /* Botón de cancelar siempre visible */
+  .cancel-service-button {
+    position: sticky;
+    bottom: 0;
+    background-color: rgba(31, 41, 55, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
 }
 
 /* Fix para scroll mejorado en móvil */

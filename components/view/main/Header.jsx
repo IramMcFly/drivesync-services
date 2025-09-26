@@ -164,7 +164,7 @@ export default function Header() {
       {/* Bottom Navigation for Mobile */}
       {isMobile && (
         <nav className="mobile-nav-bottom fixed bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-800 to-gray-800/95 backdrop-blur-xl border-t border-gray-600/50 z-50 shadow-2xl transition-all duration-300">
-          <div className="grid grid-cols-4 h-16 items-center px-1">
+          <div className={`${navigationLinks.length === 4 ? 'grid-cols-4' : 'grid-cols-3'} grid h-16 items-center px-1`}>
             {navigationLinks.map((link) => (
               <MobileNavItem
                 key={link.href}

@@ -162,15 +162,17 @@ export default function ServiceStatusWrapper() {
       <div className={`
         fixed z-40 transition-all duration-300 ease-in-out
         
-        /* Mobile: Modal centrado */
-        inset-4 md:inset-auto
+        /* Mobile: Modal que respeta menu y safe area */
+        inset-4 pb-20 md:inset-auto md:pb-4
+        /* Asegurar que no se tape con el menú inferior */
+        bottom-20 sm:bottom-4
         
         /* Desktop: Panel lateral derecho */
         md:top-4 md:right-4 md:bottom-4 md:w-96 md:max-w-md
         
         ${showServiceStatus ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
       `}>
-        <div className="h-full bg-gray-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="service-status-modal h-full bg-gray-800 rounded-xl shadow-2xl flex flex-col overflow-hidden">
           {/* Header */}
           <div className={`
             px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0
@@ -191,27 +193,10 @@ export default function ServiceStatusWrapper() {
               </div>
               
               <div className="flex items-center gap-2">
-                {/* Botón minimizar (solo móvil) */}
-                {!canClose && (
-                  <button
-                    onClick={() => setIsMinimized(true)}
-                    className="md:hidden p-1 rounded-full hover:bg-black/10 transition-colors"
-                  >
-                    <FaTimes className={`w-4 h-4 ${stateInfo.textColor}`} />
-                  </button>
-                )}
-                
-                {/* Botón cerrar */}
+                {/* Botón único de cerrar/minimizar */}
                 <button
-                  onClick={() => setShowServiceStatus(false)}
-                  disabled={!canClose && !isLoading}
-                  className={`
-                    p-1 rounded-full transition-colors
-                    ${canClose || isLoading 
-                      ? 'hover:bg-black/10 cursor-pointer' 
-                      : 'opacity-50 cursor-not-allowed'
-                    }
-                  `}
+                  onClick={() => canClose ? setShowServiceStatus(false) : setIsMinimized(true)}
+                  className="p-1 rounded-full hover:bg-black/10 transition-colors"
                 >
                   <FaTimes className={`w-4 h-4 ${stateInfo.textColor}`} />
                 </button>
@@ -260,8 +245,8 @@ export default function ServiceStatusWrapper() {
             </div>
           )}
 
-          {/* Contenido principal */}
-          <div className="flex-1 overflow-hidden">
+          {/* Contenido principal scrolleable */}
+          <div className="flex-1 overflow-y-auto">
             <ClienteServiceStatus
               serviceRequest={activeService}
               onClose={() => {
@@ -277,7 +262,7 @@ export default function ServiceStatusWrapper() {
           </div>
 
           {/* Footer con botones */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
+          <div className="cancel-service-button p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex-shrink-0">
             {canClose ? (
               <button
                 onClick={() => {
