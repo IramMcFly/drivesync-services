@@ -362,8 +362,8 @@ export default function ServiceTracking({ serviceId }) {
   };
 
   const handleCallAssistant = () => {
-    if (serviceData?.asistente?.telefono) {
-      window.location.href = `tel:${serviceData.asistente.telefono}`;
+    if (serviceData?.asistente?.user?.telefono) {
+      window.location.href = `tel:${serviceData.asistente.user.telefono}`;
     }
   };
 
@@ -569,7 +569,7 @@ export default function ServiceTracking({ serviceId }) {
             <button
               onClick={handleCallAssistant}
               className="flex-1 bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              disabled={!serviceData.asistente?.telefono}
+              disabled={!serviceData.asistente?.user?.telefono}
             >
               <FaPhoneAlt size={16} />
               Llamar
@@ -599,13 +599,13 @@ export default function ServiceTracking({ serviceId }) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Nombre:</span>
-                <span className="font-medium">{serviceData.asistente.nombre}</span>
+                <span className="font-medium">{serviceData.asistente.user?.nombre || 'No disponible'}</span>
               </div>
               
-              {serviceData.asistente.telefono && (
+              {serviceData.asistente.user?.telefono && (
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Teléfono:</span>
-                  <span className="font-medium">{serviceData.asistente.telefono}</span>
+                  <span className="font-medium">{serviceData.asistente.user.telefono}</span>
                 </div>
               )}
               
