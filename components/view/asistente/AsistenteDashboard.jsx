@@ -103,23 +103,37 @@ const AsistenteDashboard = () => {
       const response = await fetch(`/api/asistente?userId=${session.user.id}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 Datos recibidos del API:', data);
+        console.log('🔍 Servicios:', data.servicios?.map(s => ({ 
+          id: s._id, 
+          servicio: s.servicio, 
+          hasServicio: !!s.servicio 
+        })));
+        
         setAsistenteData(data.asistente);
         
-        // Separar servicios disponibles y asignados
-        const disponibles = data.servicios.filter(s => s.estado === 'pendiente');
-        const asignados = data.servicios.filter(s => ['asignado', 'en_camino'].includes(s.estado));
+        // Separar servicios disponibles y asignados (con validación adicional)
+        const disponibles = data.servicios.filter(s => 
+          s.estado === 'pendiente' && s.servicio && s.cliente
+        );
+        const asignados = data.servicios.filter(s => 
+          ['asignado', 'en_camino'].includes(s.estado) && s.servicio && s.cliente
+        );
         
         // Detectar nuevos servicios para notificación
         if (isOnline && disponibles.length > previousServicesCount && previousServicesCount > 0) {
           const nuevoServicio = disponibles[0]; // El más reciente
-          setNewServiceNotification(nuevoServicio);
-          
-          // Reproducir sonido de notificación si está disponible
-          try {
-            const audio = new Audio('/notification.mp3');
-            audio.play().catch(e => console.log('No se pudo reproducir sonido'));
-          } catch (e) {
-            console.log('Audio no disponible');
+          // Solo mostrar notificación si el servicio tiene los datos mínimos requeridos
+          if (nuevoServicio && nuevoServicio.servicio && nuevoServicio.cliente) {
+            setNewServiceNotification(nuevoServicio);
+            
+            // Reproducir sonido de notificación si está disponible
+            try {
+              const audio = new Audio('/notification.mp3');
+              audio.play().catch(e => console.log('No se pudo reproducir sonido'));
+            } catch (e) {
+              console.log('Audio no disponible');
+            }
           }
         }
         
@@ -478,7 +492,9 @@ const AsistenteDashboard = () => {
                 <div key={servicio._id} className="bg-primary/10 border border-primary/20 rounded-lg p-3 sm:p-4">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-base sm:text-lg">{servicio.servicio.nombre}</h3>
+                      <h3 className="font-semibold text-base sm:text-lg">
+                        {servicio.servicio?.nombre || 'Servicio sin nombre'}
+                      </h3>
                       {servicio.subtipo && (
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{servicio.subtipo}</p>
                       )}
@@ -500,26 +516,28 @@ const AsistenteDashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
-                      <p className="font-medium text-sm sm:text-base">{servicio.cliente.nombre}</p>
-                      <p className="text-xs sm:text-sm text-gray-500">{servicio.cliente.telefono}</p>
+                      <p className="font-medium text-sm sm:text-base">{servicio.cliente?.nombre || 'Cliente no disponible'}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{servicio.cliente?.telefono || ''}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
                       <p className="font-medium text-sm sm:text-base">
-                        {servicio.detallesVehiculo.tipoVehiculo} - {servicio.detallesVehiculo.marca}
+                        {servicio.detallesVehiculo?.tipoVehiculo || 'N/A'} - {servicio.detallesVehiculo?.marca || 'N/A'}
                       </p>
-                      <p className="text-xs sm:text-sm text-gray-500">{servicio.detallesVehiculo.año}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{servicio.detallesVehiculo?.año || ''}</p>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    <a
-                      href={`tel:${servicio.cliente.telefono}`}
-                      className="flex items-center gap-1 sm:gap-2 bg-green-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-600 transition-colors"
-                    >
-                      <FaPhoneAlt className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Llamar</span>
-                    </a>
+                    {servicio.cliente?.telefono && (
+                      <a
+                        href={`tel:${servicio.cliente.telefono}`}
+                        className="flex items-center gap-1 sm:gap-2 bg-green-500 text-white px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium hover:bg-green-600 transition-colors"
+                      >
+                        <FaPhoneAlt className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>Llamar</span>
+                      </a>
+                    )}
                     
                     <button
                       onClick={() => manejarServicio(servicio)}
@@ -579,7 +597,9 @@ const AsistenteDashboard = () => {
                 <div key={servicio._id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-base sm:text-lg">{servicio.servicio.nombre}</h3>
+                      <h3 className="font-semibold text-base sm:text-lg">
+                        {servicio.servicio?.nombre || 'Servicio sin nombre'}
+                      </h3>
                       {servicio.subtipo && (
                         <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{servicio.subtipo}</p>
                       )}
@@ -590,7 +610,7 @@ const AsistenteDashboard = () => {
                       </p>
                       <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
                         <FaClock className="w-3 h-3" />
-                        {new Date(servicio.fechaSolicitud).toLocaleTimeString()}
+                        {servicio.fechaSolicitud ? new Date(servicio.fechaSolicitud).toLocaleTimeString() : 'Hora no disponible'}
                       </p>
                     </div>
                   </div>
@@ -598,12 +618,12 @@ const AsistenteDashboard = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Cliente:</p>
-                      <p className="font-medium text-sm sm:text-base">{servicio.cliente.nombre}</p>
+                      <p className="font-medium text-sm sm:text-base">{servicio.cliente?.nombre || 'Cliente no disponible'}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">Vehículo:</p>
                       <p className="font-medium text-sm sm:text-base">
-                        {servicio.detallesVehiculo.tipoVehiculo} - {servicio.detallesVehiculo.marca}
+                        {servicio.detallesVehiculo?.tipoVehiculo || 'N/A'} - {servicio.detallesVehiculo?.marca || 'N/A'}
                       </p>
                     </div>
                   </div>

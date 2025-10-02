@@ -57,11 +57,37 @@ export async function GET(request) {
     }
 
     const servicios = await ServiceRequest.find(query)
-      .populate('cliente', 'nombre telefono email')
-      .populate('taller', 'nombre direccion')
-      .populate('servicio', 'nombre descripcion')
-      .populate('asistente', 'placa vehiculo')
+      .populate({
+        path: 'cliente',
+        select: 'nombre telefono email',
+        match: { _id: { $exists: true } }
+      })
+      .populate({
+        path: 'taller',
+        select: 'nombre direccion',
+        match: { _id: { $exists: true } }
+      })
+      .populate({
+        path: 'servicio',
+        select: 'nombre descripcion',
+        match: { _id: { $exists: true } }
+      })
+      .populate({
+        path: 'asistente',
+        select: 'placa vehiculo',
+        match: { _id: { $exists: true } }
+      })
       .sort({ fechaSolicitud: -1 });
+
+    // Filtrar servicios que no tienen servicio válido
+    const serviciosValidos = servicios.filter(s => s.servicio != null);
+    
+    // Log para debugging
+    console.log('🔍 API Debug:', {
+      totalServicios: servicios.length,
+      serviciosValidos: serviciosValidos.length,
+      serviciosConProblemas: servicios.filter(s => !s.servicio || !s.cliente).length
+    });
 
     return NextResponse.json({
       success: true,
@@ -73,7 +99,7 @@ export async function GET(request) {
         placa: asistente.placa,
         ubicacionActual: asistente.ubicacionActual // ✅ Agregar ubicación actual
       },
-      servicios
+      servicios: serviciosValidos
     });
 
   } catch (error) {
