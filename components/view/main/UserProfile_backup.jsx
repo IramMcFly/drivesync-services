@@ -293,7 +293,7 @@ export default function UserProfile() {
                     
                     {/* Botón de cerrar sesión */}
                     <button
-                      onClick={() => signOut()}
+                      onClick={() => signOut({ callbackUrl: '/login' })}
                       className="w-full mt-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 rounded-2xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                     >
                       <FaSignOutAlt />

@@ -445,10 +445,10 @@ export default function RegisterTaller() {
                     id="terms-taller"
                     checked={acceptedTerms}
                     onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="mt-1 w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2"
+                    className="mt-1 w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2 cursor-pointer"
                     required
                   />
-                  <label htmlFor="terms-taller" className="text-sm text-gray-300 leading-5">
+                  <label htmlFor="terms-taller" className="text-sm text-gray-300 leading-5 cursor-pointer">
                     He leído y acepto los{' '}
                     <Link
                       href="/terminos-condiciones"

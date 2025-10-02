@@ -876,7 +876,7 @@ export default function AdminDashboard() {
               <span className="font-medium">Ir a Servicios Express</span>
             </button>
             <button
-              onClick={() => signOut()}
+              onClick={() => signOut({ callbackUrl: '/login' })}
               className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
             >
               <FaSignOutAlt />

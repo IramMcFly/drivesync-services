@@ -763,3 +763,45 @@ input[type="password"]::placeholder {
     height: 3rem;
   }
 }
+
+/* Estilos específicos para checkboxes */
+input[type="checkbox"] {
+  /* Restaurar appearance para checkboxes */
+  -webkit-appearance: checkbox !important;
+  -moz-appearance: checkbox !important;
+  appearance: checkbox !important;
+  
+  /* Asegurar que sea clickeable */
+  cursor: pointer !important;
+  position: relative !important;
+  
+  /* Mejorar visibilidad */
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  
+  /* Asegurar tamaño mínimo */
+  min-width: 1rem !important;
+  min-height: 1rem !important;
+  
+  /* Asegurar que esté visible */
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+/* Mejorar el label asociado */
+label[for] {
+  cursor: pointer !important;
+}
+
+/* Estado de hover para checkboxes */
+input[type="checkbox"]:hover {
+  opacity: 0.8 !important;
+  transform: scale(1.05) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Estado de focus para checkboxes */
+input[type="checkbox"]:focus {
+  outline: 2px solid #FF4500 !important;
+  outline-offset: 2px !important;
+}
