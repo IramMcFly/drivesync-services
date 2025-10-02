@@ -19,19 +19,17 @@ import {
   FaHeart,
   FaEye,
   FaFilter,
-  FaSearch
+  FaSearch,
+  FaCheckCircle
 } from 'react-icons/fa';
 
 export default function LugaresAfiliados() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [talleres, setTalleres] = useState([]);
-  const [comentarios, setComentarios] = useState({});
+  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedTaller, setSelectedTaller] = useState(null);
-  const [nuevoComentario, setNuevoComentario] = useState('');
-  const [calificacion, setCalificacion] = useState(5);
-  const [submittingComment, setSubmittingComment] = useState(false);
   const [filtro, setFiltro] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [redirectTimer, setRedirectTimer] = useState(null);
@@ -75,21 +73,21 @@ export default function LugaresAfiliados() {
         const data = await response.json();
         setTalleres(data);
         
-        // Fetch comentarios para cada taller
-        const comentariosData = {};
+        // Fetch ratings para cada taller
+        const ratingsData = {};
         for (const taller of data) {
           try {
-            const commentsRes = await fetch(`/api/comentarios?tallerId=${taller._id}`);
-            if (commentsRes.ok) {
-              const comments = await commentsRes.json();
-              comentariosData[taller._id] = comments;
+            const ratingsRes = await fetch(`/api/ratings?tallerId=${taller._id}`);
+            if (ratingsRes.ok) {
+              const ratingsInfo = await ratingsRes.json();
+              ratingsData[taller._id] = ratingsInfo;
             }
           } catch (error) {
-            console.error(`Error fetching comments for taller ${taller._id}:`, error);
-            comentariosData[taller._id] = [];
+            console.error(`Error fetching ratings for taller ${taller._id}:`, error);
+            ratingsData[taller._id] = { taller: { rating: 0, totalRatings: 0 }, ratings: [] };
           }
         }
-        setComentarios(comentariosData);
+        setRatings(ratingsData);
       }
     } catch (error) {
       console.error('Error fetching talleres:', error);
@@ -98,42 +96,16 @@ export default function LugaresAfiliados() {
     }
   };
 
-  const handleSubmitComment = async (tallerId) => {
-    if (!nuevoComentario.trim()) return;
-    
-    setSubmittingComment(true);
-    try {
-      const response = await fetch('/api/comentarios', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tallerId,
-          userId: session.user.id,
-          comentario: nuevoComentario,
-          calificacion: calificacion
-        }),
-      });
-
-      if (response.ok) {
-        setNuevoComentario('');
-        setCalificacion(5);
-        // Refresh comentarios
-        fetchTalleres();
-      }
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-    } finally {
-      setSubmittingComment(false);
-    }
+  const obtenerRatingPromedio = (tallerId) => {
+    const tallerRatings = ratings[tallerId];
+    if (!tallerRatings || !tallerRatings.taller) return 0;
+    return tallerRatings.taller.rating || 0;
   };
 
-  const calcularPromedioCalificacion = (tallerId) => {
-    const comments = comentarios[tallerId] || [];
-    if (comments.length === 0) return 0;
-    const suma = comments.reduce((acc, comment) => acc + comment.calificacion, 0);
-    return (suma / comments.length).toFixed(1);
+  const obtenerTotalRatings = (tallerId) => {
+    const tallerRatings = ratings[tallerId];
+    if (!tallerRatings || !tallerRatings.taller) return 0;
+    return tallerRatings.taller.totalRatings || 0;
   };
 
   const talleresFiltrados = talleres.filter(taller => {
@@ -244,7 +216,7 @@ export default function LugaresAfiliados() {
                               <FaStar
                                 key={i}
                                 className={`text-sm ${
-                                  i < Math.floor(calcularPromedioCalificacion(taller._id))
+                                  i < Math.floor(obtenerRatingPromedio(taller._id))
                                     ? 'text-yellow-400'
                                     : 'text-gray-300 dark:text-gray-600'
                                 }`}
@@ -252,7 +224,7 @@ export default function LugaresAfiliados() {
                             ))}
                           </div>
                           <span className="text-sm text-gray-600 dark:text-gray-400">
-                            ({calcularPromedioCalificacion(taller._id)})
+                            ({obtenerRatingPromedio(taller._id).toFixed(1)}) • {obtenerTotalRatings(taller._id)} reseñas
                           </span>
                         </div>
                       </div>
@@ -282,7 +254,7 @@ export default function LugaresAfiliados() {
                       className="flex-1 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
                     >
                       <FaComment />
-                      <span>Ver Comentarios ({comentarios[taller._id]?.length || 0})</span>
+                      <span>Ver Reseñas ({obtenerTotalRatings(taller._id)})</span>
                     </button>
                     <button
                       onClick={() => window.open(`tel:${taller.telefono}`, '_self')}
@@ -293,7 +265,7 @@ export default function LugaresAfiliados() {
                   </div>
                 </div>
 
-                {/* Sección de Comentarios Expandible */}
+                {/* Sección de Reseñas Expandible */}
                 {selectedTaller === taller._id && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -302,23 +274,72 @@ export default function LugaresAfiliados() {
                     transition={{ duration: 0.3 }}
                     className="p-6 bg-gray-50 dark:bg-gray-900"
                   >
-                    {/* Lista de Comentarios */}
+                    {/* Estadísticas del Taller */}
+                    <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                        Estadísticas de Calificaciones
+                      </h4>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-primary">
+                            {obtenerRatingPromedio(taller._id).toFixed(1)}
+                          </div>
+                          <div className="flex items-center justify-center mb-1">
+                            {[...Array(5)].map((_, i) => (
+                              <FaStar
+                                key={i}
+                                className={`text-lg ${
+                                  i < Math.floor(obtenerRatingPromedio(taller._id))
+                                    ? 'text-yellow-400'
+                                    : 'text-gray-300 dark:text-gray-600'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {obtenerTotalRatings(taller._id)} reseñas
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="space-y-2">
+                            {[5, 4, 3, 2, 1].map((rating) => {
+                              const ratingsForStar = ratings[taller._id]?.ratings?.filter(r => r.rating === rating).length || 0;
+                              const percentage = obtenerTotalRatings(taller._id) > 0 ? (ratingsForStar / obtenerTotalRatings(taller._id)) * 100 : 0;
+                              return (
+                                <div key={rating} className="flex items-center space-x-2 text-sm">
+                                  <span className="w-8">{rating}★</span>
+                                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div 
+                                      className="bg-yellow-400 rounded-full h-2 transition-all duration-300"
+                                      style={{ width: `${percentage}%` }}
+                                    ></div>
+                                  </div>
+                                  <span className="w-8 text-gray-600 dark:text-gray-400">{ratingsForStar}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lista de Reseñas */}
                     <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
-                      {comentarios[taller._id]?.length > 0 ? (
-                        comentarios[taller._id].map((comentario, idx) => (
-                          <div key={idx} className="bg-gray-800 rounded-lg p-4">
+                      {ratings[taller._id]?.ratings?.length > 0 ? (
+                        ratings[taller._id].ratings.map((rating, idx) => (
+                          <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center space-x-2">
                                 <FaUser className="text-gray-500" />
                                 <span className="font-medium text-gray-900 dark:text-gray-100">
-                                  {comentario.usuario?.nombre || 'Usuario'}
+                                  {rating.usuario?.nombre || 'Usuario'}
                                 </span>
                                 <div className="flex items-center">
                                   {[...Array(5)].map((_, i) => (
                                     <FaStar
                                       key={i}
                                       className={`text-xs ${
-                                        i < comentario.calificacion
+                                        i < rating.rating
                                           ? 'text-yellow-400'
                                           : 'text-gray-300 dark:text-gray-600'
                                       }`}
@@ -327,72 +348,49 @@ export default function LugaresAfiliados() {
                                 </div>
                               </div>
                               <span className="text-xs text-gray-500">
-                                {new Date(comentario.fecha).toLocaleDateString()}
+                                {new Date(rating.fechaCalificacion).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="text-gray-700 dark:text-gray-300 text-sm">
-                              {comentario.comentario}
-                            </p>
+                            {rating.comentario && (
+                              <p className="text-gray-700 dark:text-gray-300 text-sm">
+                                {rating.comentario}
+                              </p>
+                            )}
+                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-2">
+                              <FaCheckCircle className="text-green-500" />
+                              <span>Servicio verificado</span>
+                            </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-gray-500 text-center py-4">
-                          No hay comentarios aún. ¡Sé el primero en comentar!
-                        </p>
+                        <div className="text-center py-8">
+                          <FaComment className="text-4xl text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-500 mb-2">
+                            No hay reseñas aún para este taller
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            Las reseñas aparecen aquí cuando los clientes califican los servicios completados
+                          </p>
+                        </div>
                       )}
                     </div>
 
-                    {/* Formulario de Nuevo Comentario */}
+                    {/* Información sobre cómo dejar reseñas */}
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
-                        Deja tu comentario
-                      </h4>
-                      
-                      {/* Selector de Calificación */}
-                      <div className="flex items-center space-x-2 mb-3">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Calificación:</span>
-                        <div className="flex items-center space-x-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              onClick={() => setCalificacion(star)}
-                              className={`text-lg ${
-                                star <= calificacion ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
-                              } hover:text-yellow-400 transition-colors`}
-                            >
-                              <FaStar />
-                            </button>
-                          ))}
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <FaShieldAlt className="text-blue-500 mt-1" />
+                          <div>
+                            <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                              Reseñas Verificadas
+                            </h5>
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                              Solo los clientes que han completado un servicio pueden dejar una reseña. 
+                              Esto garantiza que todas las calificaciones sean auténticas y basadas en experiencias reales.
+                            </p>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Textarea para comentario */}
-                      <textarea
-                        value={nuevoComentario}
-                        onChange={(e) => setNuevoComentario(e.target.value)}
-                        placeholder="Comparte tu experiencia con este taller..."
-                        rows={3}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                      />
-
-                      {/* Botón de Envío */}
-                      <button
-                        onClick={() => handleSubmitComment(taller._id)}
-                        disabled={submittingComment || !nuevoComentario.trim()}
-                        className="mt-3 w-full bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                      >
-                        {submittingComment ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>Enviando...</span>
-                          </>
-                        ) : (
-                          <>
-                            <FaComment />
-                            <span>Enviar Comentario</span>
-                          </>
-                        )}
-                      </button>
                     </div>
                   </motion.div>
                 )}

@@ -14,6 +14,7 @@ export default function ServiceRatingModal({
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comentario, setComentario] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,7 +32,16 @@ export default function ServiceRatingModal({
         tallerId: serviceData.taller._id,
         clienteId: serviceData.cliente._id
       });
-      onClose();
+      
+      // Mostrar mensaje de éxito
+      setShowSuccess(true);
+      
+      // Cerrar modal después de 2 segundos
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+      }, 2000);
+      
     } catch (error) {
       console.error('Error al enviar calificación:', error);
       // Mostrar un mensaje de error más específico
@@ -70,6 +80,39 @@ export default function ServiceRatingModal({
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={onClose}
         >
+          {showSuccess ? (
+            // Mensaje de éxito
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-8 w-full max-w-md text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaCheckCircle className="text-green-500 text-3xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                ¡Calificación Enviada!
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Tu calificación se ha guardado exitosamente. Gracias por ayudar a mejorar nuestros servicios.
+              </p>
+              <div className="flex items-center justify-center space-x-1 text-yellow-400">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  star <= rating ? (
+                    <FaStar key={star} className="text-xl" />
+                  ) : (
+                    <FaRegStar key={star} className="text-xl" />
+                  )
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {ratingTexts[rating]}
+              </p>
+            </motion.div>
+          ) : (
+            // Modal original de calificación
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -223,6 +266,7 @@ export default function ServiceRatingModal({
               </p>
             )}
           </motion.div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
