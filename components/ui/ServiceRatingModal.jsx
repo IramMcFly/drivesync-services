@@ -34,7 +34,9 @@ export default function ServiceRatingModal({
       onClose();
     } catch (error) {
       console.error('Error al enviar calificación:', error);
-      alert('Error al enviar la calificación. Inténtalo de nuevo.');
+      // Mostrar un mensaje de error más específico
+      const errorMessage = error.message || 'Error al enviar la calificación. Inténtalo de nuevo.';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

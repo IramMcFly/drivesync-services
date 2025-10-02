@@ -205,6 +205,13 @@ const ServiceStatus = ({ serviceId }) => {
   // Función para manejar el envío de calificación
   const handleRatingSubmit = async (ratingData) => {
     try {
+      console.log('Enviando calificación con datos:', {
+        tallerId: serviceData.taller._id,
+        serviceRequestId: serviceData._id,
+        rating: ratingData.rating,
+        comentario: ratingData.comentario
+      });
+
       const response = await fetch('/api/ratings', {
         method: 'POST',
         headers: {
@@ -218,8 +225,11 @@ const ServiceStatus = ({ serviceId }) => {
         })
       });
 
+      console.log('Respuesta del servidor:', response.status, response.statusText);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('Calificación enviada exitosamente:', result);
         showSuccess(
           `¡Gracias por tu calificación de ${ratingData.rating} estrellas!`,
           'Calificación enviada',
@@ -230,6 +240,7 @@ const ServiceStatus = ({ serviceId }) => {
         );
       } else {
         const errorData = await response.json();
+        console.error('Error del servidor:', errorData);
         throw new Error(errorData.error || 'Error al enviar calificación');
       }
     } catch (error) {

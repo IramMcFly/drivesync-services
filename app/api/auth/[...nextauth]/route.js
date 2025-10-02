@@ -5,7 +5,7 @@ import User from "@/models/User";
 import Taller from "@/models/Taller";
 import bcrypt from "bcrypt";
 
-const handler = NextAuth({
+export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
@@ -144,7 +144,9 @@ const handler = NextAuth({
     debug(code, metadata) {
       console.log('NextAuth Debug:', code, metadata);
     }
-  },
-});
+  }
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
