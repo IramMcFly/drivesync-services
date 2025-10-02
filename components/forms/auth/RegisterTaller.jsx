@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaUserAlt, FaLock, FaEnvelope, FaPhone, FaMapMarkerAlt, FaEye, FaEyeSlash, FaTools, FaCog } from 'react-icons/fa';
+import { FaUserAlt, FaLock, FaEnvelope, FaPhone, FaMapMarkerAlt, FaEye, FaEyeSlash, FaTools, FaCog, FaFileContract, FaShieldAlt } from 'react-icons/fa';
 import { Modal } from "../../ui";
 import { useModal } from "../../../hooks/useModal";
 import { useGeolocation } from '../../../hooks/useGeolocation';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 // Importar LeafletMap dinámicamente para evitar SSR issues
@@ -30,6 +31,7 @@ export default function RegisterTaller() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   
   // Estados para el mapa
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -90,6 +92,10 @@ export default function RegisterTaller() {
     }
     if (!selectedLocation) {
       setError('Debes seleccionar una ubicación en el mapa');
+      return;
+    }
+    if (!acceptedTerms) {
+      setError('Debes aceptar los términos y condiciones para continuar');
       return;
     }
 
@@ -430,6 +436,42 @@ export default function RegisterTaller() {
                   </div>
                 </div>
               )}
+              
+              {/* Términos y Condiciones */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="terms-taller"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2"
+                    required
+                  />
+                  <label htmlFor="terms-taller" className="text-sm text-gray-300 leading-5">
+                    He leído y acepto los{' '}
+                    <Link
+                      href="/terminos-condiciones"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary-hover font-semibold underline transition-colors inline-flex items-center"
+                    >
+                      <FaFileContract className="mr-1 text-xs" />
+                      Términos y Condiciones
+                    </Link>
+                    {' '}de DriveSync. Entiendo que mis datos estarán seguros y protegidos.
+                  </label>
+                </div>
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                  <div className="flex items-center space-x-2 text-green-400 text-sm">
+                    <FaShieldAlt className="text-sm" />
+                    <span className="font-medium">Tu privacidad está garantizada</span>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Los datos de tu taller están protegidos con encriptación de grado militar y nunca serán compartidos sin tu consentimiento.
+                  </p>
+                </div>
+              </div>
               
               {/* Submit Button */}
               <button

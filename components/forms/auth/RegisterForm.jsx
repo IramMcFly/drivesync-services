@@ -19,7 +19,8 @@ import {
   FaCar,
   FaCheckCircle,
   FaArrowLeft,
-  FaTimes
+  FaTimes,
+  FaFileContract
 } from 'react-icons/fa';
 import Link from 'next/link';
 
@@ -35,6 +36,7 @@ export default function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -47,6 +49,10 @@ export default function RegisterForm() {
     }
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
+      return;
+    }
+    if (!acceptedTerms) {
+      setError('Debes aceptar los términos y condiciones para continuar');
       return;
     }
     setLoading(true);
@@ -429,6 +435,42 @@ export default function RegisterForm() {
                   </div>
                 </motion.div>
               )}
+              
+              {/* Términos y Condiciones */}
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={acceptedTerms}
+                    onChange={(e) => setAcceptedTerms(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2"
+                    required
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-300 leading-5">
+                    He leído y acepto los{' '}
+                    <Link
+                      href="/terminos-condiciones"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:text-primary-hover font-semibold underline transition-colors inline-flex items-center"
+                    >
+                      <FaFileContract className="mr-1 text-xs" />
+                      Términos y Condiciones
+                    </Link>
+                    {' '}de DriveSync. Entiendo que mis datos estarán seguros y protegidos.
+                  </label>
+                </div>
+                <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700">
+                  <div className="flex items-center space-x-2 text-green-400 text-sm">
+                    <FaShieldAlt className="text-sm" />
+                    <span className="font-medium">Tu privacidad está garantizada</span>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-1">
+                    Tus datos personales están protegidos con encriptación de grado militar y nunca serán compartidos sin tu consentimiento.
+                  </p>
+                </div>
+              </div>
               
               {/* Submit Button */}
               <button

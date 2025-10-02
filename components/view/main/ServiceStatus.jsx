@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { Modal } from "../../ui";
+import { Modal, ServiceRatingModal } from "../../ui";
 import { useModal } from "../../../hooks/useModal";
 import { 
   FaSearch, 
@@ -36,6 +36,7 @@ const ServiceStatus = ({ serviceId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [showRatingModal, setShowRatingModal] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -200,6 +201,53 @@ const ServiceStatus = ({ serviceId }) => {
 
     return () => clearTimeout(timer);
   }, [serviceData, serviceId]);
+
+  // Función para manejar el envío de calificación
+  const handleRatingSubmit = async (ratingData) => {
+    try {
+      const response = await fetch('/api/ratings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tallerId: serviceData.taller._id,
+          serviceRequestId: serviceData._id,
+          rating: ratingData.rating,
+          comentario: ratingData.comentario
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        showSuccess(
+          `¡Gracias por tu calificación de ${ratingData.rating} estrellas!`,
+          'Calificación enviada',
+          () => {
+            hideModal();
+            router.push('/main/servicios-express');
+          }
+        );
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al enviar calificación');
+      }
+    } catch (error) {
+      console.error('Error al enviar calificación:', error);
+      throw error;
+    }
+  };
+
+  // Función para manejar el botón de finalizar
+  const handleFinishService = () => {
+    if (serviceData.isRated) {
+      // Si ya fue calificado, ir directamente a servicios
+      router.push('/main/servicios-express');
+    } else {
+      // Si no ha sido calificado, mostrar modal de calificación
+      setShowRatingModal(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -469,12 +517,12 @@ const ServiceStatus = ({ serviceId }) => {
           {/* Botón de finalizar cuando esté completado */}
           {serviceData.estado === 'finalizado' && (
             <button
-              onClick={() => router.push('/main/servicios-express')}
+              onClick={handleFinishService}
               className="w-full bg-primary hover:bg-primary-hover text-white py-3 sm:py-4 rounded-xl font-semibold transition-colors text-sm sm:text-base shadow-lg service-action-button"
             >
               <div className="flex items-center justify-center gap-2">
                 <FaCheckCircle />
-                Finalizar y volver a servicios
+                {serviceData.isRated ? 'Volver a servicios' : 'Finalizar y volver a servicios'}
               </div>
             </button>
           )}
@@ -499,6 +547,18 @@ const ServiceStatus = ({ serviceId }) => {
         confirmText={modalState.confirmText}
         cancelText={modalState.cancelText}
         showCancel={modalState.showCancel}
+      />
+
+      <ServiceRatingModal
+        isOpen={showRatingModal}
+        onClose={() => {
+          setShowRatingModal(false);
+          // Si cierra sin calificar, ir a servicios de todos modos
+          router.push('/main/servicios-express');
+        }}
+        onSubmit={handleRatingSubmit}
+        serviceData={serviceData}
+        tallerData={serviceData?.taller}
       />
     </div>
   );

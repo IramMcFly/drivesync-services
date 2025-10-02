@@ -4,6 +4,7 @@ import React from 'react';
 // Exportar componentes de UI
 export { default as Modal } from './Modal';
 export { default as DarkModeForcer } from './DarkModeForcer';
+export { default as ServiceRatingModal } from './ServiceRatingModal';
 
 // Input con icono reutilizable
 export function InputWithIcon({ 
