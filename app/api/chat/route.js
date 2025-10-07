@@ -5,14 +5,14 @@ export async function POST(req) {
   try {
     const body = await req.json();
 
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: body.model || "llama3-8b-8192",
+        model: body.model || "mistralai/mistral-small-3.2-24b-instruct:free",
         messages: body.messages,
         temperature: 0.7,
         max_tokens: 1024,
