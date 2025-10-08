@@ -17,6 +17,7 @@ import {
   FaUser
 } from "react-icons/fa";
 import Modal from "@/components/ui/Modal";
+import SuperEmergencyButton from "@/components/ui/SuperEmergencyButton";
 
 const MapComponent = dynamic(() => import("@/components/maps/LeafletMap"), { 
   ssr: false,
@@ -576,15 +577,23 @@ export default function ServiceTracking({ serviceId }) {
             </button>
           </div>
 
-          {/* Botón de pánico */}
+          {/* Botón de Super Emergencia */}
           <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-            <button
-              onClick={handlePanic}
-              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg shadow-md flex items-center justify-center gap-2 transition-colors"
-            >
-              <FaExclamationTriangle size={18} />
-              Botón de emergencia
-            </button>
+            <div className="mb-3 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                ¿Estás en peligro real?
+              </p>
+              <SuperEmergencyButton className="w-full" />
+            </div>
+            <div className="border-t border-gray-300 dark:border-gray-600 pt-3">
+              <button
+                onClick={handlePanic}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded-lg shadow-md flex items-center justify-center gap-2 transition-colors text-sm"
+              >
+                <FaExclamationTriangle size={16} />
+                Emergencia de Servicio
+              </button>
+            </div>
           </div>
         </div>
 

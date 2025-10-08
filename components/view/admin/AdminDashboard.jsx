@@ -869,7 +869,15 @@ export default function AdminDashboard() {
 
           <div className="absolute bottom-4 left-4 right-4 space-y-2">
             <button
-              onClick={() => router.push('/main/servicios-express')}
+              onClick={() => {
+                console.log('🚀 Admin navegando a Servicios Express');
+                console.log('👤 Session actual:', { 
+                  userType: session?.user?.userType, 
+                  userId: session?.user?.id,
+                  status: status 
+                });
+                router.push('/main/servicios-express');
+              }}
               className="w-full flex items-center space-x-3 px-4 py-3 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
             >
               <FaBolt />

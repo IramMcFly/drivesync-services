@@ -19,21 +19,29 @@ export default function Servicios() {
       clearTimeout(redirectTimer);
     }
 
+    console.log('🔍 Servicios - Status de sesión:', { status, userType: session?.user?.userType });
+
+    if (status === "loading") {
+      return; // Esperar mientras carga
+    }
+
     if (status === "unauthenticated") {
-      // Esperar más tiempo antes de redirigir y verificar que realmente no hay sesión
+      // Solo redirigir si pasó suficiente tiempo y definitivamente no hay sesión
       const timer = setTimeout(() => {
-        // Verificar nuevamente el estado de la sesión antes de redirigir
         if (status === "unauthenticated") {
+          console.log('🔄 Redirigiendo a login desde Servicios');
           router.replace("/login");
         }
-      }, 3000); // Aumentamos el tiempo de espera a 3 segundos
+      }, 5000); // Aumentamos a 5 segundos para dar más tiempo
       setRedirectTimer(timer);
-    } else if (status === "authenticated") {
+    } else if (status === "authenticated" && session?.user) {
       // Limpiar cualquier timer de redirección si el usuario se autentica
       if (redirectTimer) {
         clearTimeout(redirectTimer);
         setRedirectTimer(null);
       }
+
+      console.log('✅ Usuario autenticado en Servicios:', session.user.userType);
       
       const fetchServicios = async () => {
         try {
@@ -67,11 +75,27 @@ export default function Servicios() {
         clearTimeout(redirectTimer);
       }
     };
-  }, [status, router])
+  }, [status, session, router])
 
   if (status === "loading") {
     return <div className="text-gray-900 dark:text-gray-100 text-center mt-10 transition-colors">Cargando servicios...</div>;
   }
+
+  // Si no está autenticado y no es admin, mostrar mensaje en lugar de redirigir inmediatamente
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4">Verificando autenticación...</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Será redirigido al login en unos segundos si no está autenticado.
+          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 pb-20 md:pb-0 transition-colors">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FiSend } from "react-icons/fi";
 import Link from "next/link";
+import SuperEmergencyButton from "../ui/SuperEmergencyButton";
 
 
 // Detecta servicios mencionados en el texto usando un sistema de detección inteligente
@@ -382,18 +383,20 @@ INSTRUCCIONES:
                     });
                   })()}
                   
-                  {/* Botón de emergencia siempre visible */}
-                  <div className="border border-red-500/30 rounded-lg p-3 bg-red-500/10">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-sm text-red-400">🚨 ¿Es una emergencia?</h4>
-                        <p className="text-xs text-gray-400">Asistencia inmediata las 24/7</p>
-                      </div>
-                      <Link href="/main/extra/serviceForm?tipo=emergencia&prioridad=alta">
-                        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                          🚨 Emergencia
-                        </button>
-                      </Link>
+                  {/* Botón de Super Emergencia */}
+                  <div className="border border-red-500/30 rounded-lg p-4 bg-red-500/10">
+                    <div className="text-center mb-3">
+                      <h4 className="font-semibold text-sm text-red-400 mb-1">🚨 ¿Estás en peligro real?</h4>
+                      <p className="text-xs text-gray-400 mb-3">
+                        Sistema de monitoreo con autoridades • Cámaras • GPS • Grabación en vivo
+                      </p>
+                    </div>
+                    <SuperEmergencyButton className="w-full" />
+                    
+                    <div className="mt-3 pt-3 border-t border-red-500/20">
+                      <p className="text-xs text-gray-500 text-center">
+                        Para emergencias vehiculares normales, usa los botones de arriba
+                      </p>
                     </div>
                   </div>
                 </div>
