@@ -104,6 +104,7 @@ export default function AsistenteEspecializado() {
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [serviciosCargando, setServiciosCargando] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showServiceConfirm, setShowServiceConfirm] = useState(null);
   const bottomRef = useRef(null);
 
   // Sugerencias rápidas para problemas comunes
@@ -121,6 +122,16 @@ export default function AsistenteEspecializado() {
   const usarSugerencia = (sugerencia) => {
     setUserMessage(sugerencia);
     setShowSuggestions(false);
+  };
+
+  const confirmarServicio = (tipo, info) => {
+    setShowServiceConfirm({ tipo, info });
+  };
+
+  const procederConServicio = () => {
+    if (showServiceConfirm) {
+      window.location.href = `/main/extra/serviceForm?tipo=${encodeURIComponent(showServiceConfirm.tipo)}`;
+    }
   };
 
   const handleSend = async () => {
@@ -260,17 +271,36 @@ INSTRUCCIONES:
         {/* Sugerencias rápidas */}
         {showSuggestions && chat.length === 0 && (
           <div className="p-4 border-b border-input-border">
-            <p className="text-sm text-gray-400 mb-3">Ejemplos de problemas comunes:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {sugerenciasRapidas.map((sugerencia, index) => (
-                <button
-                  key={index}
-                  onClick={() => usarSugerencia(sugerencia)}
-                  className="text-left p-2 text-xs bg-input-bg hover:bg-primary/20 rounded-lg transition-colors border border-input-border"
-                >
-                  {sugerencia}
-                </button>
-              ))}
+            <p className="text-sm text-gray-400 mb-3">🚗 Problemas comunes - Selecciona uno:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {sugerenciasRapidas.map((sugerencia, index) => {
+                const iconos = ["🛞", "🔋", "🌡️", "🔑", "🔊", "💥", "⛽", "🧽"];
+                return (
+                  <button
+                    key={index}
+                    onClick={() => usarSugerencia(sugerencia)}
+                    className="text-left p-3 text-sm bg-input-bg hover:bg-primary/20 rounded-lg transition-colors border border-input-border flex items-center gap-2 hover:scale-105 transform"
+                  >
+                    <span className="text-lg">{iconos[index]}</span>
+                    <span>{sugerencia}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+              <p className="text-xs text-blue-400 mb-2">💡 Consejo: Describe tu problema con detalles para obtener la mejor ayuda</p>
+              <div className="flex gap-2">
+                <Link href="/main/extra/serviceForm" className="flex-1">
+                  <button className="w-full bg-primary hover:bg-primary-hover text-white py-2 px-3 rounded text-sm">
+                    📋 Ir directo al formulario
+                  </button>
+                </Link>
+                <Link href="/main/asistencia" className="flex-1">
+                  <button className="w-full border border-primary text-primary hover:bg-primary/10 py-2 px-3 rounded text-sm">
+                    🏠 Ver servicios
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -287,18 +317,87 @@ INSTRUCCIONES:
               >
                 <p className="text-sm whitespace-pre-line">{message.content}</p>
               </div>
-              {message.role === "assistant" &&
-                detectarServicios(message.content, serviciosDisponibles).map((tipo) => {
-                  const servicio = serviciosDisponibles.find((s) => (s.tipo || s.nombre?.toLowerCase() || s._id) === tipo);
-                  if (!servicio) return null;
-                  return (
-                    <Link key={tipo} href={`/main/extra/serviceForm?tipo=${encodeURIComponent(tipo)}`}>
-                      <button className="mt-2 mr-2 bg-primary hover:bg-primary-hover text-white py-2 px-4 rounded-lg text-xs transition-colors">
-                        {servicio.label}
-                      </button>
-                    </Link>
-                  );
-                })}
+              
+              {/* Botones de acción rápida después de respuestas del asistente */}
+              {message.role === "assistant" && (
+                <div className="mt-3 space-y-2">
+                  {(() => {
+                    const serviciosDetectados = detectarServicios(message.content, serviciosDisponibles);
+                    const serviciosInfo = {
+                      asistencia: { 
+                        label: "🚗 Solicitar Asistencia Vehicular", 
+                        color: "bg-blue-600 hover:bg-blue-700",
+                        descripcion: "Problemas mecánicos, batería, motor"
+                      },
+                      grua: { 
+                        label: "🚛 Solicitar Servicio de Grúa", 
+                        color: "bg-red-600 hover:bg-red-700",
+                        descripcion: "Remolque, accidentes, vehículo varado"
+                      },
+                      diagnostico: { 
+                        label: "🔧 Solicitar Diagnóstico", 
+                        color: "bg-purple-600 hover:bg-purple-700",
+                        descripcion: "Análisis de fallas y problemas"
+                      },
+                      limpieza: { 
+                        label: "🧽 Solicitar Limpieza", 
+                        color: "bg-green-600 hover:bg-green-700",
+                        descripcion: "Lavado y detallado vehicular"
+                      },
+                      cerrajeria: { 
+                        label: "🔑 Solicitar Cerrajería", 
+                        color: "bg-yellow-600 hover:bg-yellow-700",
+                        descripcion: "Llaves perdidas, vehículo cerrado"
+                      }
+                    };
+
+                    return serviciosDetectados.map((tipo) => {
+                      const info = serviciosInfo[tipo];
+                      if (!info) return null;
+                      
+                      return (
+                        <div key={tipo} className="border border-input-border rounded-lg p-3 bg-card-bg">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold text-sm">{info.label}</h4>
+                              <p className="text-xs text-gray-400">{info.descripcion}</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button 
+                              onClick={() => confirmarServicio(tipo, info)}
+                              className={`flex-1 ${info.color} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2`}
+                            >
+                              📱 Solicitar Ahora
+                            </button>
+                            <button 
+                              onClick={() => setUserMessage(`Necesito más información sobre ${tipo}`)}
+                              className="px-3 py-2 border border-input-border rounded-lg text-sm hover:bg-input-bg transition-colors"
+                            >
+                              ℹ️
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                  
+                  {/* Botón de emergencia siempre visible */}
+                  <div className="border border-red-500/30 rounded-lg p-3 bg-red-500/10">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-sm text-red-400">🚨 ¿Es una emergencia?</h4>
+                        <p className="text-xs text-gray-400">Asistencia inmediata las 24/7</p>
+                      </div>
+                      <Link href="/main/extra/serviceForm?tipo=emergencia&prioridad=alta">
+                        <button className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+                          🚨 Emergencia
+                        </button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
@@ -332,6 +431,42 @@ INSTRUCCIONES:
           </button>
         </div>
       </div>
+
+      {/* Modal de confirmación */}
+      {showServiceConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card-bg rounded-lg border border-input-border max-w-md w-full p-6">
+            <h3 className="text-lg font-bold mb-4">🚗 Confirmar Solicitud de Servicio</h3>
+            <div className="mb-4">
+              <h4 className="font-semibold text-primary mb-2">{showServiceConfirm.info.label}</h4>
+              <p className="text-sm text-gray-400 mb-3">{showServiceConfirm.info.descripcion}</p>
+              <div className="bg-input-bg rounded-lg p-3 border border-input-border">
+                <p className="text-xs text-gray-400 mb-2">📝 Al continuar serás redirigido al formulario para:</p>
+                <ul className="text-xs space-y-1">
+                  <li>• Proporcionar detalles del problema</li>
+                  <li>• Confirmar tu ubicación</li>
+                  <li>• Seleccionar horario preferido</li>
+                  <li>• Recibir cotización instantánea</li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowServiceConfirm(null)}
+                className="flex-1 border border-input-border text-foreground py-2 px-4 rounded-lg text-sm hover:bg-input-bg transition-colors"
+              >
+                ❌ Cancelar
+              </button>
+              <button
+                onClick={procederConServicio}
+                className={`flex-1 ${showServiceConfirm.info.color} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors`}
+              >
+                ✅ Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
