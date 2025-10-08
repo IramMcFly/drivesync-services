@@ -73,6 +73,11 @@ export async function GET(request) {
         match: { _id: { $exists: true } }
       })
       .populate({
+        path: 'vehiculo',
+        select: 'marca modelo año color placa tipoVehiculo notas kilometraje esPrincipal',
+        match: { _id: { $exists: true } }
+      })
+      .populate({
         path: 'asistente',
         select: 'placa vehiculo',
         match: { _id: { $exists: true } }

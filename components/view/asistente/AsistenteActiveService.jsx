@@ -206,6 +206,8 @@ export default function AsistenteActiveService() {
       const servicioEncontrado = data.servicios?.find(s => s._id === serviceId);
       
       if (servicioEncontrado) {
+        console.log('🚗 Datos del servicio encontrado:', servicioEncontrado);
+        console.log('🚗 Información del vehículo:', servicioEncontrado.vehiculo);
         setServiceData(servicioEncontrado);
         setError(null);
         
@@ -498,7 +500,7 @@ export default function AsistenteActiveService() {
             </div>
             
             {/* Información del Vehículo del Cliente */}
-            {serviceData?.vehiculo && (
+            {serviceData?.vehiculo ? (
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
                 <h4 className="text-base font-semibold mb-3 flex items-center gap-2 text-purple-800 dark:text-purple-300">
                   <FaCar className="text-purple-600 dark:text-purple-400" />
@@ -541,6 +543,26 @@ export default function AsistenteActiveService() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">{serviceData.vehiculo.notas}</p>
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+                <h4 className="text-base font-semibold mb-2 flex items-center gap-2 text-yellow-800 dark:text-yellow-300">
+                  <FaExclamationTriangle className="text-yellow-600 dark:text-yellow-400" />
+                  Información del Vehículo No Disponible
+                </h4>
+                <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                  Los datos del vehículo del cliente no están disponibles. 
+                  Contacta al cliente para obtener esta información.
+                </p>
+                <button 
+                  onClick={() => {
+                    console.log('🚗 Debug - ServiceData completo:', serviceData);
+                    console.log('🚗 Debug - Vehiculo específico:', serviceData?.vehiculo);
+                  }}
+                  className="mt-2 text-xs bg-yellow-200 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded"
+                >
+                  Debug Info (Consola)
+                </button>
               </div>
             )}
             
