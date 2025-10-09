@@ -1,6 +1,6 @@
 "use client";
 import { motion } from 'framer-motion';
-import { FaShieldAlt, FaLock, FaUserShield, FaDatabase, FaEye, FaHandshake, FaArrowLeft } from 'react-icons/fa';
+import { FaShieldAlt, FaLock, FaUserShield, FaDatabase, FaEye, FaHandshake, FaArrowLeft, FaExclamationTriangle } from 'react-icons/fa';
 import Link from 'next/link';
 
 export default function TerminosCondiciones() {
@@ -172,11 +172,89 @@ export default function TerminosCondiciones() {
               </div>
             </div>
 
-            {/* Uso de la Plataforma */}
+            {/* Super Emergencia */}
+            <div className="bg-red-900/20 rounded-xl p-6 border border-red-500/30">
+              <h3 className="text-xl font-semibold text-red-400 mb-4 flex items-center space-x-2">
+                <FaShieldAlt className="text-lg" />
+                <span>6. Botón de Super Emergencia</span>
+              </h3>
+              <div className="text-gray-300 space-y-3">
+                <div className="bg-red-500/10 p-4 rounded-lg border-l-4 border-red-500">
+                  <p className="text-red-200 font-semibold flex items-center">
+                    <FaExclamationTriangle className="mr-2" />
+                    IMPORTANTE: Uso exclusivo para emergencias reales
+                  </p>
+                </div>
+                
+                <p><strong className="text-white">¿Qué es el Super Emergencia?</strong></p>
+                <p>El botón de Super Emergencia es una funcionalidad crítica que permite alertar automáticamente a autoridades de seguridad y servicios de emergencia en situaciones de peligro real.</p>
+                
+                <p><strong className="text-white">¿Cuándo activarlo?</strong></p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Accidentes vehiculares graves con lesiones</li>
+                  <li>Situaciones de inseguridad o violencia</li>
+                  <li>Emergencias médicas durante el servicio</li>
+                  <li>Cualquier situación que ponga en riesgo tu integridad física</li>
+                </ul>
+                
+                <p><strong className="text-white">¿Qué sucede al activarlo?</strong></p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>📍 Se envía tu ubicación exacta a las autoridades</li>
+                  <li>📹 Se activa grabación automática de video y audio</li>
+                  <li>🚨 Se notifica inmediatamente a servicios de emergencia</li>
+                  <li>📞 Se contacta automáticamente a números de emergencia registrados</li>
+                  <li>🔔 Se alerta a asistentes y talleres cercanos</li>
+                  <li>👮 Se envía información al centro de monitoreo de seguridad</li>
+                </ul>
+                
+                <p><strong className="text-white">Datos recopilados durante emergencia:</strong></p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Ubicación GPS en tiempo real con máxima precisión</li>
+                  <li>Video y audio del entorno durante 5 minutos</li>
+                  <li>Información del usuario y vehículo</li>
+                  <li>Historial del servicio actual</li>
+                  <li>Datos del asistente asignado</li>
+                </ul>
+                
+                <div className="bg-yellow-500/10 p-4 rounded-lg border-l-4 border-yellow-500 mt-4">
+                  <p className="text-yellow-200 font-semibold">
+                    ⚠️ USO RESPONSABLE OBLIGATORIO
+                  </p>
+                  <p className="text-gray-300 mt-2">
+                    El uso indebido del botón de Super Emergencia (falsas alarmas, bromas, etc.) puede resultar en:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 ml-4 mt-2 text-gray-300">
+                    <li>Suspensión inmediata de la cuenta</li>
+                    <li>Responsabilidad por costos de respuesta de emergencia</li>
+                    <li>Posibles consecuencias legales</li>
+                    <li>Reporte a autoridades competentes</li>
+                  </ul>
+                </div>
+                
+                <p><strong className="text-white">Privacidad durante emergencias:</strong></p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Los datos recopilados se comparten únicamente con autoridades de seguridad</li>
+                  <li>Las grabaciones se mantienen seguras y encriptadas</li>
+                  <li>Solo personal autorizado tiene acceso a la información de emergencia</li>
+                  <li>Los datos se conservan según requerimientos legales de investigación</li>
+                </ul>
+                
+                <div className="bg-green-500/10 p-4 rounded-lg border-l-4 border-green-500 mt-4">
+                  <p className="text-green-200 font-semibold">
+                    ✅ TU SEGURIDAD ES NUESTRA PRIORIDAD
+                  </p>
+                  <p className="text-gray-300 mt-2">
+                    El botón de Super Emergencia está diseñado para protegerte. Su activación desencadena un protocolo completo de respuesta que puede salvar vidas.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Uso Responsable de la Plataforma */}
             <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
               <h3 className="text-xl font-semibold text-primary mb-4 flex items-center space-x-2">
                 <FaEye className="text-lg" />
-                <span>5. Uso Responsable de la Plataforma</span>
+                <span>7. Uso Responsable de la Plataforma</span>
               </h3>
               <div className="text-gray-300 space-y-3">
                 <p>Al usar DriveSync, te comprometes a:</p>
@@ -194,7 +272,7 @@ export default function TerminosCondiciones() {
             <div className="bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-xl p-6 border border-primary/30">
               <h3 className="text-xl font-semibold text-white mb-4">¿Tienes preguntas sobre estos términos?</h3>
               <p className="text-gray-300 mb-4">
-                Si tienes alguna pregunta sobre estos términos y condiciones o sobre cómo manejamos tus datos, no dudes en contactarnos.
+                Si tienes alguna pregunta sobre estos términos y condiciones, el uso del botón de Super Emergencia, o sobre cómo manejamos tus datos, no dudes en contactarnos.
               </p>
               <div className="flex flex-wrap gap-4">
                 <a href="mailto:soporte@drivesync.com" className="text-primary hover:text-primary/80 transition-colors">
@@ -202,6 +280,8 @@ export default function TerminosCondiciones() {
                 </a>
                 <span className="text-gray-500">|</span>
                 <span className="text-gray-300">Teléfono: (555) 123-4567</span>
+                <span className="text-gray-500">|</span>
+                <span className="text-red-400">Emergencias: 911</span>
               </div>
             </div>
 
@@ -210,7 +290,7 @@ export default function TerminosCondiciones() {
           {/* Footer */}
           <motion.div variants={fadeInUp} className="text-center mt-12 pt-8 border-t border-gray-700">
             <p className="text-gray-400 text-sm">
-              Última actualización: 1 de octubre de 2025
+              Última actualización: 9 de octubre de 2025 - Incluye nueva sección de Super Emergencia
             </p>
             <p className="text-gray-400 text-sm mt-2">
               © 2025 DriveSync. Todos los derechos reservados.
