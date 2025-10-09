@@ -109,6 +109,9 @@ export default function AsistenteEspecializado() {
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [serviciosCargando, setServiciosCargando] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [modalDiagnostico, setModalDiagnostico] = useState(false);
+  const [tallerSeleccionado, setTallerSeleccionado] = useState("");
+  const [reporteGenerado, setReporteGenerado] = useState(null);
   const bottomRef = useRef(null);
 
   // Sugerencias rápidas para problemas comunes con diagnóstico específico
@@ -126,6 +129,96 @@ export default function AsistenteEspecializado() {
   const usarSugerencia = (sugerencia) => {
     setUserMessage(sugerencia);
     setShowSuggestions(false);
+  };
+
+  // Función para anonimizar datos sensibles
+  const anonimizarDatos = (texto) => {
+    let textoAnonimo = texto;
+    
+    // Anonimizar números de teléfono
+    textoAnonimo = textoAnonimo.replace(/(\d{3})\d{3}(\d{4})/g, '$1***$2');
+    
+    // Anonimizar placas de vehículos (formato mexicano)
+    textoAnonimo = textoAnonimo.replace(/[A-Z]{3}-?\d{3}-?[A-Z]/g, '***-***-*');
+    
+    // Anonimizar números de serie/VIN parciales
+    textoAnonimo = textoAnonimo.replace(/[A-Z0-9]{10,}/g, (match) => 
+      match.substring(0, 3) + '*'.repeat(match.length - 6) + match.substring(match.length - 3)
+    );
+    
+    // No anonimizar información técnica necesaria para diagnóstico
+    return textoAnonimo;
+  };
+
+  // Función para generar reporte de diagnóstico
+  const generarReporteDiagnostico = () => {
+    const serviciosDetectados = [];
+    const sintomas = [];
+    const recomendaciones = [];
+    
+    // Analizar el chat para extraer información
+    chat.forEach(message => {
+      if (message.role === "user") {
+        sintomas.push(anonimizarDatos(message.content)); // Anonimizar datos del usuario
+      } else if (message.role === "assistant") {
+        // Detectar servicios mencionados
+        const content = message.content.toLowerCase();
+        if (content.includes("asistencia vehicular")) serviciosDetectados.push("Asistencia Vehicular");
+        if (content.includes("tienda de llantas")) serviciosDetectados.push("Tienda de Llantas");
+        if (content.includes("grúa")) serviciosDetectados.push("Servicio de Grúa");
+        if (content.includes("diagnóstico")) serviciosDetectados.push("Diagnóstico Especializado");
+        if (content.includes("cerrajería")) serviciosDetectados.push("Cerrajería Automotriz");
+        if (content.includes("limpieza")) serviciosDetectados.push("Limpieza Vehicular");
+        
+        recomendaciones.push(message.content);
+      }
+    });
+
+    const reporte = {
+      id: `DIAG-${Date.now()}`,
+      fecha: new Date().toLocaleString('es-MX'),
+      sintomas: [...new Set(sintomas)],
+      serviciosDetectados: [...new Set(serviciosDetectados)],
+      recomendaciones: recomendaciones.slice(-2), // Últimas 2 recomendaciones
+      confianza: serviciosDetectados.length > 0 ? "Alta" : "Media",
+      prioridad: determinarPrioridad(sintomas.join(' ')),
+      chatCompleto: chat
+    };
+
+    setReporteGenerado(reporte);
+    setModalDiagnostico(true);
+  };
+
+  // Función para determinar prioridad
+  const determinarPrioridad = (texto) => {
+    const textoLower = texto.toLowerCase();
+    if (textoLower.includes("accidente") || textoLower.includes("no enciende") || textoLower.includes("humo")) {
+      return "Urgente";
+    } else if (textoLower.includes("ruido") || textoLower.includes("ponch") || textoLower.includes("batería")) {
+      return "Media";
+    }
+    return "Baja";
+  };
+
+  // Función para enviar diagnóstico al taller
+  const enviarDiagnosticoATaller = () => {
+    if (!tallerSeleccionado || !reporteGenerado) return;
+
+    // Simular envío
+    alert(`📨 Diagnóstico enviado exitosamente a:\n\n🏪 ${tallerSeleccionado}\n📋 Código: ${reporteGenerado.id}\n⏰ ${reporteGenerado.fecha}\n\nEl taller recibirá:\n• Historial completo del chat\n• Síntomas identificados\n• Recomendaciones de la IA\n• Nivel de prioridad: ${reporteGenerado.prioridad}\n\n✅ Te notificaremos cuando el técnico revise el diagnóstico.`);
+    
+    setModalDiagnostico(false);
+    setTallerSeleccionado("");
+    
+    // Agregar mensaje de confirmación al chat
+    const confirmacion = {
+      id: Date.now(),
+      role: "assistant",
+      content: `✅ **Diagnóstico enviado al taller**\n\n📋 **Código:** ${reporteGenerado.id}\n🏪 **Taller:** ${tallerSeleccionado}\n⏰ **Enviado:** ${reporteGenerado.fecha}\n🔔 **Estado:** En revisión\n\nEl técnico revisará tu diagnóstico y te contactará pronto. Recibirás una notificación cuando haya una actualización.`,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    
+    setChat(prev => [...prev, confirmacion]);
   };
 
   const handleSend = async () => {
@@ -482,6 +575,46 @@ ${contextoProblemática}`,
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Botón para enviar diagnóstico al técnico */}
+                      {chat.length >= 4 && ( // Mostrar después de al menos 2 intercambios
+                        <div className="border border-primary/30 rounded-lg p-3 bg-primary/10">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-semibold text-sm text-foreground">📨 Enviar Diagnóstico al Técnico</h4>
+                              <p className="text-xs text-text-muted">Comparte este diagnóstico con un especialista para confirmación</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={generarReporteDiagnostico}
+                            className="w-full bg-primary text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors hover:bg-primary-hover"
+                          >
+                            📋 Generar Reporte para Técnico
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // Mostrar solo el botón de diagnóstico si no hay recomendaciones específicas pero hay conversación
+                if (chat.length >= 4) {
+                  return (
+                    <div className="mt-3">
+                      <div className="border border-primary/30 rounded-lg p-3 bg-primary/10">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <h4 className="font-semibold text-sm text-foreground">📨 Enviar Diagnóstico al Técnico</h4>
+                            <p className="text-xs text-text-muted">Comparte este diagnóstico con un especialista</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={generarReporteDiagnostico}
+                          className="w-full bg-primary text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors hover:bg-primary-hover"
+                        >
+                          📋 Generar Reporte para Técnico
+                        </button>
+                      </div>
                     </div>
                   );
                 }
@@ -521,6 +654,123 @@ ${contextoProblemática}`,
           </button>
         </div>
       </div>
+
+      {/* Modal de Diagnóstico */}
+      {modalDiagnostico && reporteGenerado && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card-bg border border-input-border rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-foreground">📋 Reporte de Diagnóstico</h2>
+                <button 
+                  onClick={() => setModalDiagnostico(false)}
+                  className="text-text-muted hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Resumen del reporte */}
+              <div className="space-y-4 mb-6">
+                <div className="bg-input-bg border border-input-border rounded-lg p-4">
+                  <h3 className="font-semibold text-foreground mb-2">📊 Resumen del Diagnóstico</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-text-secondary">Código:</span>
+                      <span className="text-foreground font-mono ml-2">{reporteGenerado.id}</span>
+                    </div>
+                    <div>
+                      <span className="text-text-secondary">Fecha:</span>
+                      <span className="text-foreground ml-2">{reporteGenerado.fecha}</span>
+                    </div>
+                    <div>
+                      <span className="text-text-secondary">Confianza:</span>
+                      <span className={`ml-2 font-semibold ${
+                        reporteGenerado.confianza === 'Alta' ? 'text-success' : 'text-warning'
+                      }`}>{reporteGenerado.confianza}</span>
+                    </div>
+                    <div>
+                      <span className="text-text-secondary">Prioridad:</span>
+                      <span className={`ml-2 font-semibold ${
+                        reporteGenerado.prioridad === 'Urgente' ? 'text-error' : 
+                        reporteGenerado.prioridad === 'Media' ? 'text-warning' : 'text-success'
+                      }`}>{reporteGenerado.prioridad}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-input-bg border border-input-border rounded-lg p-4">
+                  <h4 className="font-semibold text-foreground mb-2">🔍 Síntomas Reportados</h4>
+                  <ul className="space-y-1">
+                    {reporteGenerado.sintomas.map((sintoma, index) => (
+                      <li key={index} className="text-text-secondary text-sm flex items-start gap-2">
+                        <span className="text-primary">•</span>
+                        {sintoma}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-input-bg border border-input-border rounded-lg p-4">
+                  <h4 className="font-semibold text-foreground mb-2">🛠️ Servicios Detectados</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {reporteGenerado.serviciosDetectados.map((servicio, index) => (
+                      <span key={index} className="bg-primary/20 text-primary px-2 py-1 rounded text-sm">
+                        {servicio}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-input-bg border border-input-border rounded-lg p-4">
+                  <h4 className="font-semibold text-foreground mb-2">💡 Recomendaciones IA</h4>
+                  <div className="space-y-2">
+                    {reporteGenerado.recomendaciones.map((rec, index) => (
+                      <div key={index} className="text-text-secondary text-sm bg-card-bg border border-input-border rounded p-2">
+                        {rec.length > 100 ? rec.substring(0, 100) + '...' : rec}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Selección de taller */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-foreground mb-3">🏪 Seleccionar Taller</h3>
+                <select 
+                  value={tallerSeleccionado}
+                  onChange={(e) => setTallerSeleccionado(e.target.value)}
+                  className="w-full bg-input-bg border border-input-border rounded px-3 py-2 text-foreground"
+                >
+                  <option value="">Selecciona un taller...</option>
+                  <option value="AutoServicio López - Zona Centro (2.1 km)">🔧 AutoServicio López - Zona Centro (2.1 km) ⭐ 4.8</option>
+                  <option value="Taller Mecánico Rodríguez - Col. Doctores (3.5 km)">🛠️ Taller Mecánico Rodríguez - Col. Doctores (3.5 km) ⭐ 4.6</option>
+                  <option value="Servicio Automotriz Elite - Zona Rosa (4.2 km)">🏆 Servicio Automotriz Elite - Zona Rosa (4.2 km) ⭐ 4.9</option>
+                  <option value="Mecánica Rápida 24h - Col. Roma (5.0 km)">⚡ Mecánica Rápida 24h - Col. Roma (5.0 km) ⭐ 4.7</option>
+                  <option value="Especialistas Automotrices - Polanco (6.8 km)">🎯 Especialistas Automotrices - Polanco (6.8 km) ⭐ 4.9</option>
+                </select>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setModalDiagnostico(false)}
+                  className="flex-1 border border-input-border text-text-secondary py-2 px-4 rounded hover:bg-input-bg transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={enviarDiagnosticoATaller}
+                  disabled={!tallerSeleccionado}
+                  className="flex-1 bg-primary text-white py-2 px-4 rounded hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  📨 Enviar Diagnóstico
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
