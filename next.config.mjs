@@ -5,6 +5,10 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_OPENROUTE_API_KEY: process.env.LEAFLETMAP_API_KEY,
   },
+  images: {
+    domains: ['localhost', 'images.unsplash.com', 'via.placeholder.com'],
+    unoptimized: true
+  },
 };
 
 export default withPWA({

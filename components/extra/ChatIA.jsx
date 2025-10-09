@@ -17,7 +17,7 @@ function detectarServicios(texto, serviciosDisponibles) {
       bateria: ["batería", "bateria", "descargada", "descargó", "no enciende", "no prende", "muerta", "agotada", "cables", "puente"],
       motor: ["motor", "no arranca", "no enciende", "no prende", "se apagó", "se paró", "humo", "sobrecalentamiento", "temperatura"],
       combustible: ["gasolina", "combustible", "se quedó sin", "tanque vacío", "sin gas", "diesel"],
-      llantas: ["llanta", "ponchadura", "ponchazo", "inflada", "desinflada", "presión", "aire"],
+      llantas_reparacion: ["despinchado", "reparar llanta", "parche", "arreglar ponchadura", "reparación de llanta"],
       refrigeracion: ["calentó", "calor", "temperatura alta", "refrigerante", "anticongelante", "radiador", "vapor"],
       electrico: ["luces", "eléctrico", "fusible", "alternador", "arranque", "marcha"]
     },
@@ -42,6 +42,10 @@ function detectarServicios(texto, serviciosDisponibles) {
       llaves: ["llaves", "llave", "perdí", "se me perdieron", "no tengo", "dejé adentro"],
       cerrado: ["cerré", "cerrado", "no puedo abrir", "trabado", "atascado", "no abre"],
       cerradura: ["cerradura", "chapa", "cilindro", "no gira", "rota", "dañada"]
+    },
+    llantas: {
+      comprar: ["comprar llanta", "llanta nueva", "cambiar llanta", "necesito llanta", "quiero llanta nueva"],
+      ponchadura: ["ponchadura", "ponchó", "pinchazo", "llanta pinchada", "llanta desinflada", "llanta ponchada"]
     }
   };
 
@@ -105,34 +109,23 @@ export default function AsistenteEspecializado() {
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [serviciosCargando, setServiciosCargando] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const [showServiceConfirm, setShowServiceConfirm] = useState(null);
   const bottomRef = useRef(null);
 
-  // Sugerencias rápidas para problemas comunes
+  // Sugerencias rápidas para problemas comunes con diagnóstico específico
   const sugerenciasRapidas = [
-    "Se me ponchó una llanta",
-    "Mi carro no enciende",
-    "Se me calentó el motor", 
-    "Perdí las llaves de mi auto",
-    "Mi carro está haciendo ruidos raros",
-    "Tuve un accidente",
-    "Se me acabó la gasolina",
-    "Necesito lavar mi auto"
+    "Mi carro no enciende y no hace ningún ruido",
+    "Escucho un chirrido cuando freno",
+    "Se prendió la luz del check engine", 
+    "Mi auto se está sobrecalentando",
+    "Perdí las llaves dentro del carro",
+    "Tuve un accidente y no puedo manejar",
+    "Se me ponchó una llanta en carretera",
+    "Mi carro vibra mucho al acelerar"
   ];
 
   const usarSugerencia = (sugerencia) => {
     setUserMessage(sugerencia);
     setShowSuggestions(false);
-  };
-
-  const confirmarServicio = (tipo, info) => {
-    setShowServiceConfirm({ tipo, info });
-  };
-
-  const procederConServicio = () => {
-    if (showServiceConfirm) {
-      window.location.href = `/main/extra/serviceForm?tipo=${encodeURIComponent(showServiceConfirm.tipo)}`;
-    }
   };
 
   const handleSend = async () => {
@@ -152,11 +145,12 @@ export default function AsistenteEspecializado() {
     try {
       // Crear contexto inteligente basado en servicios detectados
       const serviciosInfo = {
-        asistencia: "Asistencia vehicular (problemas de batería, motor, combustible, llantas, refrigeración, sistema eléctrico)",
+        asistencia: "Asistencia vehicular (problemas de batería, motor, combustible, reparación de llantas, refrigeración, sistema eléctrico)",
         grua: "Servicio de grúa (accidentes, vehículo varado, motor dañado, remolque al taller)",
         diagnostico: "Diagnóstico vehicular (ruidos extraños, luces de alerta, comportamiento anómalo, códigos de error)",
         limpieza: "Limpieza vehicular (lavado, detallado, encerado, limpieza interior)",
-        cerrajeria: "Cerrajería automotriz (llaves perdidas, vehículo cerrado, problemas de cerradura)"
+        cerrajeria: "Cerrajería automotriz (llaves perdidas, vehículo cerrado, problemas de cerradura)",
+        llantas: "Tienda de llantas (venta de llantas nuevas, diferentes marcas y medidas)"
       };
 
       const serviciosDetectados = serviciosRelevantes.map(srv => serviciosInfo[srv]).filter(Boolean);
@@ -168,29 +162,74 @@ export default function AsistenteEspecializado() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "mistralai/mistral-small-3.2-24b-instruct:free",
+          model: "openai/gpt-3.5-turbo",
           messages: [
             {
               role: "system",
-              content: `Eres DriveSync Assistant, un asistente automotriz especializado. 
+              content: `Eres DriveSync Assistant, un EXPERTO MECÁNICO AUTOMOTRIZ con 20 años de experiencia. Tu trabajo es diagnosticar problemas vehiculares y recomendar el servicio más adecuado.
 
 SERVICIOS DISPONIBLES:
-- Asistencia vehicular: Para problemas mecánicos, eléctricos, batería, motor, combustible
-- Servicio de grúa: Para accidentes, vehículos varados, remolque
-- Diagnóstico vehicular: Para ruidos, luces de alerta, comportamientos extraños
-- Limpieza vehicular: Para lavado, detallado, mantenimiento estético
-- Cerrajería automotriz: Para problemas con llaves y cerraduras
+- Asistencia vehicular: Problemas mecánicos menores, batería, motor, combustible, reparación de llantas, refrigeración, sistema eléctrico
+- Servicio de grúa: Accidentes, vehículos varados, motor completamente dañado, remolque al taller
+- Diagnóstico vehicular: Ruidos extraños, luces de alerta, comportamientos anómalos, códigos de error, revisiones especializadas
+- Limpieza vehicular: Lavado, detallado, encerado, limpieza interior
+- Cerrajería automotriz: Llaves perdidas, vehículo cerrado, problemas de cerradura
+- Tienda de llantas: Venta de llantas nuevas, diferentes marcas y medidas
+
+CASOS ESPECIALES - LLANTAS:
+Si el usuario menciona ponchadura, llanta pinchada, llanta desinflada o problemas de llanta:
+1. PREGUNTA específicamente: "¿Prefieres reparar la llanta ponchada (servicio de despinchado) o comprar una llanta nueva?"
+2. Si dice REPARAR → Recomienda ASISTENCIA VEHICULAR (servicio de despinchado)
+3. Si dice COMPRAR → Recomienda TIENDA DE LLANTAS (llantas nuevas)
+4. Si no especifica → Ofrece ambas opciones claramente
+
+METODOLOGÍA DE DIAGNÓSTICO:
+1. ESCUCHA activamente los síntomas descritos
+2. HAZ preguntas específicas para confirmar el diagnóstico
+3. IDENTIFICA la causa más probable
+4. RECOMIENDA el servicio específico que resuelve el problema
+5. EXPLICA brevemente por qué ese servicio es el adecuado
+
+EJEMPLOS DE DIAGNÓSTICO INTELIGENTE:
+
+SÍNTOMA: "Mi carro no enciende"
+DIAGNÓSTICO: Pregunta específica sobre qué pasa exactamente (¿hace algún ruido? ¿prenden las luces? ¿cuándo fue la última vez que funcionó?)
+- Si no hace ruido ni prenden luces → ASISTENCIA (problema de batería)
+- Si hace ruido pero no arranca → ASISTENCIA (problema de motor/combustible)
+- Si está completamente muerto → GRÚA (problema grave)
+
+SÍNTOMA: "Se me ponchó una llanta"
+DIAGNÓSTICO: → "¿Prefieres reparar la llanta ponchada o comprar una llanta nueva? La reparación es más económica, pero una llanta nueva te dará mayor seguridad."
+
+SÍNTOMA: "Hace ruidos raros"
+DIAGNÓSTICO: Pregunta sobre tipo de ruido y cuándo ocurre
+- Chirrido al frenar → ASISTENCIA (frenos)
+- Golpeteo en motor → DIAGNÓSTICO (revisión especializada)
+- Ruido en llantas → ASISTENCIA (llantas/suspensión)
+
+SÍNTOMA: "Se prende una luz"
+DIAGNÓSTICO: Pregunta qué luz específicamente
+- Check Engine → DIAGNÓSTICO (scanner/códigos de error)
+- Luz de batería → ASISTENCIA (sistema eléctrico)
+- Luz de temperatura → ASISTENCIA (refrigeración)
 
 INSTRUCCIONES:
-1. Da respuestas de máximo 3-4 líneas
-2. Sé empático y profesional
-3. SOLO recomienda servicios que sean RELEVANTES al problema específico mencionado
-4. Si mencionan "ponchadura" o "llanta", recomienda ASISTENCIA, NO cerrajería
-5. Si mencionan "accidente" o "varado", recomienda GRÚA
-6. Si mencionan "ruidos" o "luces", recomienda DIAGNÓSTICO
-7. Si mencionan "sucio" o "lavado", recomienda LIMPIEZA
-8. Si mencionan "llaves perdidas" o "cerrado", recomienda CERRAJERÍA
-9. NO ofrezcas todos los servicios, solo los pertinentes${contextoProblemática}`,
+1. Responde en máximo 3-4 líneas
+2. Sé ESPECÍFICO en tu diagnóstico
+3. HAZ preguntas inteligentes si necesitas más información
+4. RECOMIENDA solo UN servicio (el más apropiado)
+5. EXPLICA brevemente por qué ese servicio resuelve el problema
+6. Usa un tono profesional pero cercano
+7. Para problemas de llantas, SIEMPRE pregunta sobre reparar vs comprar nueva
+8. Cuando recomiendes un servicio, usa EXACTAMENTE estos términos:
+   - "Te recomiendo el servicio de **Asistencia Vehicular**" (para reparaciones)
+   - "Te recomiendo la **Tienda de Llantas**" (para comprar llantas nuevas)
+   - "Te recomiendo el servicio de **Grúa**" (para remolque)
+   - "Te recomiendo el **Diagnóstico**" (para análisis)
+   - "Te recomiendo el servicio de **Limpieza**" (para lavado)
+   - "Te recomiendo el servicio de **Cerrajería**" (para llaves)
+
+${contextoProblemática}`,
             },
             ...newChat,
           ],
@@ -206,7 +245,27 @@ INSTRUCCIONES:
         setChat((prev) => [...prev, { role: "assistant", content: aiResponse }]);
       }
     } catch (error) {
-      setChat((prev) => [...prev, { role: "assistant", content: "Hubo un error. Por favor intenta más tarde." }]);
+      console.error("Error sending message:", error);
+      
+      // Respuesta inteligente de emergencia basada en el mensaje del usuario
+      let emergencyResponse = "Estoy experimentando problemas técnicos temporales, pero puedo ayudarte:";
+      
+      const userInput = userMessage.toLowerCase();
+      if (userInput.includes("ponch") || userInput.includes("llanta")) {
+        emergencyResponse = "¿Prefieres reparar la llanta ponchada o comprar una llanta nueva? La reparación es más económica, pero una llanta nueva te dará mayor seguridad.";
+      } else if (userInput.includes("no enciende") || userInput.includes("no arranca") || userInput.includes("no prende")) {
+        emergencyResponse = "Para problemas de encendido, te recomiendo el servicio de **Asistencia Vehicular**. ¿El auto hace algún ruido cuando intentas encenderlo?";
+      } else if (userInput.includes("batería") || userInput.includes("bateria")) {
+        emergencyResponse = "Te recomiendo el servicio de **Asistencia Vehicular** para problemas de batería. Podemos hacer carga de batería o reemplazo si es necesario.";
+      } else if (userInput.includes("ruido") || userInput.includes("sonido")) {
+        emergencyResponse = "Te recomiendo el **Diagnóstico** vehicular para identificar el origen del ruido. ¿Cuándo ocurre el ruido?";
+      } else if (userInput.includes("accidente") || userInput.includes("choque")) {
+        emergencyResponse = "Te recomiendo el servicio de **Grúa** para casos de accidente. ¿El auto se puede mover por sí mismo?";
+      } else if (userInput.includes("llaves") || userInput.includes("llave")) {
+        emergencyResponse = "Te recomiendo el servicio de **Cerrajería** automotriz. Podemos abrir el vehículo y hacer duplicado de llaves.";
+      }
+      
+      setChat((prev) => [...prev, { role: "assistant", content: emergencyResponse }]);
     } finally {
       setLoading(false);
     }
@@ -275,7 +334,7 @@ INSTRUCCIONES:
             <p className="text-sm text-gray-400 mb-3">🚗 Problemas comunes - Selecciona uno:</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {sugerenciasRapidas.map((sugerencia, index) => {
-                const iconos = ["🛞", "🔋", "🌡️", "🔑", "🔊", "💥", "⛽", "🧽"];
+                const iconos = ["�", "�", "⚠️", "🌡️", "�", "💥", "🛞", "⚡"];
                 return (
                   <button
                     key={index}
@@ -319,88 +378,116 @@ INSTRUCCIONES:
                 <p className="text-sm whitespace-pre-line">{message.content}</p>
               </div>
               
-              {/* Botones de acción rápida después de respuestas del asistente */}
-              {message.role === "assistant" && (
-                <div className="mt-3 space-y-2">
-                  {(() => {
-                    const serviciosDetectados = detectarServicios(message.content, serviciosDisponibles);
-                    const serviciosInfo = {
-                      asistencia: { 
-                        label: "🚗 Solicitar Asistencia Vehicular", 
-                        color: "bg-blue-600 hover:bg-blue-700",
-                        descripcion: "Problemas mecánicos, batería, motor"
-                      },
-                      grua: { 
-                        label: "🚛 Solicitar Servicio de Grúa", 
-                        color: "bg-red-600 hover:bg-red-700",
-                        descripcion: "Remolque, accidentes, vehículo varado"
-                      },
-                      diagnostico: { 
-                        label: "🔧 Solicitar Diagnóstico", 
-                        color: "bg-purple-600 hover:bg-purple-700",
-                        descripcion: "Análisis de fallas y problemas"
-                      },
-                      limpieza: { 
-                        label: "🧽 Solicitar Limpieza", 
-                        color: "bg-green-600 hover:bg-green-700",
-                        descripcion: "Lavado y detallado vehicular"
-                      },
-                      cerrajeria: { 
-                        label: "🔑 Solicitar Cerrajería", 
-                        color: "bg-yellow-600 hover:bg-yellow-700",
-                        descripcion: "Llaves perdidas, vehículo cerrado"
-                      }
-                    };
-
-                    return serviciosDetectados.map((tipo) => {
-                      const info = serviciosInfo[tipo];
-                      if (!info) return null;
-                      
-                      return (
-                        <div key={tipo} className="border border-input-border rounded-lg p-3 bg-card-bg">
+              {/* Botones de acción específicos cuando la IA recomienda un servicio */}
+              {message.role === "assistant" && (() => {
+                const content = message.content.toLowerCase();
+                
+                // Detectar recomendaciones específicas de servicios
+                const recomendaciones = [];
+                
+                if (content.includes("asistencia vehicular") || content.includes("servicio de asistencia") || 
+                    (content.includes("despinchado") && content.includes("técnicos"))) {
+                  recomendaciones.push({
+                    tipo: "asistencia",
+                    label: "🚗 Solicitar Asistencia Vehicular",
+                    descripcion: "Despinchado y reparación de llantas",
+                    color: "bg-blue-600 hover:bg-blue-700"
+                  });
+                }
+                
+                if (content.includes("tienda de llantas") || content.includes("llanta nueva") || content.includes("comprar llanta")) {
+                  recomendaciones.push({
+                    tipo: "llantas",
+                    label: "🛞 Ver Tienda de Llantas",
+                    descripcion: "Llantas nuevas de diferentes marcas",
+                    color: "bg-orange-600 hover:bg-orange-700"
+                  });
+                }
+                
+                if (content.includes("servicio de grúa") || content.includes("grúa")) {
+                  recomendaciones.push({
+                    tipo: "grua",
+                    label: "🚛 Solicitar Grúa",
+                    descripcion: "Remolque y traslado al taller",
+                    color: "bg-red-600 hover:bg-red-700"
+                  });
+                }
+                
+                if (content.includes("diagnóstico") || content.includes("diagnostico") || content.includes("scanner")) {
+                  recomendaciones.push({
+                    tipo: "diagnostico",
+                    label: "🔧 Solicitar Diagnóstico",
+                    descripcion: "Análisis especializado del problema",
+                    color: "bg-purple-600 hover:bg-purple-700"
+                  });
+                }
+                
+                if (content.includes("limpieza") || content.includes("lavado")) {
+                  recomendaciones.push({
+                    tipo: "limpieza",
+                    label: "🧽 Solicitar Limpieza",
+                    descripcion: "Lavado y detallado vehicular",
+                    color: "bg-green-600 hover:bg-green-700"
+                  });
+                }
+                
+                if (content.includes("cerrajería") || content.includes("llaves perdidas")) {
+                  recomendaciones.push({
+                    tipo: "cerrajeria",
+                    label: "🔑 Solicitar Cerrajería",
+                    descripcion: "Apertura y duplicado de llaves",
+                    color: "bg-yellow-600 hover:bg-yellow-700"
+                  });
+                }
+                
+                // Detectar si pregunta por ubicación para asistencia
+                if (content.includes("¿en qué punto") || content.includes("ubicación") || content.includes("dónde te encuentras")) {
+                  if (!recomendaciones.some(r => r.tipo === "asistencia")) {
+                    recomendaciones.push({
+                      tipo: "asistencia",
+                      label: "🚗 Solicitar Asistencia Vehicular",
+                      descripcion: "Despinchado y reparación en tu ubicación",
+                      color: "bg-blue-600 hover:bg-blue-700"
+                    });
+                  }
+                }
+                
+                // Solo mostrar botones si hay recomendaciones específicas
+                if (recomendaciones.length > 0) {
+                  return (
+                    <div className="mt-3 space-y-2">
+                      {recomendaciones.map((rec, index) => (
+                        <div key={index} className="border border-input-border rounded-lg p-3 bg-card-bg">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <h4 className="font-semibold text-sm">{info.label}</h4>
-                              <p className="text-xs text-gray-400">{info.descripcion}</p>
+                              <h4 className="font-semibold text-sm">{rec.label}</h4>
+                              <p className="text-xs text-gray-400">{rec.descripcion}</p>
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <button 
-                              onClick={() => confirmarServicio(tipo, info)}
-                              className={`flex-1 ${info.color} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2`}
+                            <Link 
+                              href={rec.tipo === "llantas" ? "/tienda-llantas" : `/main/extra/serviceForm?tipo=${rec.tipo}`}
+                              className="flex-1"
                             >
-                              📱 Solicitar Ahora
-                            </button>
+                              <button className={`w-full ${rec.color} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2`}>
+                                {rec.tipo === "llantas" ? "� Ver Tienda" : "�📱 Solicitar Ahora"}
+                              </button>
+                            </Link>
                             <button 
-                              onClick={() => setUserMessage(`Necesito más información sobre ${tipo}`)}
+                              onClick={() => setUserMessage(`Cuéntame más sobre el servicio de ${rec.tipo}`)}
                               className="px-3 py-2 border border-input-border rounded-lg text-sm hover:bg-input-bg transition-colors"
                             >
                               ℹ️
                             </button>
                           </div>
                         </div>
-                      );
-                    });
-                  })()}
-                  
-                  {/* Botón de Super Emergencia */}
-                  <div className="border border-red-500/30 rounded-lg p-4 bg-red-500/10">
-                    <div className="text-center mb-3">
-                      <h4 className="font-semibold text-sm text-red-400 mb-1">🚨 ¿Estás en peligro real?</h4>
-                      <p className="text-xs text-gray-400 mb-3">
-                        Sistema de monitoreo con autoridades • Cámaras • GPS • Grabación en vivo
-                      </p>
+                      ))}
                     </div>
-                    <SuperEmergencyButton className="w-full" />
-                    
-                    <div className="mt-3 pt-3 border-t border-red-500/20">
-                      <p className="text-xs text-gray-500 text-center">
-                        Para emergencias vehiculares normales, usa los botones de arriba
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  );
+                }
+                
+                return null;
+              })()}
             </div>
           ))}
 
@@ -434,42 +521,6 @@ INSTRUCCIONES:
           </button>
         </div>
       </div>
-
-      {/* Modal de confirmación */}
-      {showServiceConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card-bg rounded-lg border border-input-border max-w-md w-full p-6">
-            <h3 className="text-lg font-bold mb-4">🚗 Confirmar Solicitud de Servicio</h3>
-            <div className="mb-4">
-              <h4 className="font-semibold text-primary mb-2">{showServiceConfirm.info.label}</h4>
-              <p className="text-sm text-gray-400 mb-3">{showServiceConfirm.info.descripcion}</p>
-              <div className="bg-input-bg rounded-lg p-3 border border-input-border">
-                <p className="text-xs text-gray-400 mb-2">📝 Al continuar serás redirigido al formulario para:</p>
-                <ul className="text-xs space-y-1">
-                  <li>• Proporcionar detalles del problema</li>
-                  <li>• Confirmar tu ubicación</li>
-                  <li>• Seleccionar horario preferido</li>
-                  <li>• Recibir cotización instantánea</li>
-                </ul>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowServiceConfirm(null)}
-                className="flex-1 border border-input-border text-foreground py-2 px-4 rounded-lg text-sm hover:bg-input-bg transition-colors"
-              >
-                ❌ Cancelar
-              </button>
-              <button
-                onClick={procederConServicio}
-                className={`flex-1 ${showServiceConfirm.info.color} text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors`}
-              >
-                ✅ Continuar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

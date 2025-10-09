@@ -476,12 +476,16 @@ const ServiceForm = () => {
               >
                 <option value="">Elige un taller</option>
                 {getTalleresDisponibles()
-                  .sort((a, b) => (b.calificacion || 0) - (a.calificacion || 0))
-                  .map((t, i) => (
-                    <option key={i} value={t.nombre}>
-                      {t.nombre} {typeof t.calificacion === 'number' ? `(${t.calificacion.toFixed(1)}★)` : ''}
-                    </option>
-                  ))}
+                  .sort((a, b) => (b.rating || b.calificacion || 0) - (a.rating || a.calificacion || 0))
+                  .map((t, i) => {
+                    const ratingValue = t.rating || t.calificacion || 0;
+                    const ratingDisplay = ratingValue > 0 ? `(${ratingValue.toFixed(1)}★)` : '(Sin calificaciones)';
+                    return (
+                      <option key={i} value={t.nombre}>
+                        {t.nombre} {ratingDisplay}
+                      </option>
+                    );
+                  })}
               </select>
             </div>
           )}

@@ -31,21 +31,33 @@ export default function UserProfile() {
 
   // Verificar autenticación con delay
   useEffect(() => {
+    if (status === "loading") {
+      // Mientras se carga la sesión, no hacer nada
+      return;
+    }
+    
     if (status === "unauthenticated") {
+      // Solo mostrar mensaje después de un delay y si realmente no hay sesión
       const timer = setTimeout(() => {
-        setShowUnauthorized(true);
-      }, 1000);
+        if (status === "unauthenticated") {
+          setShowUnauthorized(true);
+        }
+      }, 2000); // Aumentar el delay
       return () => clearTimeout(timer);
-    } else if (status === "authenticated") {
+    } else if (status === "authenticated" && session?.user) {
       setShowUnauthorized(false);
     }
-  }, [status]);
+  }, [status, session]);
 
   // Cargar datos del usuario autenticado
   useEffect(() => {
-    if (session?.user?.email) {
+    if (status === "authenticated" && session?.user?.email) {
+      setError(""); // Limpiar errores previos
       fetch(`/api/users?id=${encodeURIComponent(session.user.email)}`)
         .then(async res => {
+          if (!res.ok) {
+            throw new Error(`Error ${res.status}: ${res.statusText}`);
+          }
           const data = await res.json();
           setUser(data);
           setNombre(data.nombre || "");
@@ -57,10 +69,13 @@ export default function UserProfile() {
         })
         .catch(err => {
           console.error('Error al cargar usuario:', err);
-          setError('Error al cargar los datos del usuario');
+          // Solo mostrar error si no es un problema de autenticación
+          if (!err.message.includes('401') && !err.message.includes('403')) {
+            setError('Error al cargar los datos del usuario');
+          }
         });
     }
-  }, [session]);
+  }, [session, status]);
 
   // Cargar conteo de servicios del usuario
   useEffect(() => {

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { AUTH_CONFIG, shouldSkipAutoRedirect, logAuthStatus } from "@/lib/authConfig"
 
 export default function Servicios() {
   const { data: session, status } = useSession();
@@ -19,21 +20,25 @@ export default function Servicios() {
       clearTimeout(redirectTimer);
     }
 
-    console.log('🔍 Servicios - Status de sesión:', { status, userType: session?.user?.userType });
+    logAuthStatus('Servicios', status, session);
 
     if (status === "loading") {
       return; // Esperar mientras carga
     }
 
     if (status === "unauthenticated") {
-      // Solo redirigir si pasó suficiente tiempo y definitivamente no hay sesión
-      const timer = setTimeout(() => {
-        if (status === "unauthenticated") {
-          console.log('🔄 Redirigiendo a login desde Servicios');
-          router.replace("/login");
-        }
-      }, 5000); // Aumentamos a 5 segundos para dar más tiempo
-      setRedirectTimer(timer);
+      // Solo redirigir si no estamos en una página que no debe redirigir automáticamente
+      const currentPath = window.location.pathname;
+      
+      if (!shouldSkipAutoRedirect(currentPath)) {
+        const timer = setTimeout(() => {
+          if (status === "unauthenticated") {
+            console.log('🔄 Redirigiendo a login desde Servicios');
+            router.replace("/login");
+          }
+        }, AUTH_CONFIG.REDIRECT_DELAY);
+        setRedirectTimer(timer);
+      }
     } else if (status === "authenticated" && session?.user) {
       // Limpiar cualquier timer de redirección si el usuario se autentica
       if (redirectTimer) {
